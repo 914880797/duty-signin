@@ -415,6 +415,7 @@
 
         <div class="tabs">
             <div class="tab-btn active" onclick="switchTab('roster')">📋 排班管理</div>
+            <div class="tab-btn" onclick="switchTab('groups')">👥 分组管理</div>
             <div class="tab-btn" onclick="switchTab('config')">⚙️ 时段配置</div>
         </div>
 
@@ -442,6 +443,13 @@
                     <input type="text" id="nameInput" class="form-input" placeholder="请输入值班人员昵称">
                 </div>
 
+                <div class="form-row">
+                    <span class="form-label">分组</span>
+                    <select id="groupSelect" class="form-select">
+                        <option value="">-- 请选择分组（可选） --</option>
+                    </select>
+                </div>
+
                 <button onclick="assignShift()" class="assign-btn">✅ 安排值班</button>
             </div>
 
@@ -465,11 +473,36 @@
                     </select>
                 </div>
 
+                <div class="form-row">
+                    <span class="form-label">分组</span>
+                    <select id="editGroupSelect" class="form-select">
+                        <option value="">-- 请选择分组（可选） --</option>
+                    </select>
+                </div>
+
                 <button onclick="saveEditShift()" class="edit-btn">💾 保存修改</button>
                 <button onclick="cancelEdit()" class="cancel-btn">取消</button>
             </div>
 
             <div class="roster-list" id="rosterList">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <!-- 分组管理标签页 -->
+        <div id="groupsTab" class="tab-content">
+            <div class="assign-form">
+                <div class="form-title">➕ 新增分组</div>
+                
+                <div class="form-row">
+                    <span class="form-label">分组名称</span>
+                    <input type="text" id="groupNameInput" class="form-input" placeholder="请输入分组名称（如：会议室、电报）">
+                </div>
+
+                <button onclick="addNewGroup()" class="assign-btn">✅ 创建分组</button>
+            </div>
+
+            <div class="roster-list" id="groupsList">
                 <div class="loading">加载中...</div>
             </div>
         </div>
@@ -505,6 +538,7 @@
         let allRoster = [];
         let currentSearch = '';
         let shiftConfig = [];
+        let allGroups = [];
 
         const defaultShifts = [
             { id: 1, name: '04:00-06:00', startTime: '04:00', endTime: '06:00' },
@@ -526,7 +560,9 @@
         window.addEventListener('DOMContentLoaded', function() {
             loadShiftConfig();
             loadRoster();
+            loadGroups();
             updateShiftSelects();
+            updateGroupSelects();
         });
 
         function switchTab(tab) {
@@ -536,8 +572,12 @@
             if (tab === 'roster') {
                 document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
                 document.getElementById('rosterTab').classList.add('active');
-            } else {
+            } else if (tab === 'groups') {
                 document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+                document.getElementById('groupsTab').classList.add('active');
+                loadGroups();
+            } else {
+                document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
                 document.getElementById('configTab').classList.add('active');
                 loadShiftConfig();
             }
@@ -651,6 +691,216 @@
             editNewShift.innerHTML = '<option value="">-- 请选择新时段 --</option>' + options;
         }
 
+        // 加载分组列表
+        async function loadGroups() {
+            const groupsList = document.getElementById('groupsList');
+            groupsList.innerHTML = '<div class="loading">加载中...</div>';
+            
+            try {
+                const response = await fetch('/api/groups');
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    allGroups = result.data || [];
+                    renderGroups(allGroups);
+                    updateGroupSelects();
+                } else {
+                    groupsList.innerHTML = '<div class="roster-empty">加载失败：' + (result.error || '未知错误') + '</div>';
+                }
+            } catch (error) {
+                console.error('加载分组失败:', error);
+                groupsList.innerHTML = '<div class="roster-empty">❌ 网络请求失败</div>';
+            }
+        }
+
+        // 渲染分组列表
+        function renderGroups(groups) {
+            const groupsList = document.getElementById('groupsList');
+            
+            if (groups.length === 0) {
+                groupsList.innerHTML = '<div class="roster-empty">暂无分组</div>';
+                return;
+            }
+            
+            groupsList.innerHTML = groups.map(group => `
+                <div class="roster-item" id="group-${group.id}">
+                    <div class="roster-info">
+                        <span class="roster-time" style="min-width: 30px;">#${group.order_index || '-'}</span>
+                        <input type="text" value="${group.name}" 
+                            onchange="renameGroup(${group.id}, this.value)"
+                            style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid #3a3a50; border-radius: 5px; padding: 8px 12px; color: #e0e0e0;">
+                    </div>
+                    <div class="roster-actions">
+                        <button onclick="moveGroupUp(${group.id})" class="action-btn" style="background: rgba(108, 99, 255, 0.2); color: #6c63ff; border: 1px solid #6c63ff;">⬆️</button>
+                        <button onclick="moveGroupDown(${group.id})" class="action-btn" style="background: rgba(108, 99, 255, 0.2); color: #6c63ff; border: 1px solid #6c63ff;">⬇️</button>
+                        <button onclick="deleteGroup(${group.id})" class="action-btn delete-btn">🗑️ 删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 更新分组选择框
+        function updateGroupSelects() {
+            const groupSelect = document.getElementById('groupSelect');
+            const editGroupSelect = document.getElementById('editGroupSelect');
+            const options = allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            groupSelect.innerHTML = '<option value="">-- 请选择分组（可选） --</option>' + options;
+            editGroupSelect.innerHTML = '<option value="">-- 请选择分组（可选） --</option>' + options;
+        }
+
+        // 创建新分组
+        async function addNewGroup() {
+            const name = document.getElementById('groupNameInput').value.trim();
+            
+            if (!name) {
+                showMessage('⚠️ 请输入分组名称', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/groups', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, order_index: allGroups.length + 1 })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('✅ 分组创建成功！', 'success');
+                    document.getElementById('groupNameInput').value = '';
+                    loadGroups();
+                } else {
+                    showMessage('❌ 创建失败：' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('创建分组失败:', error);
+                showMessage('❌ 网络请求失败', 'error');
+            }
+        }
+
+        // 重命名分组
+        async function renameGroup(id, newName) {
+            if (!newName || !newName.trim()) {
+                showMessage('⚠️ 分组名称不能为空', 'error');
+                loadGroups(); // 恢复原名称
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/groups', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, name: newName.trim() })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // 更新本地数据
+                    const group = allGroups.find(g => g.id === id);
+                    if (group) group.name = newName.trim();
+                } else {
+                    showMessage('❌ 重命名失败：' + result.error, 'error');
+                    loadGroups();
+                }
+            } catch (error) {
+                console.error('重命名分组失败:', error);
+                loadGroups();
+            }
+        }
+
+        // 上移分组
+        async function moveGroupUp(id) {
+            const group = allGroups.find(g => g.id === id);
+            if (!group) return;
+            
+            const index = allGroups.findIndex(g => g.id === id);
+            if (index === 0) {
+                showMessage('⚠️ 已经是第一个分组', 'error');
+                return;
+            }
+            
+            const prevGroup = allGroups[index - 1];
+            const tempOrder = group.order_index;
+            
+            try {
+                await fetch('/api/groups', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, order_index: prevGroup.order_index })
+                });
+                
+                await fetch('/api/groups', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: prevGroup.id, order_index: tempOrder })
+                });
+                
+                loadGroups();
+            } catch (error) {
+                console.error('移动分组失败:', error);
+            }
+        }
+
+        // 下移分组
+        async function moveGroupDown(id) {
+            const group = allGroups.find(g => g.id === id);
+            if (!group) return;
+            
+            const index = allGroups.findIndex(g => g.id === id);
+            if (index === allGroups.length - 1) {
+                showMessage('⚠️ 已经是最后一个分组', 'error');
+                return;
+            }
+            
+            const nextGroup = allGroups[index + 1];
+            const tempOrder = group.order_index;
+            
+            try {
+                await fetch('/api/groups', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, order_index: nextGroup.order_index })
+                });
+                
+                await fetch('/api/groups', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: nextGroup.id, order_index: tempOrder })
+                });
+                
+                loadGroups();
+            } catch (error) {
+                console.error('移动分组失败:', error);
+            }
+        }
+
+        // 删除分组
+        async function deleteGroup(id) {
+            if (!confirm('确定要删除该分组吗？')) return;
+            
+            try {
+                const response = await fetch('/api/groups', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showMessage('✅ 分组删除成功！', 'success');
+                    loadGroups();
+                } else {
+                    showMessage('❌ 删除失败：' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('删除分组失败:', error);
+                showMessage('❌ 网络请求失败', 'error');
+            }
+        }
+
         async function loadRoster() {
             const rosterList = document.getElementById('rosterList');
             rosterList.innerHTML = '<div class="loading">加载中...</div>';
@@ -693,9 +943,10 @@
                         <div class="roster-info">
                             <span class="roster-time">${item.duty_time}</span>
                             <span class="roster-name">${item.name}</span>
+                            ${item.group_name ? `<span style="background: rgba(108, 99, 255, 0.1); color: #6c63ff; padding: 5px 10px; border-radius: 5px; font-size: 12px; margin-left: 10px;">${item.group_name}</span>` : ''}
                         </div>
                         <div class="roster-actions">
-                            <button onclick="showEditForm('${item.duty_time}', '${item.name}')" class="action-btn edit-time-btn">✏️ 修改时段</button>
+                            <button onclick="showEditForm('${item.duty_time}', '${item.name}', ${item.group_id || ''})" class="action-btn edit-time-btn">✏️ 修改时段</button>
                             <button onclick="deleteShift('${item.duty_time}', '${item.name}')" class="action-btn delete-btn">🗑️ 删除</button>
                         </div>
                     </div>
@@ -721,6 +972,7 @@
             
             const shift = document.getElementById('shiftSelect').value.trim();
             const name = document.getElementById('nameInput').value.trim();
+            const groupId = document.getElementById('groupSelect').value || null;
             
             if (!shift) { showMessage('⚠️ 请选择值班时段', 'error'); return; }
             if (!name) { showMessage('⚠️ 请输入昵称', 'error'); return; }
@@ -733,16 +985,20 @@
             const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
             
             try {
+                const config = [{ duty_date: today, duty_time: shift, name: name }];
+                if (groupId) config[0].group_id = parseInt(groupId);
+                
                 const response = await fetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date: today, config: [{ duty_date: today, duty_time: shift, name: name }] })
+                    body: JSON.stringify({ date: today, config: config })
                 });
                 const result = await response.json();
                 if (response.ok) {
                     showMessage('✅ 安排成功！', 'success');
                     document.getElementById('shiftSelect').value = '';
                     document.getElementById('nameInput').value = '';
+                    document.getElementById('groupSelect').value = '';
                     setTimeout(() => loadRoster(), 1000);
                 } else {
                     showMessage('❌ 安排失败：' + result.error, 'error');
@@ -753,10 +1009,15 @@
             }
         }
 
-        function showEditForm(oldShift, name) {
+        function showEditForm(oldShift, name, currentGroupId) {
             document.getElementById('editOldShift').value = oldShift;
             document.getElementById('editName').value = name;
             document.getElementById('editNewShift').value = '';
+            if (currentGroupId) {
+                document.getElementById('editGroupSelect').value = currentGroupId;
+            } else {
+                document.getElementById('editGroupSelect').value = '';
+            }
             document.getElementById('editForm').classList.add('active');
             document.getElementById('editForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -771,6 +1032,7 @@
             const oldShift = document.getElementById('editOldShift').value;
             const name = document.getElementById('editName').value;
             const newShift = document.getElementById('editNewShift').value;
+            const groupId = document.getElementById('editGroupSelect').value || null;
             
             if (!newShift) { showMessage('⚠️ 请选择新时段', 'error'); return; }
             if (newShift === oldShift) { showMessage('⚠️ 新时段与原时段相同', 'error'); return; }
@@ -795,12 +1057,15 @@
                 });
                 
                 // 2. 再添加新的时段排班
+                const config = [{ duty_date: today, duty_time: newShift, name: name }];
+                if (groupId) config[0].group_id = parseInt(groupId);
+                
                 const addResponse = await fetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         date: today, 
-                        config: [{ duty_date: today, duty_time: newShift, name: name }] 
+                        config: config 
                     })
                 });
                 

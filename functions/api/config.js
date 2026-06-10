@@ -20,14 +20,14 @@ export async function onRequestPost(context) {
             }
         }
         
-        // 批量插入或更新排班
+        // 批量插入或更新排班（支持分组）
         const batch = [];
         for (const item of config) {
             batch.push(
                 env.DB.prepare(`
-                    INSERT OR REPLACE INTO duty_config (duty_date, duty_time, name)
-                    VALUES (?, ?, ?)
-                `).bind(item.duty_date, item.duty_time, item.name)
+                    INSERT OR REPLACE INTO duty_config (duty_date, duty_time, name, group_id)
+                    VALUES (?, ?, ?, ?)
+                `).bind(item.duty_date, item.duty_time, item.name, item.group_id || null)
             );
         }
         await env.DB.batch(batch);
@@ -53,10 +53,13 @@ export async function onRequestGet(context) {
             return Response.json({ error: '缺少日期参数' }, { status: 400 });
         }
         
+        // 查询排班时关联分组信息
         const { results } = await env.DB.prepare(`
-            SELECT duty_time, name FROM duty_config
-            WHERE duty_date = ?
-            ORDER BY duty_time
+            SELECT dc.duty_time, dc.name, dc.group_id, sg.name as group_name
+            FROM duty_config dc
+            LEFT JOIN shift_groups sg ON dc.group_id = sg.id
+            WHERE dc.duty_date = ?
+            ORDER BY dc.duty_time, sg.order_index, sg.name
         `).bind(date).all();
         
         return Response.json({ 
