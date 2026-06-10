@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>详细打卡记录 - 值班打卡系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        /* 筛选区域 */
+        .filter-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            color: #b0b0c0;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #3a3a50;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #6c63ff, #5a52d5);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-export {
+            background: linear-gradient(90deg, #4caf50, #45a049);
+            color: white;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        /* 数据表格 */
+        .table-container {
+            overflow-x: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: rgba(108, 99, 255, 0.2);
+            color: #6c63ff;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 15px;
+            color: #e0e0e0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+
+        tr:hover td {
+            background: rgba(108, 99, 255, 0.1);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8c92ac;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8c92ac;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        /* 回主页按钮 */
+        .back-home {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(108, 99, 255, 0.2);
+            border: 1px solid rgba(108, 99, 255, 0.5);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .back-home:hover {
+            background: rgba(108, 99, 255, 0.4);
+        }
+
+        /* 导出预览弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 1200px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .preview-info {
+            color: #8c92ac;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .preview-table th {
+            background: rgba(108, 99, 255, 0.3);
+            color: #6c63ff;
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .preview-table td {
+            padding: 10px;
+            color: #e0e0e0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 768px) {
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .action-bar {
+                margin-left: 0;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-home">← 返回主页</a>
+
+    <div class="container">
+        <h1>📋 详细打卡记录</h1>
+
+        <!-- 筛选区域 -->
+        <div class="filter-section">
+            <div class="filter-group">
+                <label>开始日期</label>
+                <input type="date" id="startDate">
+            </div>
+
+            <div class="filter-group">
+                <label>结束日期</label>
+                <input type="date" id="endDate">
+            </div>
+
+            <div class="filter-group">
+                <label>时段</label>
+                <select id="timeSlotSelect">
+                    <option value="">全部时段</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>分组</label>
+                <select id="groupSelect">
+                    <option value="">全部分组</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>姓名</label>
+                <input type="text" id="nameInput" placeholder="输入姓名">
+            </div>
+
+            <div class="action-bar">
+                <button onclick="loadData()" class="btn btn-primary">🔄 刷新数据</button>
+                <button onclick="clearFilters()" class="btn btn-secondary">清除筛选</button>
+                <button onclick="showExportPreview()" class="btn btn-export">📥 导出预览</button>
+            </div>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>时段</th>
+                        <th>姓名</th>
+                        <th>分组</th>
+                        <th>打卡时间</th>
+                        <th>IP 地址</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsBody">
+                    <tr>
+                        <td colspan="6" class="loading">加载中...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 导出预览弹窗 -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📥 导出预览</div>
+                <button onclick="closeExportModal()" class="close-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="preview-info">
+                    预览前 <span id="previewCount">10</span> 条记录，共 <span id="totalCount">0</span> 条记录
+                </div>
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>时段</th>
+                            <th>姓名</th>
+                            <th>分组</th>
+                            <th>打卡时间</th>
+                            <th>IP 地址</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button onclick="exportData('csv')" class="btn btn-export">📄 导出 CSV (Excel)</button>
+                <button onclick="exportData('json')" class="btn btn-export">📝 导出 JSON</button>
+                <button onclick="exportData('txt')" class="btn btn-export">📃 导出 TXT</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allRecords = [];
+        let filteredRecords = [];
+
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            // 默认日期为今天
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+            
+            // 默认开始日期为 30 天前
+            const startDate = new Date(bjTimestamp - (30 * 24 * 60 * 60 * 1000));
+            const startStr = `${startDate.getUTCFullYear()}-${pad(startDate.getUTCMonth() + 1)}-${pad(startDate.getUTCDate())}`;
+            
+            document.getElementById('endDate').value = today;
+            document.getElementById('startDate').value = startStr;
+
+            loadTimeSlots();
+            loadGroups();
+            loadData();
+        });
+
+        // 加载时段列表
+        async function loadTimeSlots() {
+            try {
+                const response = await fetch('/api/time-slots');
+                const slots = await response.json();
+                
+                const select = document.getElementById('timeSlotSelect');
+                if (Array.isArray(slots)) {
+                    slots.forEach(slot => {
+                        const option = document.createElement('option');
+                        option.value = slot.time_slot;
+                        option.textContent = slot.time_slot;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载时段失败:', error);
+            }
+        }
+
+        // 加载分组列表
+        async function loadGroups() {
+            try {
+                const response = await fetch('/api/groups');
+                const groups = await response.json();
+                
+                const select = document.getElementById('groupSelect');
+                if (Array.isArray(groups)) {
+                    groups.forEach(group => {
+                        const option = document.createElement('option');
+                        option.value = group.id;
+                        option.textContent = group.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载分组失败:', error);
+            }
+        }
+
+        // 加载数据
+        async function loadData() {
+            const tbody = document.getElementById('recordsBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
+
+            const params = new URLSearchParams();
+            
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const timeSlot = document.getElementById('timeSlotSelect').value;
+            const groupId = document.getElementById('groupSelect').value;
+            const name = document.getElementById('nameInput').value.trim();
+
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            if (timeSlot) params.append('time_slot', timeSlot);
+            if (groupId) params.append('group_id', groupId);
+            if (name) params.append('name', name);
+
+            try {
+                const response = await fetch(`/api/records?${params.toString()}`);
+                const records = await response.json();
+                
+                allRecords = records;
+                filteredRecords = records;
+
+                if (records.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty">
+                                <div class="empty-icon">📭</div>
+                                <div>暂无打卡记录</div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = records.map(record => `
+                    <tr>
+                        <td>${record.duty_date || '-'}</td>
+                        <td>${record.duty_time || '-'}</td>
+                        <td>${record.name || '-'}</td>
+                        <td>${record.group_name || '-'}</td>
+                        <td>${record.created_at ? formatTime(record.created_at) : '-'}</td>
+                        <td>${record.ip_address || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                tbody.innerHTML = `<tr><td colspan="6" class="empty">加载失败：${error.message}</td></tr>`;
+            }
+        }
+
+        // 格式化时间（转换为北京时间）
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
+        }
+
+        // 清除筛选
+        function clearFilters() {
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+            
+            const startDate = new Date(bjTimestamp - (30 * 24 * 60 * 60 * 1000));
+            const startStr = `${startDate.getUTCFullYear()}-${pad(startDate.getUTCMonth() + 1)}-${pad(startDate.getUTCDate())}`;
+
+            document.getElementById('startDate').value = startStr;
+            document.getElementById('endDate').value = today;
+            document.getElementById('timeSlotSelect').value = '';
+            document.getElementById('groupSelect').value = '';
+            document.getElementById('nameInput').value = '';
+            
+            loadData();
+        }
+
+        // 显示导出预览
+        function showExportPreview() {
+            const modal = document.getElementById('exportModal');
+            const previewBody = document.getElementById('previewBody');
+            const previewCount = document.getElementById('previewCount');
+            const totalCount = document.getElementById('totalCount');
+
+            const previewData = filteredRecords.slice(0, 10);
+            previewCount.textContent = Math.min(10, filteredRecords.length);
+            totalCount.textContent = filteredRecords.length;
+
+            previewBody.innerHTML = previewData.map(record => `
+                <tr>
+                    <td>${record.duty_date || '-'}</td>
+                    <td>${record.duty_time || '-'}</td>
+                    <td>${record.name || '-'}</td>
+                    <td>${record.group_name || '-'}</td>
+                    <td>${record.created_at ? formatTime(record.created_at) : '-'}</td>
+                    <td>${record.ip_address || '-'}</td>
+                </tr>
+            `).join('');
+
+            modal.classList.add('active');
+        }
+
+        // 关闭导出预览
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        // 导出数据
+        function exportData(format) {
+            if (filteredRecords.length === 0) {
+                alert('⚠️ 没有可导出的数据');
+                return;
+            }
+
+            let content = '';
+            let mimeType = '';
+            let extension = '';
+
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const dateStr = `${bjTime.getUTCFullYear()}${pad(bjTime.getUTCMonth() + 1)}${pad(bjTime.getUTCDate())}`;
+            const filename = `打卡记录_${dateStr}`;
+
+            if (format === 'csv') {
+                // CSV 格式（带 BOM，Excel 可识别中文）
+                content = '\uFEFF';
+                content += '日期，时段，姓名，分组，打卡时间，IP 地址\n';
+                content += filteredRecords.map(r => 
+                    `"${r.duty_date || ''}","${r.duty_time || ''}","${r.name || ''}","${r.group_name || ''}","${r.created_at || ''}","${r.ip_address || ''}"`
+                ).join('\n');
+                mimeType = 'text/csv;charset=utf-8;';
+                extension = 'csv';
+            } else if (format === 'json') {
+                // JSON 格式
+                content = JSON.stringify(filteredRecords, null, 2);
+                mimeType = 'application/json';
+                extension = 'json';
+            } else if (format === 'txt') {
+                // TXT 格式（表格对齐）
+                content = '日期          时段      姓名      分组      打卡时间            IP 地址\n';
+                content += '='.repeat(80) + '\n';
+                content += filteredRecords.map(r => 
+                    `${(r.duty_date || '').padEnd(12)} ${(r.duty_time || '').padEnd(8)} ${(r.name || '').padEnd(8)} ${(r.group_name || '').padEnd(8)} ${(r.created_at || '').padEnd(20)} ${(r.ip_address || '')}`
+                ).join('\n');
+                mimeType = 'text/plain;charset=utf-8;';
+                extension = 'txt';
+            }
+
+            const blob = new Blob([content], { type: mimeType });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${filename}.${extension}`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+
+            closeExportModal();
+            alert(`✅ 已导出 ${filteredRecords.length} 条记录为 ${filename}.${extension}`);
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById('exportModal').addEventListener('click', (e) => {
+            if (e.target.id === 'exportModal') {
+                closeExportModal();
+            }
+        });
+    </script>
+</body>
+</html>

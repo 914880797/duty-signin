@@ -31,6 +31,46 @@
             gap: 10px;
         }
 
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .back-link {
+            padding: 10px 20px;
+            background: rgba(108, 99, 255, 0.2);
+            border: 1px solid rgba(108, 99, 255, 0.5);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(108, 99, 255, 0.4);
+        }
+
+        .records-link {
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #4caf50, #45a049);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .records-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
         /* 筛选区域 */
         .filter-section {
             background: linear-gradient(145deg, #1a1a2e, #16213e);
@@ -369,7 +409,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 打卡数据看板</h1>
+        <div class="page-header">
+            <h1>📊 打卡数据看板</h1>
+            <div style="display: flex; gap: 10px;">
+                <a href="records.html" class="records-link">📋 详细记录</a>
+                <a href="index.html" class="back-link">← 返回主页</a>
+            </div>
+        </div>
 
         <!-- 筛选区域 -->
         <div class="filter-section">
