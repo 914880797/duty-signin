@@ -2,19 +2,20 @@ export async function onRequestPost({ request, env }) {
   try {
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     
-    // 获取北京时间（UTC+8）
+    // 获取 UTC 时间，然后手动加上 8 小时得到北京时间
     const now = new Date();
-    const bjTimeStr = now.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-    const bjDate = new Date(bjTimeStr);
+    const utcTimestamp = now.getTime();
+    const bjTimestamp = utcTimestamp + (8 * 60 * 60 * 1000);
+    const bjDate = new Date(bjTimestamp);
     
     const pad = (n) => String(n).padStart(2, '0');
-    const today = `${bjDate.getFullYear()}-${pad(bjDate.getMonth() + 1)}-${pad(bjDate.getDate())}`;
-    const currentTime = `${pad(bjDate.getHours())}:${pad(bjDate.getMinutes())}`;
-    const created_at = `${today} ${pad(bjDate.getHours())}:${pad(bjDate.getMinutes())}:${pad(bjDate.getSeconds())}`;
+    const today = `${bjDate.getUTCFullYear()}-${pad(bjDate.getUTCMonth() + 1)}-${pad(bjDate.getUTCDate())}`;
+    const currentTime = `${pad(bjDate.getUTCHours())}:${pad(bjDate.getUTCMinutes())}`;
+    const created_at = `${today} ${pad(bjDate.getUTCHours())}:${pad(bjDate.getUTCMinutes())}:${pad(bjDate.getUTCSeconds())}`;
 
     console.log('=== 打卡请求开始 ===');
-    console.log('UTC 时间:', now.toISOString());
-    console.log('北京时间:', bjTimeStr);
+    console.log('UTC 时间戳:', utcTimestamp);
+    console.log('北京时间戳:', bjTimestamp);
     console.log('解析后的日期:', today);
     console.log('解析后的时间:', currentTime);
 
