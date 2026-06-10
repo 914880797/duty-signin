@@ -474,11 +474,15 @@
 
         // 加载数据
         async function loadData() {
+            console.log('=== 开始加载数据 ===');
+            
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
             const shift = document.getElementById('shiftSelect').value;
             const groupId = document.getElementById('groupSelect').value;
             const nameSearch = document.getElementById('nameSearch').value.trim();
+
+            console.log('筛选条件:', { startDate, endDate, shift, groupId, nameSearch });
 
             // 获取打卡记录
             let url = '/api/records';
@@ -489,15 +493,22 @@
             
             url += '?' + params.toString();
 
+            console.log('请求 URL:', url);
+
             try {
                 const response = await fetch(url);
+                console.log('响应状态:', response.status);
+                
                 if (!response.ok) {
                     throw new Error('HTTP ' + response.status);
                 }
                 allRecords = await response.json();
+                console.log('API 返回数据:', allRecords);
+                console.log('数据条数:', allRecords.length);
                 
                 // 确保是数组
                 if (!Array.isArray(allRecords)) {
+                    console.error('API 返回的不是数组:', typeof allRecords);
                     allRecords = [];
                 }
                 
@@ -508,9 +519,13 @@
                     return true;
                 });
 
+                console.log('筛选后数据:', filteredRecords);
+
                 renderStats();
                 renderCharts();
                 renderTable();
+                
+                console.log('=== 数据加载完成 ===');
             } catch (error) {
                 console.error('加载数据失败:', error);
                 alert('加载数据失败：' + error.message);
@@ -580,10 +595,22 @@
         // 按分组分布图表
         function renderGroupChart() {
             const groupCounts = {};
-            filteredRecords.forEach(r => {
+            console.log('=== 分组图表调试 ===');
+            console.log('原始数据条数:', filteredRecords.length);
+            
+            filteredRecords.forEach((r, index) => {
+                console.log(`记录${index}:`, {
+                    name: r.name,
+                    group_id: r.group_id,
+                    group_name: r.group_name,
+                    duty_time: r.duty_time
+                });
+                
                 const groupName = r.group_name || '未分组';
                 groupCounts[groupName] = (groupCounts[groupName] || 0) + 1;
             });
+            
+            console.log('分组统计结果:', groupCounts);
 
             const maxCount = Math.max(...Object.values(groupCounts), 1);
             const chartEl = document.getElementById('groupChart');
