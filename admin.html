@@ -233,6 +233,14 @@
             cursor: pointer;
         }
 
+        .info-box {
+            background: rgba(108, 99, 255, 0.1);
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
         .edit-form {
             background: rgba(255, 193, 7, 0.1);
             border: 1px solid rgba(255, 193, 7, 0.3);
@@ -418,7 +426,8 @@
         <div class="tabs">
             <div class="tab-btn active" onclick="switchTab('roster')">📋 排班管理</div>
             <div class="tab-btn" onclick="switchTab('groups')">👥 分组管理</div>
-            <div class="tab-btn" onclick="switchTab('config')">⚙️ 时段配置</div>
+            <div class="tab-btn" onclick="switchTab('settings')">⚙️ 打卡设置</div>
+            <div class="tab-btn" onclick="switchTab('config')">🕐 时段配置</div>
         </div>
 
         <div id="rosterTab" class="tab-content active">
@@ -509,6 +518,47 @@
             </div>
         </div>
 
+        <!-- 打卡设置标签页 -->
+        <div id="settingsTab" class="tab-content">
+            <div class="assign-form">
+                <div class="form-title">📅 打卡周期设置</div>
+                
+                <div class="form-row">
+                    <span class="form-label">打卡起始日期</span>
+                    <input type="date" id="cycleStartDate" class="form-input">
+                </div>
+
+                <div style="background: rgba(108, 99, 255, 0.1); border: 1px solid rgba(108, 99, 255, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <p style="color: #8c92ac; font-size: 14px; margin-bottom: 10px;">
+                        ℹ️ 说明：设置新的打卡起始日期后，系统会清空所有历史打卡记录，从新的起始日期重新开始一轮打卡。
+                    </p>
+                    <p style="color: #ff6b6b; font-size: 14px; font-weight: bold;">
+                        ⚠️ 警告：此操作不可恢复，请谨慎操作！
+                    </p>
+                </div>
+
+                <button onclick="saveCycleSettings()" class="assign-btn">💾 保存打卡设置</button>
+            </div>
+
+            <div class="info-box" style="background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 10px; padding: 20px; margin-top: 20px;">
+                <div style="color: #4caf50; font-size: 18px; font-weight: bold; margin-bottom: 15px;">📊 当前打卡信息</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
+                        <div style="color: #8c92ac; font-size: 12px; margin-bottom: 5px;">当前打卡周期起始日</div>
+                        <div id="currentCycleStart" style="color: #6c63ff; font-size: 20px; font-weight: bold;">--</div>
+                    </div>
+                    <div style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
+                        <div style="color: #8c92ac; font-size: 12px; margin-bottom: 5px;">已打卡天数</div>
+                        <div id="checkedDays" style="color: #4caf50; font-size: 20px; font-weight: bold;">--</div>
+                    </div>
+                    <div style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
+                        <div style="color: #8c92ac; font-size: 12px; margin-bottom: 5px;">总打卡记录</div>
+                        <div id="totalRecords" style="color: #ff9800; font-size: 20px; font-weight: bold;">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="configTab" class="tab-content">
             <div class="warning-box">
                 ⚠️ 注意：修改时段配置会影响所有排班。时段之间不能有重叠。
@@ -578,8 +628,12 @@
                 document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
                 document.getElementById('groupsTab').classList.add('active');
                 loadGroups();
-            } else {
+            } else if (tab === 'settings') {
                 document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+                document.getElementById('settingsTab').classList.add('active');
+                loadCycleSettings();
+            } else {
+                document.querySelector('.tab-btn:nth-child(4)').classList.add('active');
                 document.getElementById('configTab').classList.add('active');
                 loadShiftConfig();
             }
@@ -1082,6 +1136,108 @@
             } catch (error) {
                 console.error('修改时段失败:', error);
                 showMessage('❌ 网络请求失败', 'error');
+            }
+        }
+
+        // 加载打卡周期设置
+        function loadCycleSettings() {
+            const cycleStart = localStorage.getItem('cycleStartDate');
+            if (cycleStart) {
+                document.getElementById('cycleStartDate').value = cycleStart;
+                document.getElementById('currentCycleStart').innerText = cycleStart;
+            } else {
+                // 默认为今天
+                const now = new Date();
+                const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+                const bjTime = new Date(bjTimestamp);
+                const pad = (n) => String(n).padStart(2, '0');
+                const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+                document.getElementById('cycleStartDate').value = today;
+                document.getElementById('currentCycleStart').innerText = '未设置';
+            }
+            
+            // 加载统计信息
+            loadCycleStats();
+        }
+
+        // 加载周期统计
+        async function loadCycleStats() {
+            const cycleStart = localStorage.getItem('cycleStartDate');
+            
+            try {
+                // 获取打卡记录
+                let url = '/api/records';
+                if (cycleStart) {
+                    url += `?start_date=${cycleStart}`;
+                }
+                
+                const response = await fetch(url);
+                const records = await response.json();
+                
+                if (Array.isArray(records)) {
+                    document.getElementById('totalRecords').innerText = records.length;
+                    
+                    // 计算已打卡天数
+                    const uniqueDates = new Set(records.map(r => r.duty_date));
+                    document.getElementById('checkedDays').innerText = uniqueDates.size;
+                }
+            } catch (error) {
+                console.error('加载统计失败:', error);
+            }
+        }
+
+        // 保存打卡周期设置
+        async function saveCycleSettings() {
+            if (!checkAdminAuth()) return;
+            
+            const newStartDate = document.getElementById('cycleStartDate').value;
+            const oldStartDate = localStorage.getItem('cycleStartDate');
+            
+            if (!newStartDate) {
+                showMessage('⚠️ 请选择起始日期', 'error');
+                return;
+            }
+            
+            // 如果日期没有变化，提示用户
+            if (newStartDate === oldStartDate) {
+                showMessage('⚠️ 起始日期没有变化', 'error');
+                return;
+            }
+            
+            // 确认是否要清空记录
+            const confirmed = confirm(
+                `⚠️ 警告：保存新的打卡设置后，将清空所有历史打卡记录！\n\n` +
+                `当前起始日期：${oldStartDate || '未设置'}\n` +
+                `新的起始日期：${newStartDate}\n\n` +
+                `确定要继续吗？`
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                // 1. 清空所有打卡记录
+                const clearResponse = await fetch('/api/admin/clear-records', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const clearResult = await clearResponse.json();
+                
+                if (!clearResponse.ok) {
+                    throw new Error(clearResult.error || '清空记录失败');
+                }
+                
+                // 2. 保存新的周期起始日期到 localStorage
+                localStorage.setItem('cycleStartDate', newStartDate);
+                document.getElementById('currentCycleStart').innerText = newStartDate;
+                
+                showMessage('✅ 打卡设置已保存，历史记录已清空！', 'success');
+                
+                // 刷新统计信息
+                loadCycleStats();
+            } catch (error) {
+                console.error('保存设置失败:', error);
+                showMessage('❌ 保存失败：' + error.message, 'error');
             }
         }
 
