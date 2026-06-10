@@ -76,11 +76,20 @@ export async function onRequestPost({ request, env }) {
     const currentDutyPeriod = getCurrentDutyPeriod(currentTime);
     const personDutyPeriod = getDutyTimeRange(personDutyTime);
     
+    console.log('当前时间:', currentTime);
+    console.log('当前时间分钟数:', currentDutyPeriod ? currentDutyPeriod.startTime + '-' + currentDutyPeriod.endTime : 'null');
+    console.log('值班时段:', personDutyTime);
+    console.log('值班时段分钟数:', personDutyPeriod ? personDutyPeriod.startTime + '-' + personDutyPeriod.endTime : 'null');
+    
     if (personDutyPeriod && currentDutyPeriod) {
       const isWithinTimeRange = (
         currentDutyPeriod.startTime >= personDutyPeriod.startTime &&
         currentDutyPeriod.endTime <= personDutyPeriod.endTime
       );
+      
+      console.log('时间验证结果:', isWithinTimeRange);
+      console.log('条件 1 - 当前开始 >= 值班开始:', currentDutyPeriod.startTime >= personDutyPeriod.startTime);
+      console.log('条件 2 - 当前结束 <= 值班结束:', currentDutyPeriod.endTime <= personDutyPeriod.endTime);
       
       if (!isWithinTimeRange) {
         return Response.json(
@@ -92,6 +101,8 @@ export async function onRequestPost({ request, env }) {
           { status: 400 }
         );
       }
+    } else {
+      console.log('验证失败：personDutyPeriod 或 currentDutyPeriod 为空');
     }
 
     // 检查今天是否已经打过卡（同一天同一个时段只能打一次）
