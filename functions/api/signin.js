@@ -28,9 +28,9 @@ export async function onRequestPost({ request, env }) {
     
     const trimmedName = name.trim();
 
-    // 查询排班
+    // 查询排班（包含 group_id）
     const dutyConfig = await env.DB.prepare(`
-      SELECT name, duty_time, duty_date FROM duty_config
+      SELECT name, duty_time, duty_date, group_id FROM duty_config
       WHERE name = ? AND duty_date >= ?
       ORDER BY duty_date ASC
       LIMIT 1
@@ -78,9 +78,9 @@ export async function onRequestPost({ request, env }) {
 
     // 插入打卡记录
     await env.DB.prepare(`
-      INSERT INTO signin_records (name, duty_date, duty_time, created_at, ip_address)
-      VALUES (?, ?, ?, ?, ?)
-    `).bind(trimmedName, dutyConfig.duty_date, personDutyTime, created_at, ip).run();
+      INSERT INTO signin_records (name, duty_date, duty_time, group_id, created_at, ip_address)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(trimmedName, dutyConfig.duty_date, personDutyTime, dutyConfig.group_id || null, created_at, ip).run();
 
     return Response.json({ 
       ok: true, 
