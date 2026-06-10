@@ -148,6 +148,8 @@ function getCurrentDutyPeriod(timeStr) {
   const [hours, minutes] = timeStr.split(':').map(Number);
   const timeInMinutes = hours * 60 + minutes;
   
+  console.log('getCurrentDutyPeriod 输入:', timeStr, '分钟数:', timeInMinutes);
+  
   const shifts = [
     { start: 4 * 60, end: 6 * 60, name: '04:00-06:00' },
     { start: 6 * 60, end: 8 * 60, name: '06:00-08:00' },
@@ -166,11 +168,15 @@ function getCurrentDutyPeriod(timeStr) {
   ];
   
   for (const shift of shifts) {
-    if (timeInMinutes >= shift.start && timeInMinutes < shift.end) {
+    const matched = timeInMinutes >= shift.start && timeInMinutes < shift.end;
+    console.log('检查时段:', shift.name, `(${shift.start}-${shift.end})`, '匹配:', matched);
+    if (matched) {
+      console.log('匹配的时段:', shift);
       return shift;
     }
   }
   
+  console.log('未匹配到任何时段');
   return null;
 }
 
