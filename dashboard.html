@@ -124,9 +124,21 @@
         /* 图表区域 */
         .charts-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
             margin-bottom: 25px;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
         }
 
         .chart-card {
@@ -147,7 +159,7 @@
 
         .chart-container {
             position: relative;
-            height: 250px;
+            height: 200px;
         }
 
         /* 简易条形图 */
