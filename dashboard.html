@@ -38,37 +38,72 @@
             margin-bottom: 30px;
         }
 
-        .back-link {
-            padding: 10px 20px;
-            background: rgba(108, 99, 255, 0.2);
-            border: 1px solid rgba(108, 99, 255, 0.5);
-            border-radius: 8px;
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
 
-        .back-link:hover {
-            background: rgba(108, 99, 255, 0.4);
-        }
-
-        .records-link {
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #4caf50, #45a049);
+        .btn {
+            padding: 10px 18px;
             border: none;
             border-radius: 8px;
-            color: white;
-            text-decoration: none;
             font-size: 14px;
             font-weight: bold;
+            cursor: pointer;
             transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        .records-link:hover {
+        .btn-primary {
+            background: linear-gradient(90deg, #6c63ff, #5a52d5);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-export {
+            background: linear-gradient(90deg, #4caf50, #45a049);
+            color: white;
+        }
+
+        .btn-export:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-records {
+            background: linear-gradient(90deg, #2196f3, #1976d2);
+            color: white;
+        }
+
+        .btn-records:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        .btn-back {
+            background: rgba(108, 99, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(108, 99, 255, 0.5);
+        }
+
+        .btn-back:hover {
+            background: rgba(108, 99, 255, 0.4);
         }
 
         /* 筛选区域 */
@@ -411,9 +446,12 @@
     <div class="container">
         <div class="page-header">
             <h1>📊 打卡数据看板</h1>
-            <div style="display: flex; gap: 10px;">
-                <a href="records.html" class="records-link">📋 详细记录</a>
-                <a href="index.html" class="back-link">← 返回主页</a>
+            <div class="header-actions">
+                <button onclick="loadData()" class="btn">🔄 刷新数据</button>
+                <button onclick="clearFilters()" class="btn btn-secondary">清除筛选</button>
+                <a href="export.html" class="btn btn-export">📥 导出预览</a>
+                <a href="records.html" class="btn btn-records">📋 详细记录</a>
+                <a href="index.html" class="btn btn-back">← 返回主页</a>
             </div>
         </div>
 
@@ -444,10 +482,6 @@
                     <label>按姓名搜索</label>
                     <input type="text" id="nameSearch" placeholder="输入姓名">
                 </div>
-            </div>
-            <div>
-                <button onclick="loadData()" class="btn">🔄 刷新数据</button>
-                <button onclick="clearFilters()" class="btn btn-secondary">清除筛选</button>
             </div>
         </div>
 

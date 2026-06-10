@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>详细打卡记录 - 值班打卡系统</title>
+    <title>导出预览 - 值班打卡系统</title>
     <style>
         * {
             margin: 0;
@@ -12,20 +12,15 @@
         }
 
         body {
-            font-family: 'Microsoft YaHei', Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
             padding: 20px;
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1400px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .page-header {
@@ -33,6 +28,13 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .header-actions {
@@ -53,16 +55,6 @@
             display: inline-block;
         }
 
-        .btn-export {
-            background: linear-gradient(90deg, #4caf50, #45a049);
-            color: white;
-        }
-
-        .btn-export:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
-        }
-
         .btn-back {
             background: rgba(108, 99, 255, 0.2);
             color: white;
@@ -73,100 +65,104 @@
             background: rgba(108, 99, 255, 0.4);
         }
 
-        h1 {
-            color: #fff;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-
         /* 筛选区域 */
         .filter-section {
-            background: rgba(0, 0, 0, 0.3);
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
             border-radius: 15px;
-            padding: 20px;
+            padding: 25px;
             margin-bottom: 25px;
+            border: 1px solid #2a2a40;
+        }
+
+        .filter-row {
             display: flex;
             gap: 15px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
-            align-items: center;
         }
 
         .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            flex: 1;
+            min-width: 180px;
         }
 
         .filter-group label {
-            color: #b0b0c0;
+            display: block;
+            margin-bottom: 8px;
+            color: #8c92ac;
             font-size: 14px;
-            white-space: nowrap;
         }
 
-        .filter-group input,
-        .filter-group select {
-            padding: 10px 15px;
-            background: rgba(0, 0, 0, 0.4);
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid #3a3a50;
             border-radius: 8px;
             color: #fff;
             font-size: 14px;
         }
 
-        /* 按钮样式 */
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
+        /* 预览信息 */
+        .preview-info {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #2a2a40;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-count {
+            font-size: 18px;
+            color: #6c63ff;
             font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
         }
 
-        .btn-primary {
-            background: linear-gradient(90deg, #6c63ff, #5a52d5);
-            color: white;
+        .preview-actions {
+            display: flex;
+            gap: 10px;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-export {
+        .btn-export-csv {
             background: linear-gradient(90deg, #4caf50, #45a049);
             color: white;
         }
 
-        .btn-export:hover {
+        .btn-export-csv:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
         }
 
-        .action-bar {
-            display: flex;
-            gap: 10px;
-            margin-left: auto;
+        .btn-export-json {
+            background: linear-gradient(90deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .btn-export-json:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+        }
+
+        .btn-export-txt {
+            background: linear-gradient(90deg, #2196f3, #1976d2);
+            color: white;
+        }
+
+        .btn-export-txt:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
         }
 
         /* 数据表格 */
         .table-container {
             overflow-x: auto;
-            background: rgba(0, 0, 0, 0.3);
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
             border-radius: 15px;
             padding: 20px;
+            border: 1px solid #2a2a40;
         }
 
         table {
@@ -199,13 +195,7 @@
             border-bottom: none;
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #8c92ac;
-        }
-
-        .empty {
+        .loading, .empty {
             text-align: center;
             padding: 60px 20px;
             color: #8c92ac;
@@ -216,31 +206,39 @@
             margin-bottom: 20px;
         }
 
-        /* 回主页按钮 */
-        .back-home {
-            display: none;
-        }
-
-        /* 导出预览弹窗 */
+        /* 响应式 */
         @media (max-width: 768px) {
-            .filter-section {
+            .page-header {
                 flex-direction: column;
-                align-items: stretch;
+                gap: 15px;
+            }
+
+            .header-actions {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .filter-section {
+                padding: 15px;
+            }
+
+            .filter-row {
+                flex-direction: column;
             }
 
             .filter-group {
+                width: 100%;
+            }
+
+            .preview-info {
                 flex-direction: column;
-                align-items: stretch;
+                gap: 15px;
+                text-align: center;
             }
 
-            .action-bar {
-                margin-left: 0;
+            .preview-actions {
                 flex-wrap: wrap;
-            }
-
-            .btn {
-                flex: 1;
-                min-width: 120px;
+                justify-content: center;
             }
         }
     </style>
@@ -248,48 +246,56 @@
 <body>
     <div class="container">
         <div class="page-header">
-            <h1>📋 详细打卡记录</h1>
+            <h1>📥 导出预览</h1>
             <div class="header-actions">
-                <a href="export.html" class="btn btn-export">📥 导出预览</a>
-                <a href="dashboard.html" class="btn btn-back">📊 数据看板</a>
+                <a href="dashboard.html" class="btn btn-back">📊 返回看板</a>
                 <a href="index.html" class="btn btn-back">← 返回主页</a>
             </div>
         </div>
 
         <!-- 筛选区域 -->
         <div class="filter-section">
-            <div class="filter-group">
-                <label>开始日期</label>
-                <input type="date" id="startDate">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>开始日期</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="filter-group">
+                    <label>结束日期</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="filter-group">
+                    <label>选择时段</label>
+                    <select id="shiftSelect">
+                        <option value="">-- 全部时段 --</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>选择分组</label>
+                    <select id="groupSelect">
+                        <option value="">-- 全部分组 --</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>按姓名搜索</label>
+                    <input type="text" id="nameSearch" placeholder="输入姓名">
+                </div>
             </div>
-
-            <div class="filter-group">
-                <label>结束日期</label>
-                <input type="date" id="endDate">
-            </div>
-
-            <div class="filter-group">
-                <label>时段</label>
-                <select id="timeSlotSelect">
-                    <option value="">全部时段</option>
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <label>分组</label>
-                <select id="groupSelect">
-                    <option value="">全部分组</option>
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <label>姓名</label>
-                <input type="text" id="nameInput" placeholder="输入姓名">
-            </div>
-
-            <div class="action-bar">
-                <button onclick="loadData()" class="btn btn-export">🔄 刷新数据</button>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button onclick="loadData()" class="btn btn-back">🔄 刷新数据</button>
                 <button onclick="clearFilters()" class="btn btn-back">清除筛选</button>
+            </div>
+        </div>
+
+        <!-- 预览信息 -->
+        <div class="preview-info">
+            <div class="preview-count">
+                预览 <span id="previewCount">10</span> 条，共 <span id="totalCount">0</span> 条记录
+            </div>
+            <div class="preview-actions">
+                <button onclick="exportData('csv')" class="btn btn-export-csv">📄 导出 CSV (Excel)</button>
+                <button onclick="exportData('json')" class="btn btn-export-json">📝 导出 JSON</button>
+                <button onclick="exportData('txt')" class="btn btn-export-txt">📃 导出 TXT</button>
             </div>
         </div>
 
@@ -346,7 +352,7 @@
                 const response = await fetch('/api/time-slots');
                 const slots = await response.json();
                 
-                const select = document.getElementById('timeSlotSelect');
+                const select = document.getElementById('shiftSelect');
                 if (Array.isArray(slots)) {
                     slots.forEach(slot => {
                         const option = document.createElement('option');
@@ -389,9 +395,9 @@
             
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
-            const timeSlot = document.getElementById('timeSlotSelect').value;
+            const timeSlot = document.getElementById('shiftSelect').value;
             const groupId = document.getElementById('groupSelect').value;
-            const name = document.getElementById('nameInput').value.trim();
+            const name = document.getElementById('nameSearch').value.trim();
 
             if (startDate) params.append('start_date', startDate);
             if (endDate) params.append('end_date', endDate);
@@ -406,6 +412,10 @@
                 allRecords = records;
                 filteredRecords = records;
 
+                // 更新统计
+                document.getElementById('totalCount').textContent = records.length;
+                document.getElementById('previewCount').textContent = Math.min(10, records.length);
+
                 if (records.length === 0) {
                     tbody.innerHTML = `
                         <tr>
@@ -418,7 +428,9 @@
                     return;
                 }
 
-                tbody.innerHTML = records.map(record => `
+                // 显示前 10 条预览
+                const previewData = records.slice(0, 10);
+                tbody.innerHTML = previewData.map(record => `
                     <tr>
                         <td>${record.duty_date || '-'}</td>
                         <td>${record.duty_time || '-'}</td>
@@ -454,11 +466,64 @@
 
             document.getElementById('startDate').value = startStr;
             document.getElementById('endDate').value = today;
-            document.getElementById('timeSlotSelect').value = '';
+            document.getElementById('shiftSelect').value = '';
             document.getElementById('groupSelect').value = '';
-            document.getElementById('nameInput').value = '';
+            document.getElementById('nameSearch').value = '';
             
             loadData();
+        }
+
+        // 导出数据
+        function exportData(format) {
+            if (filteredRecords.length === 0) {
+                alert('⚠️ 没有可导出的数据');
+                return;
+            }
+
+            let content = '';
+            let mimeType = '';
+            let extension = '';
+
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const dateStr = `${bjTime.getUTCFullYear()}${pad(bjTime.getUTCMonth() + 1)}${pad(bjTime.getUTCDate())}`;
+            const filename = `打卡记录_${dateStr}`;
+
+            if (format === 'csv') {
+                // CSV 格式（带 BOM，Excel 可识别中文）
+                content = '\uFEFF';
+                content += '日期，时段，姓名，分组，打卡时间，IP 地址\n';
+                content += filteredRecords.map(r => 
+                    `"${r.duty_date || ''}","${r.duty_time || ''}","${r.name || ''}","${r.group_name || ''}","${r.created_at || ''}","${r.ip_address || ''}"`
+                ).join('\n');
+                mimeType = 'text/csv;charset=utf-8;';
+                extension = 'csv';
+            } else if (format === 'json') {
+                // JSON 格式
+                content = JSON.stringify(filteredRecords, null, 2);
+                mimeType = 'application/json';
+                extension = 'json';
+            } else if (format === 'txt') {
+                // TXT 格式（表格对齐）
+                content = '日期          时段      姓名      分组      打卡时间            IP 地址\n';
+                content += '='.repeat(80) + '\n';
+                content += filteredRecords.map(r => 
+                    `${(r.duty_date || '').padEnd(12)} ${(r.duty_time || '').padEnd(8)} ${(r.name || '').padEnd(8)} ${(r.group_name || '').padEnd(8)} ${(r.created_at || '').padEnd(20)} ${(r.ip_address || '')}`
+                ).join('\n');
+                mimeType = 'text/plain;charset=utf-8;';
+                extension = 'txt';
+            }
+
+            const blob = new Blob([content], { type: mimeType });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${filename}.${extension}`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+
+            alert(`✅ 已导出 ${filteredRecords.length} 条记录为 ${filename}.${extension}`);
         }
     </script>
 </body>
