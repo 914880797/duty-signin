@@ -491,7 +491,15 @@
 
             try {
                 const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
                 allRecords = await response.json();
+                
+                // 确保是数组
+                if (!Array.isArray(allRecords)) {
+                    allRecords = [];
+                }
                 
                 // 筛选数据
                 filteredRecords = allRecords.filter(record => {
