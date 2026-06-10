@@ -1,14 +1,22 @@
 export async function onRequestPost({ request, env }) {
   try {
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    const utc = new Date();
-    const bjTimestamp = utc.getTime() + (8 * 60 * 60 * 1000);
-    const bjTime = new Date(bjTimestamp);
-
+    
+    // 获取北京时间（UTC+8）
+    const now = new Date();
+    const bjTimeStr = now.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+    const bjDate = new Date(bjTimeStr);
+    
     const pad = (n) => String(n).padStart(2, '0');
-    const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
-    const created_at = `${today} ${pad(bjTime.getUTCHours())}:${pad(bjTime.getUTCMinutes())}:${pad(bjTime.getUTCSeconds())}`;
-    const currentTime = `${pad(bjTime.getUTCHours())}:${pad(bjTime.getUTCMinutes())}`;
+    const today = `${bjDate.getFullYear()}-${pad(bjDate.getMonth() + 1)}-${pad(bjDate.getDate())}`;
+    const currentTime = `${pad(bjDate.getHours())}:${pad(bjDate.getMinutes())}`;
+    const created_at = `${today} ${pad(bjDate.getHours())}:${pad(bjDate.getMinutes())}:${pad(bjDate.getSeconds())}`;
+
+    console.log('=== 打卡请求开始 ===');
+    console.log('UTC 时间:', now.toISOString());
+    console.log('北京时间:', bjTimeStr);
+    console.log('解析后的日期:', today);
+    console.log('解析后的时间:', currentTime);
 
     const { name, duty_time } = await request.json();
 
@@ -21,11 +29,6 @@ export async function onRequestPost({ request, env }) {
     }
 
     const trimmedName = name.trim();
-
-    console.log('=== 打卡请求开始 ===');
-    console.log('日期:', today);
-    console.log('姓名:', trimmedName);
-    console.log('当前时间:', currentTime);
 
     // 查询排班表中此人的所有值班时段（不限日期，只看今天或未来的日期）
     let dutyConfig;
