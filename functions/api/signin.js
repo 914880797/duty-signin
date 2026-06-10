@@ -46,10 +46,12 @@ export async function onRequestPost({ request, env }) {
     }
     
     const dutyConfigMap = {};
-    if (dutyConfig && dutyConfig.results) {
+    if (dutyConfig && dutyConfig.results && dutyConfig.results.length > 0) {
       dutyConfig.results.forEach(row => {
         console.log('排班记录:', row.name, '->', row.duty_time);
-        dutyConfigMap[row.name] = row.duty_time;
+        if (row.name && row.duty_time) {
+          dutyConfigMap[row.name] = row.duty_time;
+        }
       });
     }
     

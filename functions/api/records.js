@@ -3,12 +3,24 @@ export async function onRequestGet({ request, env }) {
   const date = searchParams.get('date');
   const time = searchParams.get('time');
 
-  let sql = `SELECT * FROM signin_records WHERE 1=1`;
+  let whereClause = 'WHERE 1=1';
   const args = [];
-  if (date) { sql += ` AND duty_date=?`; args.push(date); }
-  if (time) { sql += ` AND duty_time=?`; args.push(time); }
-  sql += ` ORDER BY created_at DESC`;
+  
+  if (date) {
+    whereClause += ' AND duty_date=?';
+    args.push(date);
+  }
+  if (time) {
+    whereClause += ' AND duty_time=?';
+    args.push(time);
+  }
 
+  const sql = `SELECT * FROM signin_records ${whereClause} ORDER BY created_at DESC`;
   const { results } = await env.DB.prepare(sql).bind(...args).all();
-  return Response.json(results);
+  
+  return Response.json({
+    success: true,
+    data: results || [],
+    count: results ? results.length : 0
+  });
 }

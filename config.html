@@ -1,2 +1,56 @@
 <!DOCTYPE html>
-<html><body>config</body></html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统配置</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid #2a2a40;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 { color: #fff; margin-bottom: 30px; }
+        .info-box {
+            background: rgba(108, 99, 255, 0.1);
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(90deg, #6c63ff, #4a41d4);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+        .back-btn:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ 系统配置</h1>
+        <div class="info-box">
+            <p style="margin-bottom: 15px;">📌 系统配置功能已整合到排班管理系统中。</p>
+            <p style="color: #8c92ac; font-size: 14px;">请在排班管理页面的"时段配置"标签页中进行配置。</p>
+        </div>
+        <a href="/admin.html" class="back-btn">返回排班管理</a>
+    </div>
+</body>
+</html>
