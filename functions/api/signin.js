@@ -19,7 +19,11 @@ export async function onRequestPost({ request, env }) {
     console.log('解析后的日期:', today);
     console.log('解析后的时间:', currentTime);
 
-    const { name, duty_time } = await request.json();
+    const { name, duty_time, current_time: clientTime } = await request.json();
+
+    // 优先使用前端传来的时间，如果没有则使用后端计算的时间
+    const finalTime = clientTime || currentTime;
+    console.log('使用时间:', finalTime, clientTime ? '(前端)' : '(后端)');
 
     // 参数验证
     if (!name || !name.trim()) {
@@ -74,10 +78,10 @@ export async function onRequestPost({ request, env }) {
     }
 
     // 验证当前时间是否在值班时间段内
-    const currentDutyPeriod = getCurrentDutyPeriod(currentTime);
+    const currentDutyPeriod = getCurrentDutyPeriod(finalTime);
     const personDutyPeriod = getDutyTimeRange(personDutyTime);
     
-    console.log('当前时间:', currentTime);
+    console.log('验证时间:', finalTime);
     console.log('当前时间分钟数:', currentDutyPeriod ? currentDutyPeriod.startTime + '-' + currentDutyPeriod.endTime : 'null');
     console.log('值班时段:', personDutyTime);
     console.log('值班时段分钟数:', personDutyPeriod ? personDutyPeriod.startTime + '-' + personDutyPeriod.endTime : 'null');
@@ -97,7 +101,7 @@ export async function onRequestPost({ request, env }) {
           { 
             error: `你的值班时间是 ${personDutyTime}，请在值班时间内打卡`,
             duty_time: personDutyTime,
-            current_time: currentTime
+            current_time: finalTime
           },
           { status: 400 }
         );
