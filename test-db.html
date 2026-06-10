@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据库测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #2a2a40;
+        }
+        h1 { color: #fff; margin-bottom: 20px; }
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(90deg, #6c63ff, #4a41d4);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        .btn:hover { opacity: 0.9; }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow: auto;
+        }
+        .success { color: #4caf50; }
+        .error { color: #ff6b6b; }
+        .info { color: #6c63ff; }
+        .status-box {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid;
+        }
+        .status-box.ok {
+            background: rgba(76, 175, 80, 0.1);
+            border-color: #4caf50;
+            color: #81c784;
+        }
+        .status-box.fail {
+            background: rgba(255, 107, 107, 0.1);
+            border-color: #ff6b6b;
+            color: #ff8a80;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 数据库诊断工具</h1>
+        
+        <div style="margin-bottom: 20px;">
+            <button onclick="testConnection()" class="btn">1️⃣ 测试数据库连接</button>
+            <button onclick="initDatabase()" class="btn">2️⃣ 初始化数据库表</button>
+            <button onclick="checkTables()" class="btn">3️⃣ 检查表状态</button>
+            <button onclick="clearResult()" class="btn" style="background: linear-gradient(90deg, #9e9e9e, #757575);">清空结果</button>
+        </div>
+
+        <div id="status"></div>
+        <div id="result" class="result">点击上面按钮执行操作...</div>
+    </div>
+
+    <script>
+        const resultEl = document.getElementById('result');
+        const statusEl = document.getElementById('status');
+
+        function log(message, type = 'info') {
+            const time = new Date().toLocaleTimeString('zh-CN');
+            const color = type === 'success' ? '#4caf50' : type === 'error' ? '#ff6b6b' : '#6c63ff';
+            resultEl.innerHTML += `<span style="color: ${color}">[${time}] ${message}</span>\n`;
+            resultEl.scrollTop = resultEl.scrollHeight;
+        }
+
+        function setStatus(message, type) {
+            statusEl.innerHTML = `<div class="status-box ${type}">${message}</div>`;
+        }
+
+        function clearResult() {
+            resultEl.innerHTML = '点击上面按钮执行操作...';
+            statusEl.innerHTML = '';
+        }
+
+        async function testConnection() {
+            log('开始测试数据库连接...', 'info');
+            try {
+                const response = await fetch('/api/init');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    log('✅ 数据库连接成功！', 'success');
+                    log(`状态：${data.status}`, 'info');
+                    log(`消息：${data.message}`, 'info');
+                    setStatus('数据库连接正常 ✅', 'ok');
+                } else {
+                    log('❌ 数据库连接失败', 'error');
+                    log(`错误：${data.error || data.message}`, 'error');
+                    setStatus('数据库连接失败 ❌', 'fail');
+                }
+            } catch (error) {
+                log('❌ 网络请求失败：' + error.message, 'error');
+                setStatus('网络请求失败 ❌', 'fail');
+            }
+        }
+
+        async function initDatabase() {
+            log('开始初始化数据库...', 'info');
+            try {
+                const response = await fetch('/api/init');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    log('✅ 数据库初始化成功！', 'success');
+                    if (data.tables) {
+                        log('创建的表：', 'info');
+                        data.tables.forEach(table => log(`  - ${table}`, 'info'));
+                    }
+                    log(`消息：${data.message}`, 'info');
+                    setStatus('数据库初始化成功 ✅', 'ok');
+                } else {
+                    log('❌ 数据库初始化失败', 'error');
+                    log(`错误：${data.error || data.message}`, 'error');
+                    setStatus('数据库初始化失败 ❌', 'fail');
+                }
+            } catch (error) {
+                log('❌ 网络请求失败：' + error.message, 'error');
+                setStatus('网络请求失败 ❌', 'fail');
+            }
+        }
+
+        async function checkTables() {
+            log('开始检查表状态...', 'info');
+            try {
+                const response = await fetch('/api/records');
+                const data = await response.json();
+                
+                if (Array.isArray(data) || (data.success && Array.isArray(data.data))) {
+                    const records = Array.isArray(data) ? data : data.data;
+                    log('✅ 表状态正常', 'success');
+                    log(`记录数量：${records.length}`, 'info');
+                    if (records.length > 0) {
+                        log('最近记录：', 'info');
+                        log(JSON.stringify(records.slice(0, 5), null, 2), 'info');
+                    }
+                    setStatus('表状态正常 ✅', 'ok');
+                } else {
+                    log('⚠️ 数据格式异常', 'error');
+                    log(JSON.stringify(data, null, 2), 'error');
+                    setStatus('数据格式异常 ⚠️', 'fail');
+                }
+            } catch (error) {
+                log('❌ 检查失败：' + error.message, 'error');
+                setStatus('检查失败 ❌', 'fail');
+            }
+        }
+
+        // 自动测试连接
+        window.onload = () => {
+            log('页面加载完成，请点击按钮执行操作', 'info');
+        };
+    </script>
+</body>
+</html>
