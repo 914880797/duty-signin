@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排班查询</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #2a2a40;
+        }
+        h1 { color: #fff; margin-bottom: 20px; }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0b0c0;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a3a50;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(90deg, #6c63ff, #4a41d4);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        .result {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            border-bottom: 1px solid #2a2a40;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-time {
+            color: #6c63ff;
+            font-weight: bold;
+        }
+        .result-name {
+            color: #e0e0e0;
+        }
+        .empty {
+            padding: 40px;
+            text-align: center;
+            color: #8c92ac;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #9e9e9e, #757575);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📅 排班查询</h1>
+        
+        <div class="input-group">
+            <label>选择日期</label>
+            <input type="date" id="dateInput">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <button onclick="queryRoster()" class="btn">🔍 查询排班</button>
+            <button onclick="setToday()" class="btn" style="background: linear-gradient(90deg, #4caf50, #45a049);">今天</button>
+        </div>
+
+        <div id="result" class="result" style="display: none;">
+            <div class="empty">暂无数据</div>
+        </div>
+
+        <a href="/" class="back-btn">← 返回首页</a>
+    </div>
+
+    <script>
+        function setToday() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dateInput').value = today;
+            queryRoster();
+        }
+
+        async function queryRoster() {
+            const date = document.getElementById('dateInput').value;
+            if (!date) {
+                alert('请选择日期');
+                return;
+            }
+
+            const resultEl = document.getElementById('result');
+            resultEl.style.display = 'block';
+            resultEl.innerHTML = '<div class="empty">查询中...</div>';
+
+            try {
+                const response = await fetch(`/api/config?date=${date}`);
+                const data = await response.json();
+
+                if (response.ok && data.success && data.data && data.data.length > 0) {
+                    resultEl.innerHTML = data.data.map(item => `
+                        <div class="result-item">
+                            <span class="result-time">${item.duty_time}</span>
+                            <span class="result-name">${item.name}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    resultEl.innerHTML = '<div class="empty">该日期暂无排班</div>';
+                }
+            } catch (error) {
+                console.error('查询失败:', error);
+                resultEl.innerHTML = '<div class="empty">❌ 查询失败</div>';
+            }
+        }
+
+        // 页面加载时自动设置为今天
+        window.onload = () => {
+            setToday();
+        };
+    </script>
+</body>
+</html>
