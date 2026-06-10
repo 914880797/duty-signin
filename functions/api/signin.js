@@ -25,18 +25,21 @@ export async function onRequestPost({ request, env }) {
     console.log('=== 打卡请求开始 ===');
     console.log('日期:', today);
     console.log('姓名:', trimmedName);
+    console.log('当前时间:', currentTime);
 
-    // 直接从 duty_config 表查询当天排班数据
+    // 查询排班表中此人的所有值班时段（不限日期，只看今天或未来的日期）
     let dutyConfig;
     try {
+      // 查询今天及未来的排班
       dutyConfig = await env.DB.prepare(`
-        SELECT name, duty_time FROM duty_config
-        WHERE duty_date = ?
-      `).bind(today).all();
+        SELECT name, duty_time, duty_date FROM duty_config
+        WHERE name = ? AND duty_date >= ?
+        ORDER BY duty_date ASC
+        LIMIT 1
+      `).bind(trimmedName, today).first();
       
       console.log('数据库查询成功');
-      console.log('查询结果原始数据:', JSON.stringify(dutyConfig));
-      console.log('查询结果条数:', dutyConfig.results ? dutyConfig.results.length : 0);
+      console.log('查询结果:', dutyConfig);
     } catch (dbError) {
       console.error('数据库查询失败:', dbError);
       return Response.json(
@@ -45,32 +48,18 @@ export async function onRequestPost({ request, env }) {
       );
     }
     
-    const dutyConfigMap = {};
-    if (dutyConfig && dutyConfig.results && dutyConfig.results.length > 0) {
-      dutyConfig.results.forEach(row => {
-        console.log('排班记录:', row.name, '->', row.duty_time);
-        if (row.name && row.duty_time) {
-          dutyConfigMap[row.name] = row.duty_time;
-        }
-      });
-    }
-    
-    console.log('排班映射对象:', JSON.stringify(dutyConfigMap));
-    console.log('查找的姓名:', trimmedName);
-    console.log('是否存在:', dutyConfigMap.hasOwnProperty(trimmedName));
-    
-    // 检查姓名是否有排班
-    if (!dutyConfigMap.hasOwnProperty(trimmedName)) {
-      console.log('错误：该用户不在今天的排班表中');
+    // 检查是否找到有效的排班
+    if (!dutyConfig || !dutyConfig.duty_time) {
+      console.log('错误：该用户没有未来的排班记录');
       return Response.json(
-        { error: `未参与值班` },
+        { error: `未参与值班，请联系管理员添加排班` },
         { status: 403 }
       );
     }
-
-    // 获取此人的值班时段
-    const personDutyTime = dutyConfigMap[trimmedName];
+    
+    const personDutyTime = dutyConfig.duty_time;
     console.log('此人排班时段:', personDutyTime);
+    console.log('排班日期:', dutyConfig.duty_date);
     
     if (!personDutyTime) {
       console.log('错误：排班时段为空');
@@ -102,7 +91,7 @@ export async function onRequestPost({ request, env }) {
       }
     }
 
-    // 检查是否重复打卡
+    // 检查今天是否已经打过卡（同一天同一个时段只能打一次）
     const recentCheck = await env.DB.prepare(`
       SELECT created_at FROM signin_records 
       WHERE name = ? AND duty_date = ? AND duty_time = ?
@@ -111,16 +100,16 @@ export async function onRequestPost({ request, env }) {
 
     if (recentCheck) {
       return Response.json(
-        { error: `已打卡` },
+        { error: `今天已经打过卡了，每个时段每天只能打卡一次` },
         { status: 400 }
       );
     }
 
-    // 插入打卡记录
+    // 插入打卡记录（使用排班表中的日期）
     await env.DB.prepare(`
       INSERT INTO signin_records (name, duty_date, duty_time, created_at, ip_address)
       VALUES (?, ?, ?, ?, ?)
-    `).bind(trimmedName, today, personDutyTime, created_at, ip).run();
+    `).bind(trimmedName, dutyConfig.duty_date, personDutyTime, created_at, ip).run();
 
     console.log('=== 打卡成功 ===');
     return Response.json({ 
