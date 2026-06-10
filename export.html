@@ -145,20 +145,27 @@
 
         /* 预览信息 */
         .preview-info {
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border-radius: 15px;
+            background: #fff;
+            border-radius: 8px;
             padding: 20px;
             margin-bottom: 25px;
-            border: 1px solid #2a2a40;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .preview-count {
-            font-size: 18px;
-            color: #6c63ff;
-            font-weight: bold;
+            font-size: 14px;
+            color: #757575;
+            font-weight: 500;
+        }
+
+        .preview-count span {
+            color: #1976d2;
+            font-weight: 600;
+            font-size: 16px;
         }
 
         .preview-actions {
@@ -199,89 +206,96 @@
         /* 数据表格 */
         .table-container {
             overflow-x: auto;
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid #2a2a40;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            background: #fff;
+            border-radius: 8px;
+            padding: 0;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            background: #fff;
         }
 
         thead th {
-            background: linear-gradient(90deg, rgba(108, 99, 255, 0.3), rgba(108, 99, 255, 0.1));
-            color: #6c63ff;
-            padding: 18px 15px;
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #212529;
+            padding: 12px 16px;
             text-align: left;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             white-space: nowrap;
-            border-bottom: 2px solid #6c63ff;
+            border: 1px solid #dee2e6;
+            border-bottom: 2px solid #adb5bd;
         }
 
         tbody tr {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s;
+            border-bottom: 1px solid #dee2e6;
+            transition: all 0.2s;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tbody tr:hover {
+            background: #e3f2fd;
         }
 
         tbody tr:last-child {
             border-bottom: none;
         }
 
-        tbody tr:hover {
-            background: rgba(108, 99, 255, 0.08);
-        }
-
         td {
-            padding: 15px;
-            color: #e0e0e0;
-            font-size: 14px;
+            padding: 10px 16px;
+            color: #212529;
+            font-size: 13px;
             vertical-align: middle;
+            border-left: 1px solid #dee2e6;
         }
 
         td:first-child {
-            color: #fff;
-            font-weight: 500;
+            border-left: none;
         }
 
         .date-cell {
-            color: #4fc3f7 !important;
+            color: #1976d2 !important;
             font-family: 'Courier New', monospace;
             font-weight: 600;
         }
 
         .time-cell {
-            color: #81c784 !important;
+            color: #388e3c !important;
         }
 
         .group-cell {
             display: inline-block;
-            padding: 6px 12px;
-            background: linear-gradient(90deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
-            border: 1px solid rgba(76, 175, 80, 0.3);
-            border-radius: 20px;
-            color: #81c784;
-            font-size: 13px;
+            padding: 4px 12px;
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            border-radius: 4px;
+            color: #2e7d32;
+            font-size: 12px;
             font-weight: 500;
         }
 
         .no-group {
             display: inline-block;
-            padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            color: #8c92ac;
-            font-size: 13px;
+            padding: 4px 12px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            color: #757575;
+            font-size: 12px;
         }
 
         .loading, .empty {
             text-align: center;
             padding: 80px 20px;
-            color: #8c92ac;
+            color: #757575;
+            background: #fff;
         }
 
         .empty-icon {
@@ -393,6 +407,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th style="width: 60px; text-align: center;">序号</th>
                         <th>日期</th>
                         <th>时段</th>
                         <th>姓名</th>
@@ -403,7 +418,7 @@
                 </thead>
                 <tbody id="recordsBody">
                     <tr>
-                        <td colspan="6" class="loading">加载中...</td>
+                        <td colspan="7" class="loading">加载中...</td>
                     </tr>
                 </tbody>
             </table>
@@ -515,7 +530,7 @@
                 if (records.length === 0) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="6" class="empty">
+                            <td colspan="7" class="empty">
                                 <div class="empty-icon">📭</div>
                                 <div>暂无打卡记录</div>
                             </td>
@@ -525,20 +540,21 @@
                 }
 
                 // 显示前 10 条预览
-                const previewData = records.slice(0, 10);
-                tbody.innerHTML = previewData.map(record => `
+                const startIndex = 1; // 从 1 开始计数
+                tbody.innerHTML = previewData.map((record, index) => `
                     <tr>
+                        <td style="text-align: center; color: #757575;">${startIndex + index}</td>
                         <td class="date-cell">${record.duty_date || '-'}</td>
                         <td class="time-cell">${record.duty_time || '-'}</td>
                         <td>${record.name || '-'}</td>
                         <td>${record.group_name ? `<span class="group-cell">${record.group_name}</span>` : '<span class="no-group">未分组</span>'}</td>
                         <td>${record.created_at ? formatTime(record.created_at) : '-'}</td>
-                        <td style="font-family: monospace; font-size: 13px; color: #b0b0c0;">${record.ip_address || '-'}</td>
+                        <td style="font-family: monospace; font-size: 12px; color: #757575;">${record.ip_address || '-'}</td>
                     </tr>
                 `).join('');
             } catch (error) {
                 console.error('加载数据失败:', error);
-                tbody.innerHTML = `<tr><td colspan="6" class="empty">加载失败：${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="empty">加载失败：${error.message}</td></tr>`;
             }
         }
 
