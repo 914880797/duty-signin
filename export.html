@@ -558,6 +558,7 @@
                 }
 
                 // 显示前 10 条预览
+                const previewData = records.slice(0, 10);
                 const startIndex = 1; // 从 1 开始计数
                 tbody.innerHTML = previewData.map((record, index) => `
                     <tr>
