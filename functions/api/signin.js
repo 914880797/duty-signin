@@ -145,10 +145,33 @@ export async function onRequestPost({ request, env }) {
 
 // 根据 HH:MM 时间获取对应的值班时段范围
 function getCurrentDutyPeriod(timeStr) {
-  const [hours, minutes] = timeStr.split(':').map(Number);
-  const timeInMinutes = hours * 60 + minutes;
+  console.log('getCurrentDutyPeriod 收到时间:', timeStr, '类型:', typeof timeStr);
   
-  console.log('getCurrentDutyPeriod 输入:', timeStr, '分钟数:', timeInMinutes);
+  if (!timeStr || typeof timeStr !== 'string') {
+    console.log('时间格式无效:', timeStr);
+    return null;
+  }
+  
+  const parts = timeStr.split(':');
+  console.log('split 结果:', parts);
+  
+  if (parts.length !== 2) {
+    console.log('时间格式错误，不是 HH:MM 格式');
+    return null;
+  }
+  
+  const hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1], 10);
+  
+  console.log('解析后 - hours:', hours, 'minutes:', minutes);
+  
+  if (isNaN(hours) || isNaN(minutes)) {
+    console.log('解析失败，包含非数字');
+    return null;
+  }
+  
+  const timeInMinutes = hours * 60 + minutes;
+  console.log('总分钟数:', timeInMinutes);
   
   const shifts = [
     { start: 4 * 60, end: 6 * 60, name: '04:00-06:00' },
@@ -169,14 +192,14 @@ function getCurrentDutyPeriod(timeStr) {
   
   for (const shift of shifts) {
     const matched = timeInMinutes >= shift.start && timeInMinutes < shift.end;
-    console.log('检查时段:', shift.name, `(${shift.start}-${shift.end})`, '匹配:', matched);
+    console.log('检查时段:', shift.name, `(${shift.start}-${shift.end})`, '分钟数:', timeInMinutes, '匹配:', matched);
     if (matched) {
-      console.log('匹配的时段:', shift);
+      console.log('✅ 匹配的时段:', shift);
       return shift;
     }
   }
   
-  console.log('未匹配到任何时段');
+  console.log('❌ 未匹配到任何时段');
   return null;
 }
 
