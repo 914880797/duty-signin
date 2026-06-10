@@ -34,7 +34,17 @@ export async function onRequestGet({ request, env }) {
   sql += ` ORDER BY sr.created_at DESC`;
 
   try {
+    console.log('执行 SQL:', sql);
+    console.log('参数:', args);
+    
     const { results } = await env.DB.prepare(sql).bind(...args).all();
+    
+    console.log('查询结果:', results);
+    console.log('结果条数:', results ? results.length : 0);
+    
+    if (results && results.length > 0) {
+      console.log('第一条数据结构:', JSON.stringify(results[0]));
+    }
     
     return Response.json(results || [], {
       headers: { 'Content-Type': 'application/json' }
