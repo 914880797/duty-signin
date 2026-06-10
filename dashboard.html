@@ -106,6 +106,16 @@
             background: rgba(108, 99, 255, 0.4);
         }
 
+        .btn-admin {
+            background: linear-gradient(90deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .btn-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+        }
+
         /* 筛选区域 */
         .filter-section {
             background: linear-gradient(145deg, #1a1a2e, #16213e);
@@ -281,144 +291,10 @@
             text-align: right;
         }
 
-        /* 数据表格 */
-        .data-section {
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #2a2a40;
-            margin-bottom: 20px;
-        }
-
-        .export-preview {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .export-preview.active {
-            display: flex;
-        }
-
-        .export-preview-content {
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 1000px;
-            width: 90%;
-            max-height: 80vh;
-            overflow: hidden;
-            border: 1px solid #2a2a40;
-        }
-
-        .export-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .export-title {
-            color: #fff;
-            font-size: 18px;
-        }
-
-        .export-close {
-            background: rgba(255, 107, 107, 0.2);
-            border: 1px solid #ff6b6b;
-            color: #ff6b6b;
-            padding: 8px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .preview-table {
-            max-height: 400px;
-            overflow-y: auto;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .section-title {
-            color: #fff;
-            font-size: 16px;
-        }
-
-        .table-container {
-            max-height: 500px;
-            overflow-y: auto;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            background: rgba(108, 99, 255, 0.2);
-            color: #6c63ff;
-            padding: 12px 15px;
-            text-align: left;
-            font-size: 13px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #2a2a40;
-            font-size: 14px;
-        }
-
-        tr:hover {
-            background: rgba(108, 99, 255, 0.1);
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            background: rgba(108, 99, 255, 0.2);
-            color: #6c63ff;
-        }
-
-        .tag.group {
-            background: rgba(76, 175, 80, 0.2);
-            color: #81c784;
-        }
-
         .empty {
             text-align: center;
             padding: 40px;
             color: #8c92ac;
-        }
-
-        .back-btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #9e9e9e, #757575);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
         }
 
         /* 滚动条样式 */
@@ -449,6 +325,7 @@
             <div class="header-actions">
                 <button onclick="loadData()" class="btn">🔄 刷新数据</button>
                 <button onclick="clearFilters()" class="btn btn-secondary">清除筛选</button>
+                <a href="admin.html" class="btn btn-admin">📋 排班管理</a>
                 <a href="export.html" class="btn btn-export">📥 导出预览</a>
                 <a href="records.html" class="btn btn-records">📋 详细记录</a>
                 <a href="index.html" class="btn btn-back">← 返回主页</a>
@@ -524,74 +401,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- 详细数据表格 -->
-        <div class="data-section">
-            <div class="section-header">
-                <div class="section-title">📋 详细打卡记录</div>
-                <div style="display: flex; gap: 10px;">
-                    <div style="color: #8c92ac; font-size: 14px;">共 <span id="recordCount" style="color: #6c63ff;">0</span> 条记录</div>
-                    <button onclick="showExportPreview()" class="btn" style="background: linear-gradient(90deg, #4caf50, #45a049);">📥 导出预览</button>
-                </div>
-            </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>姓名</th>
-                            <th>值班日期</th>
-                            <th>值班时段</th>
-                            <th>分组</th>
-                            <th>打卡时间</th>
-                            <th>IP 地址</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recordsTable">
-                        <tr><td colspan="6" class="empty">暂无数据</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 导出预览弹窗 -->
-        <div id="exportPreview" class="export-preview">
-            <div class="export-preview-content">
-                <div class="export-header">
-                    <div class="export-title">📊 导出数据预览</div>
-                    <button onclick="closeExportPreview()" class="export-close">✕ 关闭</button>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong style="color: #6c63ff; margin-right: 10px;">导出格式:</strong>
-                    <button onclick="exportAsCSV()" class="btn">📄 CSV (Excel)</button>
-                    <button onclick="exportAsJSON()" class="btn btn-secondary">📝 JSON</button>
-                    <button onclick="exportAsTXT()" class="btn btn-secondary">📃 TXT</button>
-                </div>
-                <div style="color: #8c92ac; font-size: 14px; margin-bottom: 10px;">
-                    预览（前 10 条）：共 <span id="exportCount" style="color: #6c63ff;">0</span> 条记录
-                </div>
-                <div class="preview-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>姓名</th>
-                                <th>值班日期</th>
-                                <th>值班时段</th>
-                                <th>分组</th>
-                                <th>打卡时间</th>
-                                <th>IP 地址</th>
-                            </tr>
-                        </thead>
-                        <tbody id="previewTable">
-                            <!-- 动态生成 -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <a href="/" class="back-btn">← 返回首页</a>
-        <a href="/admin.html" class="back-btn">排班管理</a>
-    </div>
 
     <script>
         const defaultShifts = [
@@ -710,7 +519,6 @@
 
                 renderStats();
                 renderCharts();
-                renderTable();
                 
                 console.log('=== 数据加载完成 ===');
             } catch (error) {
@@ -862,33 +670,6 @@
             `).join('');
         }
 
-        // 渲染表格
-        function renderTable() {
-            const tbody = document.getElementById('recordsTable');
-            document.getElementById('recordCount').innerText = filteredRecords.length;
-
-            if (filteredRecords.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty">暂无数据</td></tr>';
-                return;
-            }
-
-            // 按打卡时间倒序
-            const sorted = [...filteredRecords].sort((a, b) => 
-                (b.created_at || '').localeCompare(a.created_at || '')
-            );
-
-            tbody.innerHTML = sorted.map(record => `
-                <tr>
-                    <td>${record.name}</td>
-                    <td>${record.duty_date || '-'}</td>
-                    <td>${record.duty_time || '-'}</td>
-                    <td>${record.group_name ? `<span class="tag group">${record.group_name}</span>` : '<span class="tag">未分组</span>'}</td>
-                    <td>${record.created_at || '-'}</td>
-                    <td style="font-family: monospace; font-size: 12px;">${record.ip_address || '-'}</td>
-                </tr>
-            `).join('');
-        }
-
         // 清除筛选
         function clearFilters() {
             initDates();
@@ -896,113 +677,6 @@
             document.getElementById('groupSelect').value = '';
             document.getElementById('nameSearch').value = '';
             loadData();
-        }
-
-        // 显示导出预览
-        function showExportPreview() {
-            if (filteredRecords.length === 0) {
-                alert('暂无数据可导出');
-                return;
-            }
-
-            document.getElementById('exportCount').innerText = filteredRecords.length;
-            document.getElementById('previewTable').innerHTML = filteredRecords.slice(0, 10).map(record => `
-                <tr>
-                    <td>${record.name}</td>
-                    <td>${record.duty_date || '-'}</td>
-                    <td>${record.duty_time || '-'}</td>
-                    <td>${record.group_name ? `<span class="tag group">${record.group_name}</span>` : '<span class="tag">未分组</span>'}</td>
-                    <td>${record.created_at || '-'}</td>
-                    <td style="font-family: monospace; font-size: 12px;">${record.ip_address || '-'}</td>
-                </tr>
-            `).join('');
-
-            if (filteredRecords.length > 10) {
-                document.getElementById('previewTable').innerHTML += `
-                    <tr><td colspan="6" style="text-align: center; color: #8c92ac; padding: 20px;">
-                        ... 还有 ${filteredRecords.length - 10} 条记录，导出后查看全部
-                    </td></tr>
-                `;
-            }
-
-            document.getElementById('exportPreview').classList.add('active');
-        }
-
-        // 关闭导出预览
-        function closeExportPreview() {
-            document.getElementById('exportPreview').classList.remove('active');
-        }
-
-        // 导出为 CSV
-        function exportAsCSV() {
-            const headers = ['姓名', '值班日期', '值班时段', '分组', '打卡时间', 'IP 地址'];
-            const rows = filteredRecords.map(r => [
-                r.name,
-                r.duty_date || '',
-                r.duty_time || '',
-                r.group_name || '未分组',
-                r.created_at || '',
-                r.ip_address || ''
-            ]);
-
-            const csv = [
-                headers.join(','),
-                ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
-            ].join('\n');
-
-            downloadFile(csv, 'text/csv;charset=utf-8;', `打卡数据_${getBeijingDate(new Date())}.csv`);
-        }
-
-        // 导出为 JSON
-        function exportAsJSON() {
-            const json = JSON.stringify(filteredRecords, null, 2);
-            downloadFile(json, 'application/json;charset=utf-8;', `打卡数据_${getBeijingDate(new Date())}.json`);
-        }
-
-        // 导出为 TXT
-        function exportAsTXT() {
-            const headers = ['姓名', '值班日期', '值班时段', '分组', '打卡时间', 'IP 地址'];
-            const lines = [
-                '='.repeat(80),
-                '打卡数据导出',
-                '导出时间：' + new Date().toLocaleString('zh-CN'),
-                '总记录数：' + filteredRecords.length,
-                '='.repeat(80),
-                '',
-                headers.join('\t'),
-                '-'.repeat(80)
-            ];
-
-            filteredRecords.forEach(r => {
-                lines.push([
-                    r.name,
-                    r.duty_date || '-',
-                    r.duty_time || '-',
-                    r.group_name || '未分组',
-                    r.created_at || '-',
-                    r.ip_address || '-'
-                ].join('\t'));
-            });
-
-            lines.push('-'.repeat(80));
-            lines.push('共 ' + filteredRecords.length + ' 条记录');
-
-            const txt = lines.join('\n');
-            downloadFile(txt, 'text/plain;charset=utf-8;', `打卡数据_${getBeijingDate(new Date())}.txt`);
-        }
-
-        // 下载文件
-        function downloadFile(content, mimeType, filename) {
-            const blob = new Blob(['\ufeff' + content], { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            link.click();
-            URL.revokeObjectURL(url);
-            
-            closeExportPreview();
-            alert('✅ 导出成功！');
         }
     </script>
 </body>
