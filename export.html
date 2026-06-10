@@ -103,6 +103,46 @@
             font-size: 14px;
         }
 
+        /* 分组切换 */
+        .group-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .group-tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #8c92ac;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .group-tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .group-tab.active {
+            background: linear-gradient(90deg, #6c63ff, #5a52d5);
+            border-color: #6c63ff;
+            color: white;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.4);
+        }
+
+        .group-tab .count {
+            margin-left: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
         /* 预览信息 */
         .preview-info {
             background: linear-gradient(145deg, #1a1a2e, #16213e);
@@ -287,6 +327,11 @@
             </div>
         </div>
 
+        <!-- 分组切换 -->
+        <div class="group-tabs" id="groupTabs">
+            <!-- 动态生成 -->
+        </div>
+
         <!-- 预览信息 -->
         <div class="preview-info">
             <div class="preview-count">
@@ -342,8 +387,10 @@
             document.getElementById('startDate').value = startStr;
 
             loadTimeSlots();
-            loadGroups();
-            loadData();
+            loadGroups().then(() => {
+                // 加载完分组后再加载数据，这样分组标签可以正确渲染
+                loadData();
+            });
         });
 
         // 加载时段列表
@@ -381,8 +428,10 @@
                         select.appendChild(option);
                     });
                 }
+                return groups;
             } catch (error) {
                 console.error('加载分组失败:', error);
+                return [];
             }
         }
 
@@ -415,6 +464,9 @@
                 // 更新统计
                 document.getElementById('totalCount').textContent = records.length;
                 document.getElementById('previewCount').textContent = Math.min(10, records.length);
+
+                // 渲染分组切换
+                renderGroupTabs();
 
                 if (records.length === 0) {
                     tbody.innerHTML = `
@@ -469,6 +521,64 @@
             document.getElementById('shiftSelect').value = '';
             document.getElementById('groupSelect').value = '';
             document.getElementById('nameSearch').value = '';
+            
+            loadData();
+        }
+
+        // 渲染分组切换标签
+        function renderGroupTabs() {
+            const groupCounts = {};
+            
+            allRecords.forEach(record => {
+                const groupName = record.group_name || '未分组';
+                groupCounts[groupName] = (groupCounts[groupName] || 0) + 1;
+            });
+            
+            const groupTabsEl = document.getElementById('groupTabs');
+            
+            // 全部分组
+            const allCount = allRecords.length;
+            groupTabsEl.innerHTML = `
+                <div class="group-tab ${!document.getElementById('groupSelect').value ? 'active' : ''}" 
+                     onclick="switchGroup('')">
+                    全部分组 <span class="count">${allCount}</span>
+                </div>
+            `;
+            
+            // 各个分组
+            Object.entries(groupCounts).sort((a, b) => b[1] - a[1]).forEach(([groupName, count]) => {
+                const isActive = document.getElementById('groupSelect').value === 
+                    (groupName === '未分组' ? '' : groupName);
+                
+                groupTabsEl.innerHTML += `
+                    <div class="group-tab ${groupName === '未分组' && !document.getElementById('groupSelect').value ? '' : (document.getElementById('groupSelect').value === (groupName === '未分组' ? '' : groupName) ? 'active' : '')}" 
+                         onclick="switchGroup('${groupName}')">
+                        ${groupName} <span class="count">${count}</span>
+                    </div>
+                `;
+            });
+        }
+
+        // 切换分组
+        function switchGroup(groupName) {
+            const groupSelect = document.getElementById('groupSelect');
+            
+            if (groupName === '' || groupName === '未分组') {
+                groupSelect.value = '';
+            } else {
+                // 查找分组 ID
+                const groupOptions = groupSelect.options;
+                for (let i = 0; i < groupOptions.length; i++) {
+                    if (groupOptions[i].text === groupName) {
+                        groupSelect.value = groupOptions[i].value;
+                        break;
+                    }
+                }
+                if (!groupSelect.value) {
+                    // 如果没有找到，设为空
+                    groupSelect.value = '';
+                }
+            }
             
             loadData();
         }
