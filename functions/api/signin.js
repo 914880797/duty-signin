@@ -19,11 +19,17 @@ export async function onRequestPost({ request, env }) {
     console.log('解析后的日期:', today);
     console.log('解析后的时间:', currentTime);
 
-    const { name, duty_time, current_time: clientTime } = await request.json();
+    // 获取请求 body
+    const body = await request.json();
+    console.log('收到的请求 body:', JSON.stringify(body));
+    
+    const { name, duty_time, current_time: clientTime } = body;
+    console.log('解构后的值 - name:', name, 'duty_time:', duty_time, 'current_time:', clientTime);
+    console.log('current_time 类型:', typeof clientTime);
 
     // 优先使用前端传来的时间，如果没有则使用后端计算的时间
     const finalTime = clientTime || currentTime;
-    console.log('使用时间:', finalTime, clientTime ? '(前端)' : '(后端)');
+    console.log('使用时间:', finalTime, clientTime ? '(前端)' : '(后端)', '类型:', typeof finalTime);
 
     // 参数验证
     if (!name || !name.trim()) {

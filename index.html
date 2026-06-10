@@ -347,11 +347,18 @@
 
             // 使用前端的本地时间
             const now = new Date();
-            const pad = (n) => String(n).padStart(2, '0');
-            const currentTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const currentTime = `${hours}:${minutes}`;
             
             console.log('打卡请求 - 当前本地时间:', currentTime);
             console.log('打卡请求 - 原始小时:', now.getHours(), '原始分钟:', now.getMinutes());
+            console.log('打卡请求 - pad 后:', hours + ':' + minutes);
+            console.log('打卡请求 - body:', JSON.stringify({ 
+                        name: name, 
+                        duty_time: '',
+                        current_time: currentTime
+            }));
 
             btn.innerText = '打卡中...';
             btn.disabled = true;
