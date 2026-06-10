@@ -1,0 +1,8 @@
+name = "duty-signin"
+compatibility_date = "2026-01-01"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "duty-signin-db"
+database_id = "5341440a-55e5-48f7-ac42-e916c74e822c"

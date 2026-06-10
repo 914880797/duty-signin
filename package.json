@@ -1,0 +1,8 @@
+{
+  "name": "duty-signin",
+  "private": true,
+  "scripts": {
+    "deploy": "npx wrangler pages deploy . --project-name=duty-signin",
+    "dev": "npx wrangler pages dev ."
+  }
+}

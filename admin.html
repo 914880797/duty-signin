@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>值班排班管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #0f0f1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 40px;
+            border: 1px solid #2a2a40;
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #2a2a40;
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: rgba(108, 99, 255, 0.1);
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            border-radius: 8px 8px 0 0;
+            color: #8c92ac;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: rgba(108, 99, 255, 0.2);
+            border-color: #6c63ff;
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .search-section {
+            background: rgba(108, 99, 255, 0.1);
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a3a50;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-btn {
+            padding: 12px 25px;
+            background: linear-gradient(90deg, #6c63ff, #4a41d4);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #ffc107;
+        }
+
+        .shift-config-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(30, 30, 60, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .shift-config-table th {
+            background: rgba(108, 99, 255, 0.2);
+            color: #6c63ff;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .shift-config-table td {
+            padding: 12px 15px;
+            border-top: 1px solid #2a2a40;
+        }
+
+        .time-input {
+            width: 120px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a3a50;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .config-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .add-shift-btn {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(90deg, #4caf50, #45a049);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .delete-shift-btn {
+            padding: 8px 12px;
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .save-config-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, #ffc107, #ffca28);
+            border: none;
+            border-radius: 10px;
+            color: #1a1a2e;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .assign-form {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-title {
+            color: #4caf50;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .form-label {
+            color: #b0b0c0;
+            font-size: 14px;
+            min-width: 80px;
+        }
+
+        .form-select,
+        .form-input {
+            flex: 1;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a3a50;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .assign-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, #4caf50, #45a049);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .edit-form {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .edit-form.active {
+            display: block;
+        }
+
+        .edit-title {
+            color: #ffc107;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .edit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, #ffc107, #ffca28);
+            border: none;
+            border-radius: 10px;
+            color: #1a1a2e;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .cancel-btn {
+            width: 100%;
+            padding: 15px;
+            background: rgba(158, 158, 158, 0.2);
+            border: 1px solid #9e9e9e;
+            border-radius: 10px;
+            color: #9e9e9e;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .roster-list {
+            background: rgba(30, 30, 60, 0.5);
+            border-radius: 10px;
+            border: 1px solid #2a2a40;
+            overflow: hidden;
+        }
+
+        .roster-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #2a2a40;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .roster-item:last-child {
+            border-bottom: none;
+        }
+
+        .roster-item:hover {
+            background: rgba(108, 99, 255, 0.1);
+        }
+
+        .roster-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .roster-time {
+            color: #6c63ff;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 5px 10px;
+            background: rgba(108, 99, 255, 0.2);
+            border-radius: 5px;
+        }
+
+        .roster-name {
+            color: #e0e0e0;
+            font-size: 15px;
+        }
+
+        .roster-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .edit-time-btn {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+
+        .delete-btn {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid #ff6b6b;
+        }
+
+        .roster-empty {
+            padding: 40px;
+            text-align: center;
+            color: #8c92ac;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .message.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #81c784;
+            border: 1px solid #4caf50;
+        }
+
+        .message.error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff8a80;
+            border: 1px solid #ff6b6b;
+        }
+
+        .loading {
+            text-align: center;
+            color: #8c92ac;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 管理登录弹窗 -->
+        <div id="loginModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+            <div style="background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 20px; padding: 40px; border: 1px solid #2a2a40; width: 100%; max-width: 400px;">
+                <h2 style="color: #fff; margin-bottom: 30px; text-align: center;">🔐 管理登录</h2>
+                <div style="margin-bottom: 20px;">
+                    <label style="color: #b0b0c0; font-size: 14px; display: block; margin-bottom: 8px;">管理员账号</label>
+                    <input type="text" id="adminUsername" class="form-input" placeholder="请输入管理员账号">
+                </div>
+                <div style="margin-bottom: 30px;">
+                    <label style="color: #b0b0c0; font-size: 14px; display: block; margin-bottom: 8px;">密码</label>
+                    <input type="password" id="adminPassword" class="form-input" placeholder="请输入密码">
+                </div>
+                <button onclick="handleLogin()" class="assign-btn" style="width: 100%;">🔑 登录</button>
+                <div id="loginMessage" style="margin-top: 15px; text-align: center; color: #ff6b6b;"></div>
+            </div>
+        </div>
+
+        <h1>📅 值班排班管理</h1>
+
+        <div id="message" class="message"></div>
+
+        <div class="tabs">
+            <div class="tab-btn active" onclick="switchTab('roster')">📋 排班管理</div>
+            <div class="tab-btn" onclick="switchTab('config')">⚙️ 时段配置</div>
+        </div>
+
+        <div id="rosterTab" class="tab-content active">
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" id="searchInput" class="search-input" placeholder="搜索昵称（如：贪狼）">
+                    <button onclick="searchRoster()" class="search-btn">🔍 搜索</button>
+                    <button onclick="clearSearch()" class="search-btn" style="background: linear-gradient(90deg, #9e9e9e, #757575);">清除</button>
+                </div>
+            </div>
+
+            <div class="assign-form">
+                <div class="form-title">➕ 新增排班</div>
+                
+                <div class="form-row">
+                    <span class="form-label">选择时段</span>
+                    <select id="shiftSelect" class="form-select">
+                        <option value="">-- 请选择值班时段 --</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <span class="form-label">昵称</span>
+                    <input type="text" id="nameInput" class="form-input" placeholder="请输入值班人员昵称">
+                </div>
+
+                <button onclick="assignShift()" class="assign-btn">✅ 安排值班</button>
+            </div>
+
+            <div id="editForm" class="edit-form">
+                <div class="edit-title">✏️ 修改时段</div>
+                
+                <div class="form-row">
+                    <span class="form-label">当前时段</span>
+                    <input type="text" id="editOldShift" class="form-input" readonly style="opacity: 0.6;">
+                </div>
+
+                <div class="form-row">
+                    <span class="form-label">人员</span>
+                    <input type="text" id="editName" class="form-input" readonly style="opacity: 0.6;">
+                </div>
+
+                <div class="form-row">
+                    <span class="form-label">新时段</span>
+                    <select id="editNewShift" class="form-select">
+                        <option value="">-- 请选择新时段 --</option>
+                    </select>
+                </div>
+
+                <button onclick="saveEditShift()" class="edit-btn">💾 保存修改</button>
+                <button onclick="cancelEdit()" class="cancel-btn">取消</button>
+            </div>
+
+            <div class="roster-list" id="rosterList">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <div id="configTab" class="tab-content">
+            <div class="warning-box">
+                ⚠️ 注意：修改时段配置会影响所有排班。时段之间不能有重叠。
+            </div>
+
+            <table class="shift-config-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">序号</th>
+                        <th>时段名称</th>
+                        <th>开始时间</th>
+                        <th>结束时间</th>
+                        <th style="width: 80px;">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="shiftConfigBody"></tbody>
+            </table>
+
+            <div class="config-actions">
+                <button onclick="addNewShift()" class="add-shift-btn">➕ 添加新时段</button>
+            </div>
+
+            <button onclick="validateAndSaveConfig()" class="save-config-btn">💾 保存时段配置</button>
+            <div id="configStatus" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let allRoster = [];
+        let currentSearch = '';
+        let shiftConfig = [];
+
+        const defaultShifts = [
+            { id: 1, name: '04:00-06:00', startTime: '04:00', endTime: '06:00' },
+            { id: 2, name: '06:00-08:00', startTime: '06:00', endTime: '08:00' },
+            { id: 3, name: '08:00-09:30', startTime: '08:00', endTime: '09:30' },
+            { id: 4, name: '09:30-11:00', startTime: '09:30', endTime: '11:00' },
+            { id: 5, name: '11:00-12:30', startTime: '11:00', endTime: '12:30' },
+            { id: 6, name: '12:30-14:00', startTime: '12:30', endTime: '14:00' },
+            { id: 7, name: '14:00-15:30', startTime: '14:00', endTime: '15:30' },
+            { id: 8, name: '15:30-17:00', startTime: '15:30', endTime: '17:00' },
+            { id: 9, name: '17:00-18:30', startTime: '17:00', endTime: '18:30' },
+            { id: 10, name: '18:30-20:00', startTime: '18:30', endTime: '20:00' },
+            { id: 11, name: '20:00-21:30', startTime: '20:00', endTime: '21:30' },
+            { id: 12, name: '21:30-23:00', startTime: '21:30', endTime: '23:00' },
+            { id: 13, name: '23:00-24:00', startTime: '23:00', endTime: '24:00' },
+            { id: 14, name: '24:00-04:00', startTime: '24:00', endTime: '04:00' }
+        ];
+
+        window.addEventListener('DOMContentLoaded', function() {
+            loadShiftConfig();
+            loadRoster();
+            updateShiftSelects();
+        });
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if (tab === 'roster') {
+                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+                document.getElementById('rosterTab').classList.add('active');
+            } else {
+                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+                document.getElementById('configTab').classList.add('active');
+                loadShiftConfig();
+            }
+        }
+
+        function loadShiftConfig() {
+            shiftConfig = JSON.parse(localStorage.getItem('shiftConfig')) || defaultShifts;
+            renderShiftConfig();
+        }
+
+        function renderShiftConfig() {
+            const tbody = document.getElementById('shiftConfigBody');
+            tbody.innerHTML = shiftConfig.map((shift, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><input type="text" class="form-input" value="${shift.name}" onchange="updateShiftName(${shift.id}, this.value)" style="padding: 8px;"></td>
+                    <td><input type="time" class="time-input" value="${shift.startTime}" onchange="updateShiftTime(${shift.id}, 'start', this.value)"></td>
+                    <td><input type="time" class="time-input" value="${shift.endTime === '24:00' ? '00:00' : shift.endTime}" onchange="updateShiftTime(${shift.id}, 'end', this.value)"></td>
+                    <td><button onclick="deleteShiftConfig(${shift.id})" class="delete-shift-btn">🗑️ 删除</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function updateShiftName(id, value) {
+            const shift = shiftConfig.find(s => s.id === id);
+            if (shift) shift.name = value;
+        }
+
+        function updateShiftTime(id, type, value) {
+            const shift = shiftConfig.find(s => s.id === id);
+            if (shift) {
+                if (type === 'start') shift.startTime = value;
+                else shift.endTime = value === '00:00' ? '24:00' : value;
+            }
+        }
+
+        function addNewShift() {
+            const newId = Math.max(...shiftConfig.map(s => s.id)) + 1;
+            shiftConfig.push({
+                id: newId,
+                name: '新时段',
+                startTime: '00:00',
+                endTime: '01:00'
+            });
+            renderShiftConfig();
+        }
+
+        function deleteShiftConfig(id) {
+            if (shiftConfig.length <= 1) {
+                alert('至少需要保留一个时段！');
+                return;
+            }
+            if (!confirm('确定要删除此时段吗？')) return;
+            shiftConfig = shiftConfig.filter(s => s.id !== id);
+            renderShiftConfig();
+        }
+
+        function validateAndSaveConfig() {
+            const errors = [];
+            
+            for (let i = 0; i < shiftConfig.length; i++) {
+                const shift = shiftConfig[i];
+                const startMins = timeToMinutes(shift.startTime);
+                let endMins = timeToMinutes(shift.endTime === '24:00' ? '00:00' : shift.endTime);
+                
+                if (shift.endTime === '24:00' || endMins < startMins) endMins += 24 * 60;
+                
+                if (startMins >= endMins && !shift.name.includes('24:00')) {
+                    errors.push(`第 ${i + 1} 个时段：开始时间不能大于等于结束时间`);
+                }
+                
+                for (let j = 0; j < shiftConfig.length; j++) {
+                    if (i === j) continue;
+                    const other = shiftConfig[j];
+                    const otherStart = timeToMinutes(other.startTime);
+                    let otherEnd = timeToMinutes(other.endTime === '24:00' ? '00:00' : other.endTime);
+                    if (other.endTime === '24:00' || otherEnd < otherStart) otherEnd += 24 * 60;
+                    
+                    if (startMins < otherEnd && endMins > otherStart) {
+                        errors.push(`第 ${i + 1} 个时段与第 ${j + 1} 个时段有重叠`);
+                    }
+                }
+            }
+            
+            const statusEl = document.getElementById('configStatus');
+            
+            if (errors.length > 0) {
+                statusEl.innerHTML = `<div class="message error" style="display:block;">❌ 验证失败：<br>${errors.join('<br>')}</div>`;
+                return false;
+            }
+            
+            localStorage.setItem('shiftConfig', JSON.stringify(shiftConfig));
+            statusEl.innerHTML = `<div class="message success" style="display:block;">✅ 配置保存成功！</div>`;
+            updateShiftSelects();
+            setTimeout(() => statusEl.innerHTML = '', 3000);
+            return true;
+        }
+
+        function timeToMinutes(timeStr) {
+            const [hours, mins] = timeStr.split(':').map(Number);
+            return hours * 60 + mins;
+        }
+
+        function updateShiftSelects() {
+            const shiftSelect = document.getElementById('shiftSelect');
+            const editNewShift = document.getElementById('editNewShift');
+            const options = shiftConfig.map(shift => `<option value="${shift.name}">${shift.name}</option>`).join('');
+            shiftSelect.innerHTML = '<option value="">-- 请选择值班时段 --</option>' + options;
+            editNewShift.innerHTML = '<option value="">-- 请选择新时段 --</option>' + options;
+        }
+
+        async function loadRoster() {
+            const rosterList = document.getElementById('rosterList');
+            rosterList.innerHTML = '<div class="loading">加载中...</div>';
+            // 使用北京时间（UTC+8）
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+            
+            try {
+                const response = await fetch(`/api/config?date=${today}`);
+                const result = await response.json();
+                if (response.ok) {
+                    allRoster = result.data || [];
+                    displayRoster(allRoster);
+                } else {
+                    showMessage('加载失败：' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('加载排班失败:', error);
+                showMessage('网络请求失败', 'error');
+            }
+        }
+
+        function displayRoster(data) {
+            const rosterList = document.getElementById('rosterList');
+            
+            if (data.length === 0) {
+                rosterList.innerHTML = `<div class="roster-empty">${currentSearch ? '未找到匹配的排班' : '今日暂无排班'}</div>`;
+            } else {
+                data.sort((a, b) => {
+                    const aIdx = shiftConfig.findIndex(s => s.name === a.duty_time);
+                    const bIdx = shiftConfig.findIndex(s => s.name === b.duty_time);
+                    return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
+                });
+                
+                rosterList.innerHTML = data.map(item => `
+                    <div class="roster-item">
+                        <div class="roster-info">
+                            <span class="roster-time">${item.duty_time}</span>
+                            <span class="roster-name">${item.name}</span>
+                        </div>
+                        <div class="roster-actions">
+                            <button onclick="showEditForm('${item.duty_time}', '${item.name}')" class="action-btn edit-time-btn">✏️ 修改时段</button>
+                            <button onclick="deleteShift('${item.duty_time}', '${item.name}')" class="action-btn delete-btn">🗑️ 删除</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function searchRoster() {
+            const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!keyword) { displayRoster(allRoster); currentSearch = ''; return; }
+            currentSearch = keyword;
+            displayRoster(allRoster.filter(item => item.name.toLowerCase().includes(keyword)));
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            currentSearch = '';
+            displayRoster(allRoster);
+        }
+
+        async function assignShift() {
+            const shift = document.getElementById('shiftSelect').value.trim();
+            const name = document.getElementById('nameInput').value.trim();
+            
+            if (!shift) { showMessage('⚠️ 请选择值班时段', 'error'); return; }
+            if (!name) { showMessage('⚠️ 请输入昵称', 'error'); return; }
+            
+            // 使用北京时间（UTC+8）
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+            
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: today, config: [{ duty_date: today, duty_time: shift, name: name }] })
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('✅ 安排成功！', 'success');
+                    document.getElementById('shiftSelect').value = '';
+                    document.getElementById('nameInput').value = '';
+                    setTimeout(() => loadRoster(), 1000);
+                } else {
+                    showMessage('❌ 安排失败：' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('安排值班失败:', error);
+                showMessage('❌ 网络请求失败', 'error');
+            }
+        }
+
+        function showEditForm(oldShift, name) {
+            document.getElementById('editOldShift').value = oldShift;
+            document.getElementById('editName').value = name;
+            document.getElementById('editNewShift').value = '';
+            document.getElementById('editForm').classList.add('active');
+            document.getElementById('editForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function cancelEdit() {
+            document.getElementById('editForm').classList.remove('active');
+        }
+
+        async function saveEditShift() {
+            const oldShift = document.getElementById('editOldShift').value;
+            const name = document.getElementById('editName').value;
+            const newShift = document.getElementById('editNewShift').value;
+            
+            if (!newShift) { showMessage('⚠️ 请选择新时段', 'error'); return; }
+            if (newShift === oldShift) { showMessage('⚠️ 新时段与原时段相同', 'error'); return; }
+            
+            // 使用北京时间（UTC+8）
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+            
+            try {
+                // 1. 先删除旧的特定时段排班（时段 + 姓名）
+                const delResponse = await fetch('/api/config', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        date: today, 
+                        duty_time: oldShift,
+                        name: name 
+                    })
+                });
+                
+                // 2. 再添加新的时段排班
+                const addResponse = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        date: today, 
+                        config: [{ duty_date: today, duty_time: newShift, name: name }] 
+                    })
+                });
+                
+                const addResult = await addResponse.json();
+                if (addResponse.ok) {
+                    showMessage('✅ 修改成功！', 'success');
+                    cancelEdit();
+                    setTimeout(() => loadRoster(), 500);
+                } else {
+                    showMessage('❌ 修改失败：' + addResult.error, 'error');
+                }
+            } catch (error) {
+                console.error('修改时段失败:', error);
+                showMessage('❌ 网络请求失败', 'error');
+            }
+        }
+
+        async function deleteShift(dutyTime, name) {
+            if (!confirm(`确定要删除 ${dutyTime} ${name} 的排班吗？`)) return;
+            
+            // 使用北京时间（UTC+8）
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+            
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        date: today, 
+                        duty_time: dutyTime,
+                        name: name 
+                    })
+                });
+                
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('✅ 删除成功', 'success');
+                    setTimeout(() => loadRoster(), 500);
+                } else {
+                    showMessage('❌ 删除失败：' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('删除排班失败:', error);
+                showMessage('❌ 网络请求失败', 'error');
+            }
+        }
+
+        function showMessage(text, type) {
+            const msgEl = document.getElementById('message');
+            if (msgEl) {
+                msgEl.innerText = text;
+                msgEl.className = 'message ' + type;
+                msgEl.style.display = 'block';
+                setTimeout(() => msgEl.style.display = 'none', 3000);
+            }
+        }
+
+        // 管理登录功能
+        function handleLogin() {
+            const username = document.getElementById('adminUsername').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+            const msgEl = document.getElementById('loginMessage');
+            
+            // 简单验证（实际应该用后端验证）
+            if (username === 'admin' && password === 'admin123') {
+                document.getElementById('loginModal').style.display = 'none';
+            } else {
+                msgEl.innerText = '❌ 账号或密码错误';
+            }
+        }
+
+        // 支持回车登录
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const loginModal = document.getElementById('loginModal');
+                if (loginModal && loginModal.style.display !== 'none') {
+                    handleLogin();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
