@@ -1,22 +1,16 @@
 export async function onRequestGet({ env }) {
   try {
-    // 检查表是否已存在
-    const checkResult = await env.DB.prepare(`
-      SELECT name FROM sqlite_master WHERE type='table' AND name='duty_config'
-    `).first();
-    
-    if (checkResult) {
-      return Response.json({ 
-        success: true, 
-        message: '数据库表已存在',
-        status: 'exists'
-      });
-    }
-    
-    // 创建所有表
+    // 删除旧表（如果存在）然后重建
     await env.DB.batch([
+      // 删除旧表
+      env.DB.prepare(`DROP TABLE IF EXISTS duty_config`),
+      env.DB.prepare(`DROP TABLE IF EXISTS signin_records`),
+      env.DB.prepare(`DROP TABLE IF EXISTS duty_roster`),
+      env.DB.prepare(`DROP TABLE IF EXISTS allowed_persons`),
+      
+      // 创建新表
       env.DB.prepare(`
-        CREATE TABLE IF NOT EXISTS duty_config (
+        CREATE TABLE duty_config (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           duty_date TEXT NOT NULL,
           duty_time TEXT NOT NULL,
@@ -24,7 +18,7 @@ export async function onRequestGet({ env }) {
         )
       `),
       env.DB.prepare(`
-        CREATE TABLE IF NOT EXISTS signin_records (
+        CREATE TABLE signin_records (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
           duty_date TEXT NOT NULL,
@@ -35,14 +29,14 @@ export async function onRequestGet({ env }) {
         )
       `),
       env.DB.prepare(`
-        CREATE TABLE IF NOT EXISTS duty_roster (
+        CREATE TABLE duty_roster (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           person_name TEXT NOT NULL UNIQUE,
           order_index INTEGER NOT NULL
         )
       `),
       env.DB.prepare(`
-        CREATE TABLE IF NOT EXISTS allowed_persons (
+        CREATE TABLE allowed_persons (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL UNIQUE,
           is_active INTEGER DEFAULT 1,
@@ -60,7 +54,7 @@ export async function onRequestGet({ env }) {
     
     const insertBatch = defaultPersons.map(name => 
       env.DB.prepare(`
-        INSERT OR IGNORE INTO allowed_persons (name) VALUES (?)
+        INSERT INTO allowed_persons (name) VALUES (?)
       `).bind(name)
     );
     
@@ -68,7 +62,7 @@ export async function onRequestGet({ env }) {
     
     return Response.json({ 
       success: true, 
-      message: '数据库表创建成功',
+      message: '数据库表重建成功',
       status: 'created',
       tables: ['duty_config', 'signin_records', 'duty_roster', 'allowed_persons']
     });
