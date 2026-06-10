@@ -128,19 +128,31 @@
                 const response = await fetch(`/api/config?date=${date}`);
                 const data = await response.json();
 
+                console.log('查询响应:', data);
+                console.log('响应状态:', response.status);
+
                 if (response.ok && data.success && data.data && data.data.length > 0) {
-                    resultEl.innerHTML = data.data.map(item => `
+                    // 按 duty_time 排序
+                    const sorted = data.data.sort((a, b) => {
+                        return (a.duty_time || '').localeCompare(b.duty_time || '');
+                    });
+                    
+                    resultEl.innerHTML = sorted.map(item => `
                         <div class="result-item">
                             <span class="result-time">${item.duty_time}</span>
                             <span class="result-name">${item.name}</span>
                         </div>
                     `).join('');
+                    
+                    console.log('排班数据:', sorted);
                 } else {
-                    resultEl.innerHTML = '<div class="empty">该日期暂无排班</div>';
+                    console.log('无数据或错误:', data);
+                    resultEl.innerHTML = '<div class="empty">该日期暂无排班<br><br>' + 
+                        (data.error || '请先到排班管理页面添加排班') + '</div>';
                 }
             } catch (error) {
                 console.error('查询失败:', error);
-                resultEl.innerHTML = '<div class="empty">❌ 查询失败</div>';
+                resultEl.innerHTML = '<div class="empty">❌ 查询失败<br>' + error.message + '</div>';
             }
         }
 
