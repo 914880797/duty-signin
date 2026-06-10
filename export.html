@@ -201,8 +201,9 @@
             overflow-x: auto;
             background: linear-gradient(145deg, #1a1a2e, #16213e);
             border-radius: 15px;
-            padding: 20px;
+            padding: 25px;
             border: 1px solid #2a2a40;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         table {
@@ -210,40 +211,83 @@
             border-collapse: collapse;
         }
 
-        th {
-            background: rgba(108, 99, 255, 0.2);
+        thead th {
+            background: linear-gradient(90deg, rgba(108, 99, 255, 0.3), rgba(108, 99, 255, 0.1));
             color: #6c63ff;
-            padding: 15px;
+            padding: 18px 15px;
             text-align: left;
-            font-weight: bold;
+            font-weight: 600;
             font-size: 14px;
             white-space: nowrap;
+            border-bottom: 2px solid #6c63ff;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: rgba(108, 99, 255, 0.08);
         }
 
         td {
-            padding: 12px 15px;
+            padding: 15px;
             color: #e0e0e0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 14px;
+            vertical-align: middle;
         }
 
-        tr:hover td {
-            background: rgba(108, 99, 255, 0.1);
+        td:first-child {
+            color: #fff;
+            font-weight: 500;
         }
 
-        tr:last-child td {
-            border-bottom: none;
+        .date-cell {
+            color: #4fc3f7 !important;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .time-cell {
+            color: #81c784 !important;
+        }
+
+        .group-cell {
+            display: inline-block;
+            padding: 6px 12px;
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 20px;
+            color: #81c784;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .no-group {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            color: #8c92ac;
+            font-size: 13px;
         }
 
         .loading, .empty {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 20px;
             color: #8c92ac;
         }
 
         .empty-icon {
-            font-size: 64px;
+            font-size: 72px;
             margin-bottom: 20px;
+            opacity: 0.5;
         }
 
         /* 响应式 */
@@ -484,12 +528,12 @@
                 const previewData = records.slice(0, 10);
                 tbody.innerHTML = previewData.map(record => `
                     <tr>
-                        <td>${record.duty_date || '-'}</td>
-                        <td>${record.duty_time || '-'}</td>
+                        <td class="date-cell">${record.duty_date || '-'}</td>
+                        <td class="time-cell">${record.duty_time || '-'}</td>
                         <td>${record.name || '-'}</td>
-                        <td>${record.group_name || '-'}</td>
+                        <td>${record.group_name ? `<span class="group-cell">${record.group_name}</span>` : '<span class="no-group">未分组</span>'}</td>
                         <td>${record.created_at ? formatTime(record.created_at) : '-'}</td>
-                        <td>${record.ip_address || '-'}</td>
+                        <td style="font-family: monospace; font-size: 13px; color: #b0b0c0;">${record.ip_address || '-'}</td>
                     </tr>
                 `).join('');
             } catch (error) {
