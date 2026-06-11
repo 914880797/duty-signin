@@ -74,7 +74,7 @@ export async function onRequestPost({ request, env }) {
     }
     
     // 验证当前时间是否在值班时间段内
-    const currentTimeInMinutes = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
+    let currentTimeInMinutes = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
     const dutyRange = getDutyTimeRange(personDutyTime);
     
     console.log('当前时间（分钟）:', currentTimeInMinutes);
@@ -83,6 +83,12 @@ export async function onRequestPost({ request, env }) {
     console.log('===== 验证结果 =====');
     
     if (dutyRange) {
+      // 处理跨天时段：如果当前时间 < 6:00 且是跨天时段，给当前时间加 24 小时
+      if (dutyRange.isOvernight && currentTimeInMinutes < 6 * 60) {
+        currentTimeInMinutes += 24 * 60;
+        console.log('跨天时段调整：当前时间调整为', currentTimeInMinutes);
+      }
+      
       const isValid = currentTimeInMinutes >= dutyRange.startTime && 
                       currentTimeInMinutes < dutyRange.endTime;
       
@@ -196,10 +202,33 @@ function getDutyTimeRange(dutyTime) {
   const match = dutyTime.match(/(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
   if (!match) return null;
   
-  const [, startHour, startMin, endHour, endMin] = match.map(Number);
+  let [, startHour, startMin, endHour, endMin] = match.map(Number);
+  
+  // 处理 24:00 的情况（表示午夜 00:00）
+  if (startHour === 24) {
+    startHour = 0;
+  }
+  if (endHour === 24) {
+    endHour = 0;
+  }
+  
+  const startTime = startHour * 60 + startMin;
+  const endTime = endHour * 60 + endMin;
+  
+  // 处理跨天情况（如 23:00-04:00）
+  if (startTime > endTime) {
+    return {
+      startTime: startTime,
+      endTime: endTime + 24 * 60,  // 结束时间加 24 小时
+      name: dutyTime,
+      isOvernight: true
+    };
+  }
+  
   return {
-    startTime: startHour * 60 + startMin,
-    endTime: endHour * 60 + endMin,
-    name: dutyTime
+    startTime: startTime,
+    endTime: endTime,
+    name: dutyTime,
+    isOvernight: false
   };
 }
