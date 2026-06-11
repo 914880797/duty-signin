@@ -552,8 +552,12 @@
                 console.log('📊 当前选中的分组 ID:', groupId);
                 console.log('📋 数据中的分组信息:', records.map(r => ({ name: r.name, group_id: r.group_id, group_name: r.group_name })));
 
-                // 渲染分组切换
-                renderGroupTabs();
+                // 渲染分组切换（添加 try-catch 防止出错中断后续逻辑）
+                try {
+                    renderGroupTabs();
+                } catch (e) {
+                    console.error('renderGroupTabs 出错:', e);
+                }
 
                 if (records.length === 0) {
                     tbody.innerHTML = `
@@ -623,24 +627,17 @@
         // 渲染分组切换标签
         function renderGroupTabs() {
             const groupCounts = {};
-            const groupNames = new Set();
             
+            // 统计每个分组的记录数
             allRecords.forEach(record => {
                 const groupName = record.group_name || '未分组';
                 groupCounts[groupName] = (groupCounts[groupName] || 0) + 1;
-                groupNames.add(groupName);
             });
             
             const groupTabsEl = document.getElementById('groupTabs');
             const currentGroupId = document.getElementById('groupSelect').value;
             
-            console.log('=== 调试信息 ===');
-            console.log('所有记录:', allRecords.length);
-            console.log('分组统计:', groupCounts);
-            console.log('当前选中的分组 ID:', currentGroupId);
-            console.log('分组选项:', Array.from(document.getElementById('groupSelect').options).map(o => ({value: o.value, text: o.text})));
-            
-            // 全部分组
+            // 全部分组标签
             const allCount = allRecords.length;
             groupTabsEl.innerHTML = `
                 <div class="group-tab ${!currentGroupId ? 'active' : ''}" 
@@ -649,29 +646,27 @@
                 </div>
             `;
             
-            // 各个分组
-            Object.entries(groupCounts).sort((a, b) => b[1] - a[1]).forEach(([groupName, count]) => {
-                // 查找该分组名称对应的 ID
-                let groupId = '';
-                const select = document.getElementById('groupSelect');
-                for (let i = 0; i < select.options.length; i++) {
-                    console.log(`检查选项 ${i}: text="${select.options[i].text}", groupName="${groupName}", match=${select.options[i].text === groupName}`);
-                    if (select.options[i].text === groupName) {
-                        groupId = select.options[i].value;
-                        console.log(`找到匹配的分组 ID: ${groupId}`);
-                        break;
+            // 各个分组标签（按数量排序）
+            Object.entries(groupCounts)
+                .sort((a, b) => b[1] - a[1])
+                .forEach(([groupName, count]) => {
+                    // 从分组下拉框中查找该分组名称对应的 ID
+                    const select = document.getElementById('groupSelect');
+                    let groupId = '';
+                    for (let i = 0; i < select.options.length; i++) {
+                        if (select.options[i].text === groupName) {
+                            groupId = select.options[i].value;
+                            break;
+                        }
                     }
-                }
-                
-                console.log(`分组 "${groupName}" 的 ID: "${groupId}"`);
-                
-                groupTabsEl.innerHTML += `
-                    <div class="group-tab ${currentGroupId === groupId ? 'active' : ''}" 
-                         onclick="switchGroup('${groupId}')">
-                        ${groupName} <span class="count">${count}</span>
-                    </div>
-                `;
-            });
+                    
+                    groupTabsEl.innerHTML += `
+                        <div class="group-tab ${currentGroupId === groupId ? 'active' : ''}" 
+                             onclick="switchGroup('${groupId}')">
+                            ${groupName} <span class="count">${count}</span>
+                        </div>
+                    `;
+                });
         }
 
         // 切换分组
