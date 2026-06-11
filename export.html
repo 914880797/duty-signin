@@ -470,13 +470,12 @@
             // 等待下一个事件循环再调用 loadData，确保 DOM 更新
             setTimeout(() => {
                 console.log('准备调用 loadData()');
-                loadData();
+                window.loadData();
             }, 0);
             
             // 更新分组选项卡的 active 状态
             const tabs = document.querySelectorAll('.group-tab');
             tabs.forEach(tab => {
-                const isActive = tab.classList.contains('active');
                 const tabGroupId = tab.getAttribute('onclick')?.match(/switchGroup\('([^']+)'\)/)?.[1];
                 if (groupId === 'all' && tabGroupId === 'all') {
                     tab.classList.add('active');
@@ -504,15 +503,15 @@
             document.getElementById('endDate').value = today;
             document.getElementById('startDate').value = startStr;
 
-            loadTimeSlots();
-            loadGroups().then(() => {
+            window.loadTimeSlots();
+            window.loadGroups().then(() => {
                 // 加载完分组后再加载数据，这样分组标签可以正确渲染
-                loadData();
+                window.loadData();
             });
         });
 
         // 加载时段列表
-        async function loadTimeSlots() {
+        window.loadTimeSlots = async function() {
             try {
                 const response = await fetch('/api/time-slots');
                 const slots = await response.json();
@@ -532,7 +531,7 @@
         }
 
         // 加载分组列表
-        window.loadGroups = async function loadGroups() {
+        window.loadGroups = async function() {
             try {
                 const response = await fetch('/api/groups');
                 const groups = await response.json();
@@ -563,7 +562,7 @@
         }
 
         // 加载数据
-        window.loadData = async function loadData() {
+        window.loadData = async function() {
             const tbody = document.getElementById('recordsBody');
             tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
 
@@ -607,7 +606,7 @@
 
                 // 渲染分组切换（添加 try-catch 防止出错中断后续逻辑）
                 try {
-                    renderGroupTabs();
+                    window.renderGroupTabs();
                 } catch (e) {
                     console.error('renderGroupTabs 出错:', e);
                 }
@@ -635,7 +634,7 @@
                         <td class="time-cell">${record.duty_time || ''}</td>
                         <td>${record.name || ''}</td>
                         <td>${record.group_name ? `<span class="group-cell">${record.group_name}</span>` : '<span class="no-group">未分组</span>'}</td>
-                        <td>${record.created_at ? formatTime(record.created_at) : ''}</td>
+                        <td>${record.created_at ? window.formatTime(record.created_at) : ''}</td>
                         <td style="font-family: monospace; font-size: 11px;">${record.ip_address || ''}</td>
                     </tr>
                 `).join('');
@@ -651,11 +650,84 @@
         }
 
         // 格式化时间（转换为北京时间）
-        window.formatTime = function formatTime(isoString) {
+        window.formatTime = function(isoString) {
             if (!isoString) return '';
             const date = new Date(isoString);
             const pad = (n) => String(n).padStart(2, '0');
             return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
+        }
+
+        // 清除筛选
+        window.clearFilters = function() {
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+            
+            const startDate = new Date(bjTimestamp - (30 * 24 * 60 * 60 * 1000));
+            const startStr = `${startDate.getUTCFullYear()}-${pad(startDate.getUTCMonth() + 1)}-${pad(startDate.getUTCDate())}`;
+
+            document.getElementById('startDate').value = startStr;
+            document.getElementById('endDate').value = today;
+            document.getElementById('shiftSelect').value = '';
+            document.getElementById('groupSelect').value = '';
+            document.getElementById('nameSearch').value = '';
+            
+            window.loadData();
+        }
+
+        // 导出数据
+        window.exportData = function(format) {
+            if (filteredRecords.length === 0) {
+                alert('⚠️ 没有可导出的数据');
+                return;
+            }
+
+            let content = '';
+            let mimeType = '';
+            let extension = '';
+
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const dateStr = `${bjTime.getUTCFullYear()}${pad(bjTime.getUTCMonth() + 1)}${pad(bjTime.getUTCDate())}`;
+            const filename = `打卡记录_${dateStr}`;
+
+            if (format === 'csv') {
+                // CSV 格式（带 BOM，Excel 可识别中文）
+                content = '\uFEFF';
+                content += '日期，时段，姓名，分组，打卡时间，IP 地址\n';
+                content += filteredRecords.map(r => 
+                    `"${r.duty_date || ''}","${r.duty_time || ''}","${r.name || ''}","${r.group_name || ''}","${r.created_at || ''}","${r.ip_address || ''}"`
+                ).join('\n');
+                mimeType = 'text/csv;charset=utf-8;';
+                extension = 'csv';
+            } else if (format === 'json') {
+                // JSON 格式
+                content = JSON.stringify(filteredRecords, null, 2);
+                mimeType = 'application/json';
+                extension = 'json';
+            } else if (format === 'txt') {
+                // TXT 格式（表格对齐）
+                content = '日期          时段      姓名      分组      打卡时间            IP 地址\n';
+                content += '='.repeat(80) + '\n';
+                content += filteredRecords.map(r => 
+                    `${(r.duty_date || '').padEnd(12)} ${(r.duty_time || '').padEnd(8)} ${(r.name || '').padEnd(8)} ${(r.group_name || '').padEnd(8)} ${(r.created_at || '').padEnd(20)} ${(r.ip_address || '')}`
+                ).join('\n');
+                mimeType = 'text/plain;charset=utf-8;';
+                extension = 'txt';
+            }
+
+            const blob = new Blob([content], { type: mimeType });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${filename}.${extension}`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+
+            alert(`✅ 已导出 ${filteredRecords.length} 条记录为 ${filename}.${extension}`);
         }
 
         // 清除筛选
@@ -679,7 +751,7 @@
         }
 
         // 渲染分组切换标签
-        window.renderGroupTabs = function renderGroupTabs() {
+        window.renderGroupTabs = function() {
             const groupCounts = {};
             
             // 统计每个分组的记录数
@@ -695,7 +767,7 @@
             const allCount = allRecords.length;
             groupTabsEl.innerHTML = `
                 <div class="group-tab ${!currentGroupId ? 'active' : ''}" 
-                     onclick="switchGroup('all')">
+                     onclick="window.switchGroup('all')">
                     全部分组 <span class="count">${allCount}</span>
                 </div>
             `;
@@ -716,7 +788,7 @@
                     
                     groupTabsEl.innerHTML += `
                         <div class="group-tab ${currentGroupId === groupId ? 'active' : ''}" 
-                             onclick="switchGroup('${groupId}')">
+                             onclick="window.switchGroup('${groupId}')">
                             ${groupName} <span class="count">${count}</span>
                         </div>
                     `;
