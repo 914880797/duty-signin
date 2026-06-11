@@ -556,13 +556,14 @@
                             </td>
                         </tr>
                     `;
+                    console.log('表格已清空：无数据');
                     return;
                 }
 
                 // 显示前 10 条预览
                 const previewData = records.slice(0, 10);
-                const startIndex = 1; // 从 1 开始计数
-                tbody.innerHTML = previewData.map((record, index) => `
+                const startIndex = 1;
+                const tableHTML = previewData.map((record, index) => `
                     <tr>
                         <td>${startIndex + index}</td>
                         <td class="date-cell">${record.duty_date || ''}</td>
@@ -573,6 +574,11 @@
                         <td style="font-family: monospace; font-size: 11px;">${record.ip_address || ''}</td>
                     </tr>
                 `).join('');
+                
+                console.log('准备渲染表格，数据条数:', previewData.length);
+                console.log('tbody 元素:', tbody);
+                tbody.innerHTML = tableHTML;
+                console.log('表格已渲染，当前显示条数:', tbody.querySelectorAll('tr').length);
             } catch (error) {
                 console.error('加载数据失败:', error);
                 tbody.innerHTML = `<tr><td colspan="7" class="empty">加载失败：${error.message}</td></tr>`;
