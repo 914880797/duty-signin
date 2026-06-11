@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>导出预览 - 值班打卡系统</title>
+    <title>值班表预览 - 值班打卡系统</title>
     <style>
         * {
             margin: 0;
@@ -12,10 +12,10 @@
         }
 
         body {
-            font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #ffffff;
-            color: #333;
-            padding: 20px 30px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
+            color: #606266;
+            padding: 20px;
         }
 
         .container {
@@ -23,94 +23,32 @@
             margin: 0 auto;
         }
 
-        /* 左上角筛选区 */
-        .filter-section {
+        .page-header {
             display: flex;
-            gap: 10px;
+            justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .search-input {
-            padding: 6px 10px;
-            border: 1px solid #dcdfe6;
-            border-radius: 2px;
-            font-size: 13px;
-            width: 200px;
-            background: #fff;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #4CAF50;
-        }
-
-        .month-select {
-            padding: 6px 10px;
-            border: 1px solid #dcdfe6;
-            border-radius: 2px;
-            font-size: 13px;
-            background: #fff;
-            cursor: pointer;
-        }
-
-        /* 切换按钮 */
-        .sheet-tabs {
-            display: flex;
-            gap: 0;
             margin-bottom: 20px;
-        }
-
-        .sheet-tab {
-            padding: 8px 20px;
-            background: #f5f7fa;
-            border: 1px solid #dcdfe6;
-            border-radius: 2px;
-            cursor: pointer;
-            font-size: 13px;
-            color: #333;
-            transition: all 0.2s;
-            margin-right: 2px;
-        }
-
-        .sheet-tab:hover {
-            background: #e8f5e9;
-        }
-
-        .sheet-tab.active {
-            background: #4CAF50;
-            border-color: #4CAF50;
-            color: #fff;
-            font-weight: 600;
-        }
-
-        /* 标题和导出按钮 */
-        .header-section {
-            text-align: center;
-            margin-bottom: 25px;
         }
 
         h1 {
-            color: #ff7a1a;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 20px;
+            color: #303133;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
         }
 
-        .export-buttons {
+        .header-actions {
             display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 8px;
             align-items: center;
         }
 
         .btn {
-            padding: 10px 24px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 3px;
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: 4px;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
             text-decoration: none;
@@ -118,118 +56,194 @@
         }
 
         .btn-back {
-            background: #f5f5f5;
+            background: #fff;
             border: 1px solid #dcdfe6;
             color: #606266;
         }
 
         .btn-back:hover {
-            background: #e8e8e8;
+            background: #f5f7fa;
         }
 
         .btn-export-csv {
-            background: #0b95c9;
+            background: #67c23a;
             color: white;
         }
 
         .btn-export-csv:hover {
-            background: #0d8cb8;
+            background: #85ce61;
         }
 
         .btn-export-excel {
-            background: #0b95c9;
+            background: #409eff;
             color: white;
         }
 
         .btn-export-excel:hover {
-            background: #0d8cb8;
+            background: #66b1ff;
         }
 
-        /* 统计信息 */
-        .stats-bar {
+        /* Sheet 切换 */
+        .sheet-tabs {
             display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin-bottom: 20px;
-            padding: 12px 20px;
-            background: #f9f9f9;
-            border-radius: 4px;
-            border: 1px solid #e0e0e0;
+            gap: 0;
+            margin-bottom: 0;
+            border-bottom: 2px solid #dcdfe6;
         }
 
-        .stat-item {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .stat-label {
+        .sheet-tab {
+            padding: 10px 20px;
+            background: #f5f7fa;
+            border: 1px solid #dcdfe6;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
             font-size: 13px;
-            color: #666;
+            color: #606266;
+            transition: all 0.2s;
+            margin-right: 2px;
         }
 
-        .stat-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #4CAF50;
+        .sheet-tab:hover {
+            background: #ecf5ff;
+            border-color: #c6e2ff;
+        }
+
+        .sheet-tab.active {
+            background: #fff;
+            border-color: #dcdfe6;
+            border-bottom: 2px solid #fff;
+            margin-bottom: -2px;
+            color: #409eff;
+            font-weight: 600;
+        }
+
+        /* 筛选区域 */
+        .filter-section {
+            background: #fff;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #dcdfe6;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            color: #606266;
+        }
+
+        .filter-group input, .filter-group select {
+            padding: 6px 10px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .search-input {
+            width: 200px !important;
+        }
+
+        .btn-apply {
+            background: #409eff;
+            color: white;
+            padding: 6px 15px;
+        }
+
+        .btn-apply:hover {
+            background: #66b1ff;
+        }
+
+        .btn-clear {
+            background: #909399;
+            color: white;
+            padding: 6px 15px;
+        }
+
+        .btn-clear:hover {
+            background: #a6a9ad;
         }
 
         /* 表格区域 */
         .table-container {
-            overflow: auto;
-            max-height: 65vh;
+            background: #fff;
+            border-radius: 4px;
             border: 1px solid #dcdfe6;
+            overflow: auto;
+            max-height: 70vh;
         }
 
         .duty-table {
             width: max-content;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .duty-table th, .duty-table td {
             border: 1px solid #dcdfe6;
-            padding: 6px 8px;
+            padding: 8px 6px;
             text-align: center;
-            min-width: 32px;
+            min-width: 35px;
         }
 
-        /* 表头样式 */
         .duty-table th {
-            background: #4CAF50;
-            color: #fff;
+            background: #f5f7fa;
+            color: #606266;
             font-weight: 600;
             position: sticky;
             top: 0;
             z-index: 10;
         }
 
-        /* 第一列冻结 */
-        .duty-table td:first-child,
         .duty-table th:first-child {
-            position: sticky;
             left: 0;
-            z-index: 15;
-            background: #fff;
-            text-align: left;
-            min-width: 80px;
-            font-weight: 500;
-        }
-
-        .duty-table th:first-child {
-            background: #4CAF50;
-            z-index: 30;
+            z-index: 20;
+            min-width: 35px;
         }
 
         .duty-table td:first-child {
+            left: 0;
+            position: sticky;
+            z-index: 15;
+            background: #fff;
+            font-weight: 500;
+            text-align: left;
+            min-width: 80px;
             cursor: pointer;
         }
 
         .duty-table td:first-child:hover {
-            background: #e8f5e9;
+            background: #ecf5ff;
         }
 
-        /* 统计列样式 */
+        .duty-table th:first-child {
+            background: #f5f7fa;
+            z-index: 30;
+        }
+
+        /* 第一列冻结 */
+        .duty-table td:first-child,
+        .duty-table th:first-child {
+            border-right: 2px solid #dcdfe6;
+        }
+
+        /* 值班单元格 */
+        .duty-table td.value-1 {
+            background: #e6f7ff;
+            color: #1890ff;
+            font-weight: 600;
+        }
+
+        /* 统计列 */
         .duty-table th.stats-col,
         .duty-table td.stats-col {
             background: #fafafa;
@@ -237,86 +251,78 @@
             min-width: 50px;
         }
 
-        .duty-table th.stats-col {
-            background: #4CAF50;
-        }
-
-        /* 统计行样式 */
+        /* 统计行 */
         .duty-table tr.stats-row td {
-            background: #f5f5f5;
+            background: #f5f7fa;
             font-weight: 600;
             border-top: 2px solid #dcdfe6;
-            color: #333;
         }
 
-        /* 值班单元格 */
-        .duty-table td.value-1 {
-            color: #1a3d5c;
-            font-weight: 600;
+        /* 页脚统计 */
+        .page-footer {
             background: #fff;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid #dcdfe6;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
         }
 
-        /* 高亮行 */
-        .highlight-row td {
-            background: #fff7e6 !important;
+        .stat-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
 
-        /* 加载和空状态 */
+        .stat-label {
+            font-size: 13px;
+            color: #909399;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #409eff;
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
-            color: #999;
-            font-size: 14px;
+            color: #909399;
         }
 
         .empty {
             text-align: center;
             padding: 60px 20px;
-            color: #999;
-            font-size: 14px;
+            color: #909399;
         }
 
-        /* 按钮组 */
-        .filter-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
         }
 
-        .btn-apply {
-            background: #4CAF50;
-            color: white;
-            padding: 6px 15px;
-            border-radius: 2px;
-            font-size: 13px;
+        /* 高亮显示 */
+        .highlight-row td {
+            background: #fff7e6 !important;
         }
 
-        .btn-apply:hover {
-            background: #45a049;
-        }
-
-        .btn-clear {
-            background: #9e9e9e;
-            color: white;
-            padding: 6px 15px;
-            border-radius: 2px;
-            font-size: 13px;
-        }
-
-        .btn-clear:hover {
-            background: #909090;
+        .highlight-col {
+            background: #fff7e6 !important;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 左上角筛选区 -->
-        <div class="filter-section">
-            <input type="text" id="searchInput" class="search-input" placeholder="搜索姓名...">
-            <input type="month" id="monthSelect">
-            <div class="filter-actions">
-                <button onclick="applyFilters()" class="btn btn-apply">✓ 应用</button>
-                <button onclick="clearFilters()" class="btn btn-clear">✕ 清除</button>
+        <!-- 页面头部 -->
+        <div class="page-header">
+            <h1>📊 值班表预览</h1>
+            <div class="header-actions">
+                <a href="/records" class="btn btn-back">⬅️ 返回记录页</a>
+                <button onclick="exportTable('csv')" class="btn btn-export-csv">📥 导出 CSV</button>
+                <button onclick="exportTable('excel')" class="btn btn-export-excel">📥 导出 Excel</button>
             </div>
         </div>
 
@@ -325,28 +331,18 @@
             <!-- 动态生成 -->
         </div>
 
-        <!-- 标题和导出按钮 -->
-        <div class="header-section">
-            <h1>导出预览</h1>
-            <div class="export-buttons">
-                <a href="/records" class="btn btn-back">⬅️ 返回记录页</a>
-                <button onclick="exportTable('csv')" class="btn btn-export-csv">导出为 CSV</button>
-                <button onclick="exportTable('excel')" class="btn btn-export-excel">导出为 Excel</button>
+        <!-- 筛选区域 -->
+        <div class="filter-section">
+            <div class="filter-group">
+                <label>月份：</label>
+                <input type="month" id="monthSelect">
             </div>
-            <div class="stats-bar" id="statsBar">
-                <div class="stat-item">
-                    <span class="stat-label">总人数：</span>
-                    <span class="stat-value" id="totalPersons">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">累计值班：</span>
-                    <span class="stat-value" id="totalShifts">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">人均值班：</span>
-                    <span class="stat-value" id="avgShifts">0</span>
-                </div>
+            <div class="filter-group">
+                <label>搜索：</label>
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索姓名...">
             </div>
+            <button onclick="applyFilters()" class="btn btn-apply">✓ 应用</button>
+            <button onclick="clearFilters()" class="btn btn-clear">✕ 清除</button>
         </div>
 
         <!-- 表格区域 -->
@@ -355,32 +351,67 @@
                 <!-- 动态生成 -->
             </table>
         </div>
+
+        <!-- 页脚统计 -->
+        <div class="page-footer" id="pageFooter">
+            <div class="stat-item">
+                <span class="stat-label">总人数：</span>
+                <span class="stat-value" id="totalPersons">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">累计值班：</span>
+                <span class="stat-value" id="totalShifts">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">人均值班：</span>
+                <span class="stat-value" id="avgShifts">0</span>
+            </div>
+        </div>
     </div>
 
     <script>
+        // 全局数据存储
         let currentSheet = '会议室';
         let allData = {};
+        let filteredData = {};
         let groups = [];
 
+        // 页面初始化
         window.addEventListener('DOMContentLoaded', () => {
             const now = new Date();
             const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
             const bjTime = new Date(bjTimestamp);
             const pad = (n) => String(n).padStart(2, '0');
             const currentMonth = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}`;
+            
             document.getElementById('monthSelect').value = currentMonth;
+            
+            // 加载数据
             loadData();
         });
 
+        // 加载所有数据
         async function loadData() {
             try {
+                // 获取所有打卡记录
                 const recordsResponse = await fetch('/api/records');
                 const records = await recordsResponse.json();
+                
+                // 获取所有分组
                 const groupsResponse = await fetch('/api/groups');
                 const groupsResult = await groupsResponse.json();
                 groups = groupsResult.data || [];
+                
+                console.log('打卡记录:', records.length);
+                console.log('分组:', groups);
+                
+                // 按分组整理数据
                 allData = processDataByGroup(records);
+                
+                // 生成 Sheet 切换
                 renderSheetTabs();
+                
+                // 加载第一个分组
                 if (groups.length > 0) {
                     currentSheet = groups[0].name;
                     renderTable(currentSheet);
@@ -388,41 +419,62 @@
             } catch (error) {
                 console.error('加载数据失败:', error);
                 document.getElementById('dutyTable').innerHTML = `
-                    <tr><td colspan="35" class="empty">加载失败：${error.message}</td></tr>
+                    <tr><td colspan="35" class="empty">
+                        <div class="empty-icon">📭</div>
+                        <div>加载失败：${error.message}</div>
+                    </td></tr>
                 `;
             }
         }
 
+        // 按分组处理数据
         function processDataByGroup(records) {
             const data = {};
+            
+            // 初始化每个分组
             groups.forEach(group => {
-                data[group.name] = { persons: [], records: {} };
+                data[group.name] = {
+                    persons: [],
+                    records: {} // {姓名: {日期：1}}
+                };
             });
+            
+            // 没有分组的记录放入"未分组"
             if (!data['未分组']) {
                 data['未分组'] = { persons: [], records: {} };
             }
+            
+            // 处理每条记录
             records.forEach(record => {
                 const groupName = record.group_name || '未分组';
                 if (!data[groupName]) {
                     data[groupName] = { persons: [], records: {} };
                 }
+                
                 const name = record.name;
                 const date = record.duty_date;
                 const day = parseInt(date.split('-')[2]);
+                
                 if (!data[groupName].persons.includes(name)) {
                     data[groupName].persons.push(name);
                 }
+                
                 if (!data[groupName].records[name]) {
                     data[groupName].records[name] = {};
                 }
+                
                 data[groupName].records[name][day] = 1;
             });
+            
+            // 按姓名排序
             Object.keys(data).forEach(groupName => {
                 data[groupName].persons.sort();
             });
+            
             return data;
         }
 
+        // 渲染 Sheet 切换
         function renderSheetTabs() {
             const tabs = document.getElementById('sheetTabs');
             tabs.innerHTML = groups.map((group, index) => `
@@ -431,51 +483,75 @@
                     ${group.name}
                 </div>
             `).join('');
+            
             if (groups.length === 0) {
                 tabs.innerHTML = '<div class="sheet-tab active">未分组</div>';
             }
         }
 
+        // 切换 Sheet
         window.switchSheet = function(sheetName) {
             currentSheet = sheetName;
+            
+            // 更新激活状态
             document.querySelectorAll('.sheet-tab').forEach(tab => {
                 tab.classList.toggle('active', tab.textContent.trim() === sheetName);
             });
+            
             renderTable(sheetName);
         }
 
+        // 渲染表格
         function renderTable(sheetName) {
             const table = document.getElementById('dutyTable');
             const data = allData[sheetName] || { persons: [], records: {} };
+            
             if (data.persons.length === 0) {
-                table.innerHTML = '<tr><td colspan="35" class="empty">暂无数据</td></tr>';
+                table.innerHTML = `
+                    <tr><td colspan="35" class="empty">
+                        <div class="empty-icon">📭</div>
+                        <div>暂无数据</div>
+                    </td></tr>
+                `;
                 updateStats(0, 0);
                 return;
             }
+            
+            // 获取当前月份的天数
             const monthSelect = document.getElementById('monthSelect').value;
             const [year, month] = monthSelect.split('-').map(Number);
             const daysInMonth = new Date(year, month, 0).getDate();
+            
+            // 构建表头
             let html = '<thead><tr>';
             html += '<th>姓名</th>';
             for (let day = 1; day <= daysInMonth; day++) {
                 html += `<th>${day}号</th>`;
             }
-            html += '<th class="stats-col">共计</th>';
-            html += '</tr></thead><tbody>';
+            html += '<th class="stats-col">累计</th></tr></thead>';
+            
+            // 构建表体
+            html += '<tbody>';
             let totalShifts = 0;
+            
             data.persons.forEach(name => {
                 const personRecords = data.records[name] || {};
                 let personShifts = 0;
+                
                 html += `<tr data-name="${name}">`;
                 html += `<td onclick="highlightRow('${name}')">${name}</td>`;
+                
                 for (let day = 1; day <= daysInMonth; day++) {
                     const hasShift = personRecords[day] ? 1 : '';
                     if (hasShift) personShifts++;
                     html += `<td class="${hasShift ? 'value-1' : ''}" data-day="${day}">${hasShift}</td>`;
                 }
+                
                 html += `<td class="stats-col">${personShifts}</td></tr>`;
                 totalShifts += personShifts;
             });
+            
+            // 统计行
             html += '<tr class="stats-row"><td>累计</td>';
             for (let day = 1; day <= daysInMonth; day++) {
                 let dayCount = 0;
@@ -486,11 +562,15 @@
                 });
                 html += `<td class="stats-col">${dayCount}</td>`;
             }
-            html += `<td class="stats-col">${totalShifts}</td></tr></tbody>`;
+            html += `<td class="stats-col">${totalShifts}</td></tr>`;
+            
+            html += '</tbody>';
+            
             table.innerHTML = html;
             updateStats(data.persons.length, totalShifts);
         }
 
+        // 更新统计
         function updateStats(totalPersons, totalShifts) {
             document.getElementById('totalPersons').textContent = totalPersons;
             document.getElementById('totalShifts').textContent = totalShifts;
@@ -499,8 +579,11 @@
                 : '0';
         }
 
+        // 应用筛选
         window.applyFilters = function() {
             const searchInput = document.getElementById('searchInput').value.trim().toLowerCase();
+            
+            // 高亮匹配的行
             document.querySelectorAll('#dutyTable tbody tr[data-name]').forEach(row => {
                 const name = row.getAttribute('data-name').toLowerCase();
                 if (searchInput && name.includes(searchInput)) {
@@ -511,6 +594,7 @@
             });
         }
 
+        // 清除筛选
         window.clearFilters = function() {
             document.getElementById('searchInput').value = '';
             document.querySelectorAll('#dutyTable tbody tr[data-name]').forEach(row => {
@@ -518,39 +602,59 @@
             });
         }
 
+        // 高亮行
         window.highlightRow = function(name) {
+            // 移除所有高亮
             document.querySelectorAll('.highlight-row').forEach(row => {
                 row.classList.remove('highlight-row');
             });
+            
+            // 高亮当前行
             const row = document.querySelector(`#dutyTable tbody tr[data-name="${name}"]`);
             if (row) {
                 row.classList.add('highlight-row');
             }
         }
 
+        // 导出表格
         window.exportTable = function(format) {
             const data = allData[currentSheet] || { persons: [], records: {} };
             const monthSelect = document.getElementById('monthSelect').value;
             const [year, month] = monthSelect.split('-').map(Number);
             const daysInMonth = new Date(year, month, 0).getDate();
+            
             if (data.persons.length === 0) {
                 alert('⚠️ 没有可导出的数据');
                 return;
             }
+            
             const filename = `${currentSheet}值班表_${year}${String(month).padStart(2, '0')}`;
-            exportCSV(filename, data, daysInMonth);
+            
+            if (format === 'csv') {
+                exportCSV(filename, data, daysInMonth);
+            } else if (format === 'excel') {
+                alert('💡 提示：浏览器环境建议使用 CSV 格式，可用 Excel 打开');
+                exportCSV(filename, data, daysInMonth);
+            }
         }
 
+        // 导出 CSV
         function exportCSV(filename, data, daysInMonth) {
+            // 添加 BOM 让 Excel 正确识别中文
             let content = '\uFEFF';
+            
+            // 表头
             content += '姓名,';
             for (let day = 1; day <= daysInMonth; day++) {
                 content += `${day}号,'`;
             }
-            content += '共计\n';
+            content += '累计\n';
+            
+            // 数据行
             data.persons.forEach(name => {
                 const personRecords = data.records[name] || {};
                 let personShifts = 0;
+                
                 content += `${name},`;
                 for (let day = 1; day <= daysInMonth; day++) {
                     const hasShift = personRecords[day] ? '1' : '';
@@ -559,6 +663,8 @@
                 }
                 content += `${personShifts}\n`;
             });
+            
+            // 统计行
             content += '累计,';
             for (let day = 1; day <= daysInMonth; day++) {
                 let dayCount = 0;
@@ -574,12 +680,15 @@
                 return sum + Object.keys(personRecords).length;
             }, 0);
             content += `${totalShifts}\n`;
+            
+            // 下载
             const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = `${filename}.csv`;
             link.click();
             URL.revokeObjectURL(link.href);
+            
             alert(`✅ 已导出 ${data.persons.length} 人的值班表`);
         }
     </script>
