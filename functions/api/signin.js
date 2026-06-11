@@ -214,10 +214,8 @@ function getDutyTimeRange(dutyTime) {
   
   console.log('解析后的时间:', { startHour, startMin, endHour, endMin });
   
-  // 检查是否是跨天格式（开始时间大于结束时间，或格式是 24:XX-XX:XX）
-  const isOvernightFormat = (startHour === 24) || (startHour > endHour);
-  
   // 处理 24:00 的情况（表示午夜 00:00）
+  const originalStartHour = startHour; // 保存原始小时数用于判断
   if (startHour === 24) {
     startHour = 0;
   }
@@ -228,12 +226,16 @@ function getDutyTimeRange(dutyTime) {
   const startTime = startHour * 60 + startMin;
   const endTime = endHour * 60 + endMin;
   
-  console.log('计算结果:', { startTime, endTime, isOvernight: isOvernightFormat });
+  // 跨天定义：转换后的开始时间大于结束时间（如 23:00-04:00）
+  // 注意：24:00-04:00 转换成 00:00-04:00 后，0 < 240，不是跨天
+  const isOvernight = originalStartHour > endHour && originalStartHour !== 24;
+  
+  console.log('计算结果:', { startTime, endTime, isOvernight, timeRange: `${startTime}-${endTime}` });
   
   return {
     startTime: startTime,
     endTime: endTime,
     name: dutyTime,
-    isOvernight: isOvernightFormat
+    isOvernight: isOvernight
   };
 }
