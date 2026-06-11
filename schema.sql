@@ -1,8 +1,23 @@
+-- 值班分组表
+CREATE TABLE IF NOT EXISTS shift_groups (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  order_index INTEGER NOT NULL DEFAULT 0
+);
+
+-- 插入默认分组
+INSERT OR IGNORE INTO shift_groups (name, order_index) VALUES 
+  ('会议室', 1),
+  ('电报', 2),
+  ('其他', 3);
+
 CREATE TABLE IF NOT EXISTS duty_config (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   duty_date TEXT NOT NULL,
   duty_time TEXT NOT NULL,
-  name TEXT NOT NULL
+  name TEXT NOT NULL,
+  group_id INTEGER,
+  FOREIGN KEY (group_id) REFERENCES shift_groups(id)
 );
 
 CREATE TABLE IF NOT EXISTS signin_records (
@@ -10,8 +25,10 @@ CREATE TABLE IF NOT EXISTS signin_records (
   name TEXT NOT NULL,
   duty_date TEXT NOT NULL,
   duty_time TEXT NOT NULL,
+  group_id INTEGER,
   created_at TEXT NOT NULL,
   ip_address TEXT,
+  FOREIGN KEY (group_id) REFERENCES shift_groups(id),
   UNIQUE(name, duty_date, duty_time)
 );
 
