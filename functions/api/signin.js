@@ -29,14 +29,26 @@ export async function onRequestPost({ request, env }) {
     const trimmedName = name.trim();
 
     // 查询排班（包含 group_id）
+    // 放宽日期范围：查询从前天开始的排班
+    const twoDaysAgo = new Date(bjTimestamp - (2 * 24 * 60 * 60 * 1000));
+    const twoDaysAgoStr = `${twoDaysAgo.getUTCFullYear()}-${pad(twoDaysAgo.getUTCMonth() + 1)}-${pad(twoDaysAgo.getUTCDate())}`;
+    
+    console.log('===== 打卡验证 =====');
+    console.log('当前北京时间:', today, currentTime);
+    console.log('查询姓名:', trimmedName);
+    console.log('查询日期范围:', twoDaysAgoStr, '及以后');
+    
     const dutyConfig = await env.DB.prepare(`
       SELECT name, duty_time, duty_date, group_id FROM duty_config
       WHERE name = ? AND duty_date >= ?
       ORDER BY duty_date ASC
       LIMIT 1
-    `).bind(trimmedName, today).first();
+    `).bind(trimmedName, twoDaysAgoStr).first();
+    
+    console.log('查询到的排班:', dutyConfig);
     
     if (!dutyConfig || !dutyConfig.duty_time) {
+      console.log('❌ 未找到排班记录');
       return Response.json(
         { error: `未参与值班，请联系管理员添加排班` },
         { status: 403 }
@@ -44,14 +56,39 @@ export async function onRequestPost({ request, env }) {
     }
     
     const personDutyTime = dutyConfig.duty_time;
+    const personDutyTime = dutyConfig.duty_time;
+
+    // 检查今天是否已经打过卡
+    const recentCheck = await env.DB.prepare(`
+      SELECT created_at FROM signin_records 
+      WHERE name = ? AND duty_date = ? AND duty_time = ?
+      ORDER BY created_at DESC LIMIT 1
+    `).bind(trimmedName, today, personDutyTime).first();
+
+    if (recentCheck) {
+      console.log('❌ 今天已经打过卡了');
+      return Response.json(
+        { error: `今天已经打过卡了，每个时段每天只能打卡一次` },
+        { status: 400 }
+      );
+    }
     
     // 验证当前时间是否在值班时间段内
     const timeMatch = getCurrentDutyPeriod(finalTime);
     const dutyRange = getDutyTimeRange(personDutyTime);
     
+    console.log('值班时段:', personDutyTime);
+    console.log('当前时间范围:', timeMatch);
+    console.log('值班时间范围:', dutyRange);
+    console.log('===== 验证结果 =====');
+    
     if (dutyRange && timeMatch) {
       const isValid = timeMatch.startTime >= dutyRange.startTime && 
                       timeMatch.endTime <= dutyRange.endTime;
+      
+      console.log('时间验证:', isValid ? '通过' : '失败');
+      console.log('期望范围:', dutyRange.startTime, '-', dutyRange.endTime);
+      console.log('当前时间:', timeMatch.startTime, '-', timeMatch.endTime);
       
       if (!isValid) {
         return Response.json({ 
@@ -61,8 +98,6 @@ export async function onRequestPost({ request, env }) {
         }, { status: 400 });
       }
     }
-
-    // 检查今天是否已经打过卡
     const recentCheck = await env.DB.prepare(`
       SELECT created_at FROM signin_records 
       WHERE name = ? AND duty_date = ? AND duty_time = ?
@@ -76,6 +111,8 @@ export async function onRequestPost({ request, env }) {
       );
     }
 
+    console.log('✅ 打卡成功');
+    
     // 插入打卡记录
     await env.DB.prepare(`
       INSERT INTO signin_records (name, duty_date, duty_time, group_id, created_at, ip_address)
@@ -90,6 +127,7 @@ export async function onRequestPost({ request, env }) {
     });
   } catch (e) {
     console.error('Signin error:', e);
+    console.log('===== 打卡失败 =====');
     return Response.json({ error: e.message }, { status: 500 });
   }
 }
