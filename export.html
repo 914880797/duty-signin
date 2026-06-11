@@ -444,8 +444,49 @@
     </div>
 
     <script>
+        // 版本号用于强制刷新缓存
+        const APP_VERSION = '20260611-001';
+        console.log('📦 应用版本:', APP_VERSION);
+        console.log('页面加载时间:', new Date().toISOString());
+        
         let allRecords = [];
         let filteredRecords = [];
+
+        // 确保 switchGroup 函数在全局作用域
+        window.switchGroup = function(groupId) {
+            console.log('=== 切换分组（全局函数）===');
+            console.log('点击的参数 groupId:', groupId);
+            
+            const groupSelect = document.getElementById('groupSelect');
+            
+            if (groupId === 'all') {
+                groupSelect.value = '';
+                console.log('设置为全部分组，groupSelect.value:', groupSelect.value);
+            } else {
+                groupSelect.value = groupId;
+                console.log('设置为特定分组，groupSelect.value:', groupSelect.value);
+            }
+            
+            // 等待下一个事件循环再调用 loadData，确保 DOM 更新
+            setTimeout(() => {
+                console.log('准备调用 loadData()');
+                loadData();
+            }, 0);
+            
+            // 更新分组选项卡的 active 状态
+            const tabs = document.querySelectorAll('.group-tab');
+            tabs.forEach(tab => {
+                const isActive = tab.classList.contains('active');
+                const tabGroupId = tab.getAttribute('onclick')?.match(/switchGroup\('([^']+)'\)/)?.[1];
+                if (groupId === 'all' && tabGroupId === 'all') {
+                    tab.classList.add('active');
+                } else if (groupId !== 'all' && tabGroupId === groupId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        };
 
         // 页面加载时初始化
         window.addEventListener('DOMContentLoaded', () => {
@@ -667,39 +708,6 @@
                         </div>
                     `;
                 });
-        }
-
-        // 切换分组
-        function switchGroup(groupId) {
-            console.log('=== 切换分组 ===');
-            console.log('点击的参数 groupId:', groupId);
-            
-            const groupSelect = document.getElementById('groupSelect');
-            
-            if (groupId === 'all') {
-                groupSelect.value = '';
-                console.log('设置为全部分组，groupSelect.value:', groupSelect.value);
-            } else {
-                groupSelect.value = groupId;
-                console.log('设置为特定分组，groupSelect.value:', groupSelect.value);
-            }
-            
-            console.log('准备调用 loadData()');
-            loadData();
-            
-            // 更新分组选项卡的 active 状态
-            const tabs = document.querySelectorAll('.group-tab');
-            tabs.forEach(tab => {
-                const isActive = tab.classList.contains('active');
-                const tabGroupId = tab.getAttribute('onclick')?.match(/switchGroup\('([^']+)'\)/)?.[1];
-                if (groupId === 'all' && tabGroupId === 'all') {
-                    tab.classList.add('active');
-                } else if (groupId !== 'all' && tabGroupId === groupId) {
-                    tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
-                }
-            });
         }
 
         // 导出数据
