@@ -532,20 +532,29 @@
         }
 
         // 加载分组列表
-        async function loadGroups() {
+        window.loadGroups = async function loadGroups() {
             try {
                 const response = await fetch('/api/groups');
                 const groups = await response.json();
                 
                 const select = document.getElementById('groupSelect');
-                if (Array.isArray(groups)) {
-                    groups.forEach(group => {
+                select.innerHTML = '<option value="">全部分组</option>';
+                
+                if (Array.isArray(groups.data)) {
+                    groups.data.forEach(group => {
                         const option = document.createElement('option');
                         option.value = group.id;
                         option.textContent = group.name;
                         select.appendChild(option);
                     });
                 }
+                
+                return groups.data || [];
+            } catch (error) {
+                console.error('加载分组失败:', error);
+                return [];
+            }
+        }
                 return groups;
             } catch (error) {
                 console.error('加载分组失败:', error);
@@ -554,7 +563,7 @@
         }
 
         // 加载数据
-        async function loadData() {
+        window.loadData = async function loadData() {
             const tbody = document.getElementById('recordsBody');
             tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
 
@@ -666,7 +675,7 @@
         }
 
         // 渲染分组切换标签
-        function renderGroupTabs() {
+        window.renderGroupTabs = function renderGroupTabs() {
             const groupCounts = {};
             
             // 统计每个分组的记录数
