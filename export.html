@@ -44,15 +44,6 @@
             border-color: #4CAF50;
         }
 
-        .month-select {
-            padding: 6px 10px;
-            border: 1px solid #dcdfe6;
-            border-radius: 2px;
-            font-size: 13px;
-            background: #fff;
-            cursor: pointer;
-        }
-
         .sheet-tabs {
             display: flex;
             gap: 0;
@@ -170,51 +161,48 @@
             color: #4CAF50;
         }
 
-        .table-container {
-            overflow: auto;
-            max-height: 65vh;
+        .table-outer-container {
             border: 1px solid #dcdfe6;
+            overflow: auto;
+            height: 65vh;
         }
 
         .duty-table {
-            width: max-content;
             border-collapse: collapse;
             font-size: 13px;
         }
 
-        .duty-table th, .duty-table td {
-            border: 1px solid #dcdfe6;
-            padding: 6px 8px;
-            text-align: center;
-            min-width: 32px;
-        }
-
-        .duty-table th {
+        .duty-table thead th {
             background: #4CAF50;
             color: #fff;
             font-weight: 600;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            padding: 6px 8px;
+            text-align: center;
+            border: 1px solid #dcdfe6;
+            white-space: nowrap;
         }
 
-        .duty-table td:first-child,
-        .duty-table th:first-child {
+        .duty-table tbody td {
+            padding: 6px 8px;
+            text-align: center;
+            border: 1px solid #dcdfe6;
+            height: 32px;
+            white-space: nowrap;
+        }
+
+        .duty-table td.date-cell {
+            min-width: 32px;
+            max-width: 32px;
+        }
+
+        .duty-table td:first-child {
             position: sticky;
             left: 0;
-            z-index: 15;
+            z-index: 20;
             background: #fff;
             text-align: left;
             min-width: 80px;
             font-weight: 500;
-        }
-
-        .duty-table th:first-child {
-            background: #4CAF50;
-            z-index: 30;
-        }
-
-        .duty-table td:first-child {
             cursor: pointer;
         }
 
@@ -222,22 +210,54 @@
             background: #e8f5e9;
         }
 
-        .duty-table th.stats-col,
-        .duty-table td.stats-col {
-            background: #fafafa;
-            font-weight: 600;
-            min-width: 55px;
-        }
-
-        .duty-table th.stats-col {
+        .duty-table th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 30;
             background: #4CAF50;
         }
 
-        .duty-table tr.stats-row td {
-            background: #f5f5f5;
+        .duty-table th.stats-col-fixed,
+        .duty-table td.stats-col-fixed {
+            position: sticky;
+            right: 0;
+            background: #fafafa;
             font-weight: 600;
-            border-top: 2px solid #dcdfe6;
-            color: #333;
+            min-width: 55px;
+            z-index: 20;
+            border-left: 2px solid #dcdfe6;
+        }
+
+        .duty-table th.stats-col-fixed {
+            background: #4CAF50;
+            z-index: 30;
+        }
+
+        .duty-table td.stats-col-fixed:nth-last-child(3) {
+            right: 165px;
+        }
+
+        .duty-table td.stats-col-fixed:nth-last-child(2) {
+            right: 110px;
+        }
+
+        .duty-table td.stats-col-fixed:nth-last-child(1) {
+            right: 0;
+        }
+
+        .duty-table th.stats-col-fixed:nth-last-child(3) {
+            right: 165px;
+            z-index: 31;
+        }
+
+        .duty-table th.stats-col-fixed:nth-last-child(2) {
+            right: 110px;
+            z-index: 31;
+        }
+
+        .duty-table th.stats-col-fixed:nth-last-child(1) {
+            right: 0;
+            z-index: 31;
         }
 
         .duty-table td.value-1 {
@@ -299,9 +319,6 @@
     <div class="container">
         <div class="filter-section">
             <input type="text" id="searchInput" class="search-input" placeholder="搜索姓名...">
-            <select id="cycleSelect" class="month-select">
-                <option value="">加载中...</option>
-            </select>
             <div class="filter-actions">
                 <button onclick="applyFilters()" class="btn btn-apply">✓ 应用</button>
                 <button onclick="clearFilters()" class="btn btn-clear">✕ 清除</button>
@@ -333,7 +350,7 @@
             </div>
         </div>
 
-        <div class="table-container">
+        <div class="table-outer-container">
             <table class="duty-table" id="dutyTable"></table>
         </div>
     </div>
@@ -359,41 +376,28 @@
                     cycleStartDate = new Date().toISOString().split('T')[0];
                 }
                 
-                generateCycleDates(cycleStartDate);
-                populateCycleSelect();
                 loadData();
             } catch (error) {
                 console.error('加载设置失败:', error);
                 cycleStartDate = new Date().toISOString().split('T')[0];
-                generateCycleDates(cycleStartDate);
-                populateCycleSelect();
                 loadData();
             }
         }
 
-        function generateCycleDates(startDate) {
+        function generateCycleDates(startDate, endDate) {
             cycleDates = [];
             const start = new Date(startDate);
-            for (let i = 0; i < 31; i++) {
-                const date = new Date(start);
-                date.setDate(date.getDate() + i);
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
+            const end = new Date(endDate);
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
                 cycleDates.push({
                     fullDate: `${year}-${month}-${day}`,
-                    displayDate: `${date.getMonth() + 1}月${date.getDate()}号`,
-                    day: date.getDate()
+                    displayDate: `${d.getMonth() + 1}月${d.getDate()}号`,
+                    day: d.getDate()
                 });
             }
-        }
-
-        function populateCycleSelect() {
-            const select = document.getElementById('cycleSelect');
-            const start = new Date(cycleStartDate);
-            const year = start.getFullYear();
-            const month = String(start.getMonth() + 1).padStart(2, '0');
-            select.innerHTML = `<option value="${year}-${month}">${year}年${parseInt(month)}月 (${start.getMonth() + 1}月${start.getDate()}号起)</option>`;
         }
 
         async function loadData() {
@@ -403,6 +407,7 @@
                 const groupsResponse = await fetch('/api/groups');
                 const groupsResult = await groupsResponse.json();
                 groups = groupsResult.data || [];
+                
                 allData = processDataByGroup(records);
                 renderSheetTabs();
                 if (groups.length > 0) {
@@ -420,15 +425,18 @@
         function processDataByGroup(records) {
             const data = {};
             groups.forEach(group => {
-                data[group.name] = { persons: [], records: {} };
+                data[group.name] = { persons: [], records: {}, maxDate: null };
             });
             if (!data['未分组']) {
-                data['未分组'] = { persons: [], records: {} };
+                data['未分组'] = { persons: [], records: {}, maxDate: null };
             }
+            
+            let globalMaxDate = cycleStartDate;
+            
             records.forEach(record => {
                 const groupName = record.group_name || '未分组';
                 if (!data[groupName]) {
-                    data[groupName] = { persons: [], records: {} };
+                    data[groupName] = { persons: [], records: {}, maxDate: null };
                 }
                 const name = record.name;
                 const date = record.duty_date;
@@ -439,10 +447,21 @@
                     data[groupName].records[name] = {};
                 }
                 data[groupName].records[name][date] = 1;
+                
+                if (date > globalMaxDate) {
+                    globalMaxDate = date;
+                }
+                if (!data[groupName].maxDate || date > data[groupName].maxDate) {
+                    data[groupName].maxDate = date;
+                }
             });
+            
             Object.keys(data).forEach(groupName => {
                 data[groupName].persons.sort();
             });
+            
+            generateCycleDates(cycleStartDate, globalMaxDate);
+            
             return data;
         }
 
@@ -475,14 +494,15 @@
                 updateStats(0, 0);
                 return;
             }
+            const totalDays = cycleDates.length;
             let html = '<thead><tr>';
-            html += '<th>姓名</th>';
+            html += '<th style="position:sticky;left:0;z-index:30;min-width:80px;">姓名</th>';
             cycleDates.forEach(dateInfo => {
-                html += `<th>${dateInfo.displayDate}</th>`;
+                html += `<th class="date-cell">${dateInfo.displayDate}</th>`;
             });
-            html += '<th class="stats-col">共计</th>';
-            html += '<th class="stats-col">累计</th>';
-            html += '<th class="stats-col">缺席</th>';
+            html += '<th class="stats-col-fixed" style="right:165px;">共计</th>';
+            html += '<th class="stats-col-fixed" style="right:110px;">累计</th>';
+            html += '<th class="stats-col-fixed" style="right:0;">缺席</th>';
             html += '</tr></thead><tbody>';
             let totalShifts = 0;
             let totalAbsences = 0;
@@ -490,32 +510,20 @@
                 const personRecords = data.records[name] || {};
                 let personShifts = 0;
                 html += `<tr data-name="${name}">`;
-                html += `<td onclick="highlightRow('${name}')">${name}</td>`;
+                html += `<td style="position:sticky;left:0;z-index:20;background:#fff;" onclick="highlightRow('${name}')">${name}</td>`;
                 cycleDates.forEach(dateInfo => {
                     const hasShift = personRecords[dateInfo.fullDate] ? 1 : '';
                     if (hasShift) personShifts++;
-                    html += `<td class="${hasShift ? 'value-1' : ''}" data-date="${dateInfo.fullDate}">${hasShift}</td>`;
+                    html += `<td class="date-cell ${hasShift ? 'value-1' : ''}" data-date="${dateInfo.fullDate}">${hasShift}</td>`;
                 });
-                const absences = 31 - personShifts;
-                html += `<td class="stats-col">${personShifts}</td>`;
-                html += `<td class="stats-col">${personShifts}</td>`;
-                html += `<td class="stats-col">${absences}</td></tr>`;
+                const absences = totalDays - personShifts;
+                html += `<td class="stats-col-fixed" style="right:165px;">${personShifts}</td>`;
+                html += `<td class="stats-col-fixed" style="right:110px;">${personShifts}</td>`;
+                html += `<td class="stats-col-fixed" style="right:0;">${absences}</td></tr>`;
                 totalShifts += personShifts;
                 totalAbsences += absences;
             });
-            html += '<tr class="stats-row"><td>累计</td>';
-            cycleDates.forEach(dateInfo => {
-                let dayCount = 0;
-                data.persons.forEach(name => {
-                    if (data.records[name] && data.records[name][dateInfo.fullDate]) {
-                        dayCount++;
-                    }
-                });
-                html += `<td class="stats-col">${dayCount}</td>`;
-            });
-            html += `<td class="stats-col">${totalShifts}</td>`;
-            html += `<td class="stats-col">${totalShifts}</td>`;
-            html += `<td class="stats-col">${totalAbsences}</td></tr></tbody>`;
+            html += '</tbody>';
             table.innerHTML = html;
             updateStats(data.persons.length, totalShifts);
         }
@@ -577,6 +585,7 @@
                 content += `${dateInfo.displayDate},`;
             });
             content += '共计，累计，缺席\n';
+            const totalDays = cycleDates.length;
             data.persons.forEach(name => {
                 const personRecords = data.records[name] || {};
                 let personShifts = 0;
@@ -586,10 +595,10 @@
                     if (hasShift) personShifts++;
                     content += `${hasShift},`;
                 });
-                const absences = 31 - personShifts;
+                const absences = totalDays - personShifts;
                 content += `${personShifts},${personShifts},${absences}\n`;
             });
-            content += '累计,';
+            content += '总计,';
             cycleDates.forEach(dateInfo => {
                 let dayCount = 0;
                 data.persons.forEach(name => {
@@ -603,7 +612,7 @@
                 const personRecords = data.records[name] || {};
                 return sum + Object.keys(personRecords).length;
             }, 0);
-            const totalAbsences = data.persons.length * 31 - totalShifts;
+            const totalAbsences = data.persons.length * totalDays - totalShifts;
             content += `${totalShifts},${totalShifts},${totalAbsences}\n`;
             const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
