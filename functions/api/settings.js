@@ -8,7 +8,6 @@ export async function onRequestPost({ env }) {
       message: '已清空所有打卡记录'
     });
   } catch (error) {
-    console.error('清空记录失败:', error);
     return Response.json({ 
       error: error.message 
     }, { status: 500 });
@@ -18,7 +17,6 @@ export async function onRequestPost({ env }) {
 // 获取打卡周期设置
 export async function onRequestGet({ env }) {
   try {
-    // 获取当前周期起始日期（从 kv 存储或配置表读取）
     const config = await env.DB.prepare(`
       SELECT value FROM settings WHERE key = 'cycle_start_date'
     `).first();
@@ -33,7 +31,6 @@ export async function onRequestGet({ env }) {
       totalRecords: count?.total || 0
     });
   } catch (error) {
-    console.error('获取设置失败:', error);
     return Response.json({ 
       error: error.message 
     }, { status: 500 });
@@ -49,7 +46,6 @@ export async function onRequestPut({ request, env }) {
       return Response.json({ error: '缺少起始日期' }, { status: 400 });
     }
     
-    // 更新配置
     await env.DB.prepare(`
       INSERT OR REPLACE INTO settings (key, value, updated_at) 
       VALUES ('cycle_start_date', ?, CURRENT_TIMESTAMP)
@@ -60,7 +56,6 @@ export async function onRequestPut({ request, env }) {
       message: '打卡周期设置已保存'
     });
   } catch (error) {
-    console.error('保存设置失败:', error);
     return Response.json({ 
       error: error.message 
     }, { status: 500 });

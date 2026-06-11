@@ -47,6 +47,15 @@ CREATE TABLE IF NOT EXISTS allowed_persons (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 系统设置表
+CREATE TABLE IF NOT EXISTS settings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT NOT NULL UNIQUE,
+  value TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 插入默认允许人员名单（请根据实际情况修改）
 INSERT OR IGNORE INTO allowed_persons (name) VALUES 
   ('贪狼'),

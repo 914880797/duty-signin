@@ -8,6 +8,7 @@ export async function onRequestGet({ env }) {
       env.DB.prepare(`DROP TABLE IF EXISTS duty_roster`),
       env.DB.prepare(`DROP TABLE IF EXISTS allowed_persons`),
       env.DB.prepare(`DROP TABLE IF EXISTS shift_groups`),
+      env.DB.prepare(`DROP TABLE IF EXISTS settings`),
       
       // 创建分组表
       env.DB.prepare(`
@@ -60,6 +61,17 @@ export async function onRequestGet({ env }) {
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
+      `),
+      
+      // 创建设置表
+      env.DB.prepare(`
+        CREATE TABLE settings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          key TEXT NOT NULL UNIQUE,
+          value TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
       `)
     ]);
     
@@ -67,7 +79,7 @@ export async function onRequestGet({ env }) {
     const defaultGroups = [
       { name: '会议室', order: 1 },
       { name: '电报', order: 2 },
-      { name: '默认', order: 3 }
+      { name: '其他', order: 3 }
     ];
     
     const insertGroups = defaultGroups.map(g => 
@@ -96,7 +108,7 @@ export async function onRequestGet({ env }) {
       success: true, 
       message: '数据库表重建成功',
       status: 'created',
-      tables: ['shift_groups', 'duty_config', 'signin_records', 'duty_roster', 'allowed_persons']
+      tables: ['shift_groups', 'duty_config', 'signin_records', 'duty_roster', 'allowed_persons', 'settings']
     });
   } catch (error) {
     console.error('初始化数据库失败:', error);

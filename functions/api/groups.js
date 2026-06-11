@@ -12,7 +12,6 @@ export async function onRequestGet({ env }) {
       count: results ? results.length : 0
     });
   } catch (error) {
-    console.error('获取分组失败:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
@@ -28,7 +27,6 @@ export async function onRequestPost({ request, env }) {
     
     const trimmedName = name.trim();
     
-    // 检查是否已存在
     const exists = await env.DB.prepare(`
       SELECT id FROM shift_groups WHERE name = ?
     `).bind(trimmedName).first();
@@ -46,7 +44,6 @@ export async function onRequestPost({ request, env }) {
       message: '分组创建成功'
     });
   } catch (error) {
-    console.error('创建分组失败:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
@@ -63,7 +60,6 @@ export async function onRequestPut({ request, env }) {
     if (name && name.trim()) {
       const trimmedName = name.trim();
       
-      // 检查新名称是否已被其他分组使用
       const exists = await env.DB.prepare(`
         SELECT id FROM shift_groups WHERE name = ? AND id != ?
       `).bind(trimmedName, id).first();
@@ -88,7 +84,6 @@ export async function onRequestPut({ request, env }) {
       message: '分组更新成功'
     });
   } catch (error) {
-    console.error('更新分组失败:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
@@ -102,7 +97,6 @@ export async function onRequestDelete({ request, env }) {
       return Response.json({ error: '缺少分组 ID' }, { status: 400 });
     }
     
-    // 检查是否有排班使用该分组
     const inUse = await env.DB.prepare(`
       SELECT id FROM duty_config WHERE group_id = ? LIMIT 1
     `).bind(id).first();
@@ -122,7 +116,6 @@ export async function onRequestDelete({ request, env }) {
       message: '分组删除成功'
     });
   } catch (error) {
-    console.error('删除分组失败:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
