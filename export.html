@@ -659,7 +659,7 @@
         }
 
         // 清除筛选
-        function clearFilters() {
+        window.clearFilters = function clearFilters() {
             const now = new Date();
             const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
             const bjTime = new Date(bjTimestamp);
@@ -724,7 +724,7 @@
         }
 
         // 导出数据
-        function exportData(format) {
+        window.exportData = function exportData(format) {
             if (filteredRecords.length === 0) {
                 alert('⚠️ 没有可导出的数据');
                 return;
