@@ -532,10 +532,15 @@
             if (name) params.append('name', name);
 
             const apiUrl = `/api/records?${params.toString()}`;
+            console.log('🔍 API 请求 URL:', apiUrl);
+            console.log('📤 请求参数:', Object.fromEntries(params.entries()));
 
             try {
                 const response = await fetch(apiUrl);
                 const records = await response.json();
+                
+                console.log('📥 API 返回数据:', records);
+                console.log('✅ 返回条数:', records.length);
                 
                 allRecords = records;
                 filteredRecords = records;
@@ -543,6 +548,9 @@
                 // 更新统计
                 document.getElementById('totalCount').textContent = records.length;
                 document.getElementById('previewCount').textContent = Math.min(10, records.length);
+                
+                console.log('📊 当前选中的分组 ID:', groupId);
+                console.log('📋 数据中的分组信息:', records.map(r => ({ name: r.name, group_id: r.group_id, group_name: r.group_name })));
 
                 // 渲染分组切换
                 renderGroupTabs();
