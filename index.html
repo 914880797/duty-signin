@@ -295,16 +295,15 @@
             { id: 14, name: '24:00-04:00', startTime: '24:00', endTime: '04:00' }
         ];
 
-        // 1. 实时时钟逻辑
+        // 1. 实时时钟逻辑（显示北京时间）
         function updateClock() {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
-            const dateStr = now.toLocaleDateString('zh-CN', { 
-                year: 'numeric', 
-                month: '2-digit', 
-                day: '2-digit',
-                weekday: 'short'
-            }).replace(/\//g, '/');
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjDate = new Date(bjTimestamp);
+            
+            const pad = (n) => String(n).padStart(2, '0');
+            const timeStr = `${pad(bjDate.getUTCHours())}:${pad(bjDate.getUTCMinutes())}:${pad(bjDate.getUTCSeconds())}`;
+            const dateStr = `${bjDate.getUTCFullYear()}/${pad(bjDate.getUTCMonth() + 1)}/${pad(bjDate.getUTCDate())}`;
             
             document.getElementById('current-time').innerText = timeStr;
             document.getElementById('current-date').innerText = dateStr;
@@ -345,20 +344,13 @@
                 return;
             }
 
-            // 使用前端的本地时间
+            // 使用北京时间（与后端保持一致）
             const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const currentTime = `${hours}:${minutes}`;
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjDate = new Date(bjTimestamp);
             
-            console.log('打卡请求 - 当前本地时间:', currentTime);
-            console.log('打卡请求 - 原始小时:', now.getHours(), '原始分钟:', now.getMinutes());
-            console.log('打卡请求 - pad 后:', hours + ':' + minutes);
-            console.log('打卡请求 - body:', JSON.stringify({ 
-                        name: name, 
-                        duty_time: '',
-                        current_time: currentTime
-            }));
+            const pad = (n) => String(n).padStart(2, '0');
+            const currentTime = `${pad(bjDate.getUTCHours())}:${pad(bjDate.getUTCMinutes())}`;
 
             btn.innerText = '打卡中...';
             btn.disabled = true;
@@ -370,13 +362,11 @@
                     body: JSON.stringify({ 
                         name: name, 
                         duty_time: '',
-                        current_time: currentTime  // 发送前端时间给后端
+                        current_time: currentTime  // 发送北京时间给后端
                     })
                 });
                 
-                console.log('响应状态:', response.status);
                 const result = await response.json();
-                console.log('响应结果:', result);
                 
                 if (response.ok) {
                     alert('✅ 打卡成功！\n日期：' + result.date + '\n时间：' + result.time + '\n值班时段：' + result.duty_time);
