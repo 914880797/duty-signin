@@ -525,13 +525,6 @@
             const groupId = document.getElementById('groupSelect').value;
             const name = document.getElementById('nameSearch').value.trim();
 
-            console.log('=== loadData 调试 ===');
-            console.log('startDate:', startDate);
-            console.log('endDate:', endDate);
-            console.log('timeSlot:', timeSlot);
-            console.log('groupId:', groupId);
-            console.log('name:', name);
-
             if (startDate) params.append('start_date', startDate);
             if (endDate) params.append('end_date', endDate);
             if (timeSlot) params.append('time_slot', timeSlot);
@@ -539,10 +532,9 @@
             if (name) params.append('name', name);
 
             const apiUrl = `/api/records?${params.toString()}`;
-            console.log('请求 API:', apiUrl);
 
             try {
-                const response = await fetch(`/api/records?${params.toString()}`);
+                const response = await fetch(apiUrl);
                 const records = await response.json();
                 
                 allRecords = records;
@@ -685,6 +677,20 @@
             
             console.log('准备调用 loadData()');
             loadData();
+            
+            // 更新分组选项卡的 active 状态
+            const tabs = document.querySelectorAll('.group-tab');
+            tabs.forEach(tab => {
+                const isActive = tab.classList.contains('active');
+                const tabGroupId = tab.getAttribute('onclick')?.match(/switchGroup\('([^']+)'\)/)?.[1];
+                if (groupId === 'all' && tabGroupId === 'all') {
+                    tab.classList.add('active');
+                } else if (groupId !== 'all' && tabGroupId === groupId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
         }
 
         // 导出数据
