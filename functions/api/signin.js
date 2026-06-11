@@ -77,9 +77,11 @@ export async function onRequestPost({ request, env }) {
     let currentTimeInMinutes = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
     const dutyRange = getDutyTimeRange(personDutyTime);
     
+    console.log('当前时间字符串:', finalTime);
     console.log('当前时间（分钟）:', currentTimeInMinutes);
     console.log('值班时段:', personDutyTime);
     console.log('值班时间范围:', dutyRange);
+    console.log('是否跨天格式:', dutyRange?.isOvernight);
     console.log('===== 验证结果 =====');
     
     if (dutyRange) {
@@ -90,9 +92,10 @@ export async function onRequestPost({ request, env }) {
       }
       
       const isValid = currentTimeInMinutes >= dutyRange.startTime && 
-                      currentTimeInMinutes < dutyRange.endTime;
+                      currentTimeInMinutes <= dutyRange.endTime;
       
       console.log('时间验证:', isValid ? '通过' : '失败');
+      console.log('验证公式:', `${currentTimeInMinutes} >= ${dutyRange.startTime} && ${currentTimeInMinutes} <= ${dutyRange.endTime}`);
       console.log('期望范围:', dutyRange.startTime, '-', dutyRange.endTime, '(' + personDutyTime + ')');
       console.log('当前时间:', currentTimeInMinutes, '(' + finalTime + ')');
       
@@ -204,6 +207,9 @@ function getDutyTimeRange(dutyTime) {
   
   let [, startHour, startMin, endHour, endMin] = match.map(Number);
   
+  // 检查是否是跨天格式（结束时间小于开始时间 或 格式是 24:00-XX:XX）
+  const isOvernightFormat = (startHour === 24) || (startHour > endHour);
+  
   // 处理 24:00 的情况（表示午夜 00:00）
   if (startHour === 24) {
     startHour = 0;
@@ -215,20 +221,10 @@ function getDutyTimeRange(dutyTime) {
   const startTime = startHour * 60 + startMin;
   const endTime = endHour * 60 + endMin;
   
-  // 处理跨天情况（如 23:00-04:00）
-  if (startTime > endTime) {
-    return {
-      startTime: startTime,
-      endTime: endTime + 24 * 60,  // 结束时间加 24 小时
-      name: dutyTime,
-      isOvernight: true
-    };
-  }
-  
   return {
     startTime: startTime,
     endTime: endTime,
     name: dutyTime,
-    isOvernight: false
+    isOvernight: isOvernightFormat
   };
 }
