@@ -5,6 +5,8 @@ export async function onRequestGet({ request, env }) {
   const startDate = searchParams.get('start_date');
   const endDate = searchParams.get('end_date');
   const dutyTime = searchParams.get('duty_time');
+  const groupId = searchParams.get('group_id');
+  const name = searchParams.get('name');
 
   let sql = `
     SELECT sr.*, sg.name as group_name 
@@ -29,6 +31,14 @@ export async function onRequestGet({ request, env }) {
   if (time || dutyTime) { 
     sql += ` AND sr.duty_time=?`; 
     args.push(time || dutyTime); 
+  }
+  if (groupId) {
+    sql += ` AND sr.group_id=?`;
+    args.push(groupId);
+  }
+  if (name) {
+    sql += ` AND sr.name LIKE ?`;
+    args.push(`%${name}%`);
   }
   
   sql += ` ORDER BY sr.created_at DESC`;
