@@ -97,13 +97,19 @@ export async function onRequestPost({ request, env }) {
         console.log('跨天时段调整：当前时间调整为', currentTimeInMinutes);
       }
       
-      const isValid = currentTimeInMinutes >= dutyRange.startTime && 
-                      currentTimeInMinutes <= dutyRange.endTime;
+      const startTimeCheck = currentTimeInMinutes >= dutyRange.startTime;
+      const endTimeCheck = currentTimeInMinutes <= dutyRange.endTime;
+      const isValid = startTimeCheck && endTimeCheck;
       
+      console.log('开始时间检查:', startTimeCheck, `(${currentTimeInMinutes} >= ${dutyRange.startTime})`);
+      console.log('结束时间检查:', endTimeCheck, `(${currentTimeInMinutes} <= ${dutyRange.endTime})`);
       console.log('时间验证:', isValid ? '通过' : '失败');
       console.log('验证公式:', `${currentTimeInMinutes} >= ${dutyRange.startTime} && ${currentTimeInMinutes} <= ${dutyRange.endTime}`);
       console.log('期望范围:', dutyRange.startTime, '-', dutyRange.endTime, '(' + personDutyTime + ')');
       console.log('当前时间:', currentTimeInMinutes, '(' + finalTime + ')');
+      
+      // 强制验证：直接在 console 中计算
+      console.log('JavaScript 直接计算:', currentTimeInMinutes >= dutyRange.startTime && currentTimeInMinutes <= dutyRange.endTime);
       
       if (!isValid) {
         console.log('❌ 时间验证失败');
@@ -199,11 +205,16 @@ function getDutyTimeRange(dutyTime) {
   if (!dutyTime || dutyTime === '未安排') return null;
   
   const match = dutyTime.match(/(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
-  if (!match) return null;
+  if (!match) {
+    console.log('正则匹配失败，dutyTime:', dutyTime);
+    return null;
+  }
   
   let [, startHour, startMin, endHour, endMin] = match.map(Number);
   
-  // 检查是否是跨天格式（结束时间小于开始时间 或 格式是 24:00-XX:XX）
+  console.log('解析后的时间:', { startHour, startMin, endHour, endMin });
+  
+  // 检查是否是跨天格式（开始时间大于结束时间，或格式是 24:XX-XX:XX）
   const isOvernightFormat = (startHour === 24) || (startHour > endHour);
   
   // 处理 24:00 的情况（表示午夜 00:00）
@@ -216,6 +227,8 @@ function getDutyTimeRange(dutyTime) {
   
   const startTime = startHour * 60 + startMin;
   const endTime = endHour * 60 + endMin;
+  
+  console.log('计算结果:', { startTime, endTime, isOvernight: isOvernightFormat });
   
   return {
     startTime: startTime,
