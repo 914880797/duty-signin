@@ -657,6 +657,51 @@
             return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
         }
 
+        // 渲染分组切换标签
+        window.renderGroupTabs = function() {
+            const groupCounts = {};
+            
+            // 统计每个分组的记录数
+            allRecords.forEach(record => {
+                const groupName = record.group_name || '未分组';
+                groupCounts[groupName] = (groupCounts[groupName] || 0) + 1;
+            });
+            
+            const groupTabsEl = document.getElementById('groupTabs');
+            const currentGroupId = document.getElementById('groupSelect').value;
+            
+            // 全部分组标签
+            const allCount = allRecords.length;
+            groupTabsEl.innerHTML = `
+                <div class="group-tab ${!currentGroupId ? 'active' : ''}" 
+                     onclick="window.switchGroup('all')">
+                    全部分组 <span class="count">${allCount}</span>
+                </div>
+            `;
+            
+            // 各个分组标签（按数量排序）
+            Object.entries(groupCounts)
+                .sort((a, b) => b[1] - a[1])
+                .forEach(([groupName, count]) => {
+                    // 从分组下拉框中查找该分组名称对应的 ID
+                    const select = document.getElementById('groupSelect');
+                    let groupId = '';
+                    for (let i = 0; i < select.options.length; i++) {
+                        if (select.options[i].text === groupName) {
+                            groupId = select.options[i].value;
+                            break;
+                        }
+                    }
+                    
+                    groupTabsEl.innerHTML += `
+                        <div class="group-tab ${currentGroupId === groupId ? 'active' : ''}" 
+                             onclick="window.switchGroup('${groupId}')">
+                            ${groupName} <span class="count">${count}</span>
+                        </div>
+                    `;
+                });
+        }
+
         // 清除筛选
         window.clearFilters = function() {
             const now = new Date();
