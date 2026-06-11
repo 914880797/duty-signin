@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>导出预览 - 值班打卡系统</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -89,8 +90,23 @@
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             align-items: center;
+        }
+
+        .export-tip {
+            text-align: center;
+            font-size: 12px;
+            color: #ff7a1a;
+            margin-bottom: 15px;
+            padding: 8px 16px;
+            background: #fff7e6;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .export-tip strong {
+            font-weight: 600;
         }
 
         .btn {
@@ -217,6 +233,25 @@
             background: #4CAF50;
         }
 
+        .duty-table td.group-col {
+            position: sticky;
+            left: 80px;
+            z-index: 19;
+            background: #fff;
+            text-align: left;
+            min-width: 70px;
+            font-weight: 500;
+            border-left: 2px solid #dcdfe6;
+        }
+
+        .duty-table th.group-col {
+            position: sticky;
+            left: 80px;
+            z-index: 29;
+            background: #4CAF50;
+            border-left: 2px solid #dcdfe6;
+        }
+
         .duty-table th.stats-col-fixed,
         .duty-table td.stats-col-fixed {
             position: sticky;
@@ -334,6 +369,9 @@
                 <button onclick="exportTable('csv')" class="btn btn-export-csv">导出为 CSV</button>
                 <button onclick="exportTable('excel')" class="btn btn-export-excel">导出为 Excel</button>
             </div>
+            <div class="export-tip">
+                💡 建议使用 <strong>Excel 格式</strong> 导出，可保留会议室/电报分工作表
+            </div>
             <div class="stats-bar" id="statsBar">
                 <div class="stat-item">
                     <span class="stat-label">总人数：</span>
@@ -356,7 +394,7 @@
     </div>
 
     <script>
-        let currentSheet = '会议室';
+        let currentSheet = '';
         let allData = {};
         let groups = [];
         let cycleStartDate = null;
@@ -440,13 +478,14 @@
                 }
                 const name = record.name;
                 const date = record.duty_date;
-                if (!data[groupName].persons.includes(name)) {
-                    data[groupName].persons.push(name);
+                const personKey = name;
+                if (!data[groupName].persons.includes(personKey)) {
+                    data[groupName].persons.push(personKey);
                 }
-                if (!data[groupName].records[name]) {
-                    data[groupName].records[name] = {};
+                if (!data[groupName].records[personKey]) {
+                    data[groupName].records[personKey] = {};
                 }
-                data[groupName].records[name][date] = 1;
+                data[groupName].records[personKey][date] = 1;
                 
                 if (date > globalMaxDate) {
                     globalMaxDate = date;
@@ -469,7 +508,7 @@
             const tabs = document.getElementById('sheetTabs');
             tabs.innerHTML = groups.map((group, index) => `
                 <div class="sheet-tab ${index === 0 ? 'active' : ''}" 
-                     onclick="switchSheet('${group.name}')">
+                     onclick="switchSheet('${group.name}', ${index})">
                     ${group.name}
                 </div>
             `).join('');
@@ -478,10 +517,10 @@
             }
         }
 
-        window.switchSheet = function(sheetName) {
+        window.switchSheet = function(sheetName, index) {
             currentSheet = sheetName;
-            document.querySelectorAll('.sheet-tab').forEach(tab => {
-                tab.classList.toggle('active', tab.textContent.trim() === sheetName);
+            document.querySelectorAll('.sheet-tab').forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
             });
             renderTable(sheetName);
         }
@@ -497,6 +536,7 @@
             const totalDays = cycleDates.length;
             let html = '<thead><tr>';
             html += '<th style="position:sticky;left:0;z-index:30;min-width:80px;">姓名</th>';
+            html += '<th class="group-col" style="position:sticky;left:80px;z-index:29;">分组</th>';
             cycleDates.forEach(dateInfo => {
                 html += `<th class="date-cell">${dateInfo.displayDate}</th>`;
             });
@@ -504,18 +544,26 @@
             html += '<th class="stats-col-fixed" style="right:110px;">累计</th>';
             html += '<th class="stats-col-fixed" style="right:0;">缺席</th>';
             html += '</tr></thead><tbody>';
+            
             let totalShifts = 0;
             let totalAbsences = 0;
-            data.persons.forEach(name => {
-                const personRecords = data.records[name] || {};
+            
+            data.persons.forEach(personKey => {
+                const name = personKey;
+                const group = sheetName;
+                const personData = data.records[personKey] || {};
                 let personShifts = 0;
-                html += `<tr data-name="${name}">`;
+                
+                html += `<tr data-name="${name}" data-group="${group}">`;
                 html += `<td style="position:sticky;left:0;z-index:20;background:#fff;" onclick="highlightRow('${name}')">${name}</td>`;
+                html += `<td class="group-col" style="position:sticky;left:80px;z-index:19;background:#fff;">${group}</td>`;
+                
                 cycleDates.forEach(dateInfo => {
-                    const hasShift = personRecords[dateInfo.fullDate] ? 1 : '';
+                    const hasShift = personData[dateInfo.fullDate] ? 1 : '';
                     if (hasShift) personShifts++;
                     html += `<td class="date-cell ${hasShift ? 'value-1' : ''}" data-date="${dateInfo.fullDate}">${hasShift}</td>`;
                 });
+                
                 const absences = totalDays - personShifts;
                 html += `<td class="stats-col-fixed" style="right:165px;">${personShifts}</td>`;
                 html += `<td class="stats-col-fixed" style="right:110px;">${personShifts}</td>`;
@@ -523,6 +571,7 @@
                 totalShifts += personShifts;
                 totalAbsences += absences;
             });
+            
             html += '</tbody>';
             table.innerHTML = html;
             updateStats(data.persons.length, totalShifts);
@@ -559,68 +608,125 @@
             document.querySelectorAll('.highlight-row').forEach(row => {
                 row.classList.remove('highlight-row');
             });
-            const row = document.querySelector(`#dutyTable tbody tr[data-name="${name}"]`);
-            if (row) {
+            const rows = document.querySelectorAll(`#dutyTable tbody tr[data-name="${name}"]`);
+            rows.forEach(row => {
                 row.classList.add('highlight-row');
-            }
+            });
         }
 
         window.exportTable = function(format) {
-            const data = allData[currentSheet] || { persons: [], records: {} };
-            if (data.persons.length === 0) {
-                alert('⚠️ 没有可导出的数据');
-                return;
+            if (format === 'excel') {
+                exportExcel();
+            } else {
+                exportCSV();
             }
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const filename = `${currentSheet}值班表_${year}${month}`;
-            exportCSV(filename, data);
         }
 
-        function exportCSV(filename, data) {
+        function exportCSV() {
             let content = '\uFEFF';
-            content += '姓名,';
+            content += '姓名，分组，';
             cycleDates.forEach(dateInfo => {
                 content += `${dateInfo.displayDate},`;
             });
             content += '共计，累计，缺席\n';
+            
             const totalDays = cycleDates.length;
-            data.persons.forEach(name => {
-                const personRecords = data.records[name] || {};
+            let allPersons = [];
+            
+            groups.forEach(groupName => {
+                const groupData = allData[groupName] || { persons: [], records: {} };
+                groupData.persons.forEach(personKey => {
+                    allPersons.push({
+                        name: personKey,
+                        group: groupName,
+                        records: groupData.records[personKey] || {}
+                    });
+                });
+            });
+            
+            allPersons.forEach(person => {
                 let personShifts = 0;
-                content += `${name},`;
+                content += `${person.name},${person.group},`;
                 cycleDates.forEach(dateInfo => {
-                    const hasShift = personRecords[dateInfo.fullDate] ? '1' : '';
+                    const hasShift = person.records[dateInfo.fullDate] ? '1' : '';
                     if (hasShift) personShifts++;
                     content += `${hasShift},`;
                 });
                 const absences = totalDays - personShifts;
                 content += `${personShifts},${personShifts},${absences}\n`;
             });
-            content += '总计,';
+            
+            content += '总计，,';
             cycleDates.forEach(dateInfo => {
                 let dayCount = 0;
-                data.persons.forEach(name => {
-                    if (data.records[name] && data.records[name][dateInfo.fullDate]) {
+                allPersons.forEach(person => {
+                    if (person.records[dateInfo.fullDate]) {
                         dayCount++;
                     }
                 });
                 content += `${dayCount},`;
             });
-            const totalShifts = data.persons.reduce((sum, name) => {
-                const personRecords = data.records[name] || {};
-                return sum + Object.keys(personRecords).length;
+            
+            const totalShifts = allPersons.reduce((sum, person) => {
+                return sum + Object.keys(person.records).filter(k => k.match(/^\d{4}-\d{2}-\d{2}$/)).length;
             }, 0);
-            const totalAbsences = data.persons.length * totalDays - totalShifts;
+            const totalAbsences = allPersons.length * totalDays - totalShifts;
             content += `${totalShifts},${totalShifts},${totalAbsences}\n`;
+            
             const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `${filename}.csv`;
+            link.download = `值班表_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
             URL.revokeObjectURL(link.href);
-            alert(`✅ 已导出 ${data.persons.length} 人的值班表`);
+            alert(`✅ 已导出 ${allPersons.length} 人的值班表（包含 ${groups.map(g => g.name).join('、')}）`);
+        }
+
+        function exportExcel() {
+            const wb = XLSX.utils.book_new();
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const totalDays = cycleDates.length;
+            
+            groups.forEach(groupName => {
+                const groupData = allData[groupName] || { persons: [], records: {} };
+                
+                const data = [];
+                data.push(['姓名', ...cycleDates.map(d => d.displayDate), '共计', '累计', '缺席']);
+                
+                groupData.persons.forEach(personKey => {
+                    const personData = groupData.records[personKey] || {};
+                    let personShifts = 0;
+                    const row = [personKey];
+                    
+                    cycleDates.forEach(dateInfo => {
+                        const hasShift = personData[dateInfo.fullDate] ? 1 : '';
+                        if (hasShift) personShifts++;
+                        row.push(hasShift);
+                    });
+                    
+                    const absences = totalDays - personShifts;
+                    row.push(personShifts);
+                    row.push(personShifts);
+                    row.push(absences);
+                    data.push(row);
+                });
+                
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                
+                const merges = [];
+                for (let col = 1; col <= cycleDates.length + 3; col++) {
+                    merges.push({ s: { r: 0, c: col }, e: { r: 0, c: col } });
+                }
+                ws['!merges'] = merges;
+                
+                XLSX.utils.book_append_sheet(wb, ws, groupName);
+            });
+            
+            const filename = `值班表_${year}${month}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            alert(`✅ 已导出 Excel 文件，包含 ${groups.map(g => g.name).join('、')} ${groups.length > 1 ? '两个工作表' : '一个工作表'}`);
         }
     </script>
 </body>
