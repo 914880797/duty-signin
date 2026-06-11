@@ -23,7 +23,6 @@
             margin: 0 auto;
         }
 
-        /* 左上角筛选区 */
         .filter-section {
             display: flex;
             gap: 10px;
@@ -54,7 +53,6 @@
             cursor: pointer;
         }
 
-        /* 切换按钮 */
         .sheet-tabs {
             display: flex;
             gap: 0;
@@ -84,7 +82,6 @@
             font-weight: 600;
         }
 
-        /* 标题和导出按钮 */
         .header-section {
             text-align: center;
             margin-bottom: 25px;
@@ -145,7 +142,6 @@
             background: #0d8cb8;
         }
 
-        /* 统计信息 */
         .stats-bar {
             display: flex;
             justify-content: center;
@@ -174,7 +170,6 @@
             color: #4CAF50;
         }
 
-        /* 表格区域 */
         .table-container {
             overflow: auto;
             max-height: 65vh;
@@ -194,7 +189,6 @@
             min-width: 32px;
         }
 
-        /* 表头样式 */
         .duty-table th {
             background: #4CAF50;
             color: #fff;
@@ -204,7 +198,6 @@
             z-index: 10;
         }
 
-        /* 第一列冻结 */
         .duty-table td:first-child,
         .duty-table th:first-child {
             position: sticky;
@@ -229,19 +222,17 @@
             background: #e8f5e9;
         }
 
-        /* 统计列样式 */
         .duty-table th.stats-col,
         .duty-table td.stats-col {
             background: #fafafa;
             font-weight: 600;
-            min-width: 50px;
+            min-width: 55px;
         }
 
         .duty-table th.stats-col {
             background: #4CAF50;
         }
 
-        /* 统计行样式 */
         .duty-table tr.stats-row td {
             background: #f5f5f5;
             font-weight: 600;
@@ -249,19 +240,16 @@
             color: #333;
         }
 
-        /* 值班单元格 */
         .duty-table td.value-1 {
             color: #1a3d5c;
             font-weight: 600;
             background: #fff;
         }
 
-        /* 高亮行 */
         .highlight-row td {
             background: #fff7e6 !important;
         }
 
-        /* 加载和空状态 */
         .loading {
             text-align: center;
             padding: 40px;
@@ -276,7 +264,6 @@
             font-size: 14px;
         }
 
-        /* 按钮组 */
         .filter-actions {
             display: flex;
             gap: 8px;
@@ -310,22 +297,19 @@
 </head>
 <body>
     <div class="container">
-        <!-- 左上角筛选区 -->
         <div class="filter-section">
             <input type="text" id="searchInput" class="search-input" placeholder="搜索姓名...">
-            <input type="month" id="monthSelect">
+            <select id="cycleSelect" class="month-select">
+                <option value="">加载中...</option>
+            </select>
             <div class="filter-actions">
                 <button onclick="applyFilters()" class="btn btn-apply">✓ 应用</button>
                 <button onclick="clearFilters()" class="btn btn-clear">✕ 清除</button>
             </div>
         </div>
 
-        <!-- Sheet 切换 -->
-        <div class="sheet-tabs" id="sheetTabs">
-            <!-- 动态生成 -->
-        </div>
+        <div class="sheet-tabs" id="sheetTabs"></div>
 
-        <!-- 标题和导出按钮 -->
         <div class="header-section">
             <h1>导出预览</h1>
             <div class="export-buttons">
@@ -349,11 +333,8 @@
             </div>
         </div>
 
-        <!-- 表格区域 -->
         <div class="table-container">
-            <table class="duty-table" id="dutyTable">
-                <!-- 动态生成 -->
-            </table>
+            <table class="duty-table" id="dutyTable"></table>
         </div>
     </div>
 
@@ -361,16 +342,59 @@
         let currentSheet = '会议室';
         let allData = {};
         let groups = [];
+        let cycleStartDate = null;
+        let cycleDates = [];
 
         window.addEventListener('DOMContentLoaded', () => {
-            const now = new Date();
-            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
-            const bjTime = new Date(bjTimestamp);
-            const pad = (n) => String(n).padStart(2, '0');
-            const currentMonth = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}`;
-            document.getElementById('monthSelect').value = currentMonth;
-            loadData();
+            loadSettings();
         });
+
+        async function loadSettings() {
+            try {
+                const settingsResponse = await fetch('/api/settings');
+                const settings = await settingsResponse.json();
+                cycleStartDate = settings.cycleStartDate;
+                
+                if (!cycleStartDate) {
+                    cycleStartDate = new Date().toISOString().split('T')[0];
+                }
+                
+                generateCycleDates(cycleStartDate);
+                populateCycleSelect();
+                loadData();
+            } catch (error) {
+                console.error('加载设置失败:', error);
+                cycleStartDate = new Date().toISOString().split('T')[0];
+                generateCycleDates(cycleStartDate);
+                populateCycleSelect();
+                loadData();
+            }
+        }
+
+        function generateCycleDates(startDate) {
+            cycleDates = [];
+            const start = new Date(startDate);
+            for (let i = 0; i < 31; i++) {
+                const date = new Date(start);
+                date.setDate(date.getDate() + i);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                cycleDates.push({
+                    fullDate: `${year}-${month}-${day}`,
+                    displayDate: `${date.getMonth() + 1}月${date.getDate()}号`,
+                    day: date.getDate()
+                });
+            }
+        }
+
+        function populateCycleSelect() {
+            const select = document.getElementById('cycleSelect');
+            const start = new Date(cycleStartDate);
+            const year = start.getFullYear();
+            const month = String(start.getMonth() + 1).padStart(2, '0');
+            select.innerHTML = `<option value="${year}-${month}">${year}年${parseInt(month)}月 (${start.getMonth() + 1}月${start.getDate()}号起)</option>`;
+        }
 
         async function loadData() {
             try {
@@ -388,7 +412,7 @@
             } catch (error) {
                 console.error('加载数据失败:', error);
                 document.getElementById('dutyTable').innerHTML = `
-                    <tr><td colspan="35" class="empty">加载失败：${error.message}</td></tr>
+                    <tr><td colspan="40" class="empty">加载失败：${error.message}</td></tr>
                 `;
             }
         }
@@ -408,14 +432,13 @@
                 }
                 const name = record.name;
                 const date = record.duty_date;
-                const day = parseInt(date.split('-')[2]);
                 if (!data[groupName].persons.includes(name)) {
                     data[groupName].persons.push(name);
                 }
                 if (!data[groupName].records[name]) {
                     data[groupName].records[name] = {};
                 }
-                data[groupName].records[name][day] = 1;
+                data[groupName].records[name][date] = 1;
             });
             Object.keys(data).forEach(groupName => {
                 data[groupName].persons.sort();
@@ -448,45 +471,51 @@
             const table = document.getElementById('dutyTable');
             const data = allData[sheetName] || { persons: [], records: {} };
             if (data.persons.length === 0) {
-                table.innerHTML = '<tr><td colspan="35" class="empty">暂无数据</td></tr>';
+                table.innerHTML = '<tr><td colspan="40" class="empty">暂无数据</td></tr>';
                 updateStats(0, 0);
                 return;
             }
-            const monthSelect = document.getElementById('monthSelect').value;
-            const [year, month] = monthSelect.split('-').map(Number);
-            const daysInMonth = new Date(year, month, 0).getDate();
             let html = '<thead><tr>';
             html += '<th>姓名</th>';
-            for (let day = 1; day <= daysInMonth; day++) {
-                html += `<th>${day}号</th>`;
-            }
+            cycleDates.forEach(dateInfo => {
+                html += `<th>${dateInfo.displayDate}</th>`;
+            });
             html += '<th class="stats-col">共计</th>';
+            html += '<th class="stats-col">累计</th>';
+            html += '<th class="stats-col">缺席</th>';
             html += '</tr></thead><tbody>';
             let totalShifts = 0;
+            let totalAbsences = 0;
             data.persons.forEach(name => {
                 const personRecords = data.records[name] || {};
                 let personShifts = 0;
                 html += `<tr data-name="${name}">`;
                 html += `<td onclick="highlightRow('${name}')">${name}</td>`;
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const hasShift = personRecords[day] ? 1 : '';
+                cycleDates.forEach(dateInfo => {
+                    const hasShift = personRecords[dateInfo.fullDate] ? 1 : '';
                     if (hasShift) personShifts++;
-                    html += `<td class="${hasShift ? 'value-1' : ''}" data-day="${day}">${hasShift}</td>`;
-                }
-                html += `<td class="stats-col">${personShifts}</td></tr>`;
+                    html += `<td class="${hasShift ? 'value-1' : ''}" data-date="${dateInfo.fullDate}">${hasShift}</td>`;
+                });
+                const absences = 31 - personShifts;
+                html += `<td class="stats-col">${personShifts}</td>`;
+                html += `<td class="stats-col">${personShifts}</td>`;
+                html += `<td class="stats-col">${absences}</td></tr>`;
                 totalShifts += personShifts;
+                totalAbsences += absences;
             });
             html += '<tr class="stats-row"><td>累计</td>';
-            for (let day = 1; day <= daysInMonth; day++) {
+            cycleDates.forEach(dateInfo => {
                 let dayCount = 0;
                 data.persons.forEach(name => {
-                    if (data.records[name] && data.records[name][day]) {
+                    if (data.records[name] && data.records[name][dateInfo.fullDate]) {
                         dayCount++;
                     }
                 });
                 html += `<td class="stats-col">${dayCount}</td>`;
-            }
-            html += `<td class="stats-col">${totalShifts}</td></tr></tbody>`;
+            });
+            html += `<td class="stats-col">${totalShifts}</td>`;
+            html += `<td class="stats-col">${totalShifts}</td>`;
+            html += `<td class="stats-col">${totalAbsences}</td></tr></tbody>`;
             table.innerHTML = html;
             updateStats(data.persons.length, totalShifts);
         }
@@ -530,50 +559,52 @@
 
         window.exportTable = function(format) {
             const data = allData[currentSheet] || { persons: [], records: {} };
-            const monthSelect = document.getElementById('monthSelect').value;
-            const [year, month] = monthSelect.split('-').map(Number);
-            const daysInMonth = new Date(year, month, 0).getDate();
             if (data.persons.length === 0) {
                 alert('⚠️ 没有可导出的数据');
                 return;
             }
-            const filename = `${currentSheet}值班表_${year}${String(month).padStart(2, '0')}`;
-            exportCSV(filename, data, daysInMonth);
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const filename = `${currentSheet}值班表_${year}${month}`;
+            exportCSV(filename, data);
         }
 
-        function exportCSV(filename, data, daysInMonth) {
+        function exportCSV(filename, data) {
             let content = '\uFEFF';
             content += '姓名,';
-            for (let day = 1; day <= daysInMonth; day++) {
-                content += `${day}号,'`;
-            }
-            content += '共计\n';
+            cycleDates.forEach(dateInfo => {
+                content += `${dateInfo.displayDate},`;
+            });
+            content += '共计，累计，缺席\n';
             data.persons.forEach(name => {
                 const personRecords = data.records[name] || {};
                 let personShifts = 0;
                 content += `${name},`;
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const hasShift = personRecords[day] ? '1' : '';
+                cycleDates.forEach(dateInfo => {
+                    const hasShift = personRecords[dateInfo.fullDate] ? '1' : '';
                     if (hasShift) personShifts++;
                     content += `${hasShift},`;
-                }
-                content += `${personShifts}\n`;
+                });
+                const absences = 31 - personShifts;
+                content += `${personShifts},${personShifts},${absences}\n`;
             });
             content += '累计,';
-            for (let day = 1; day <= daysInMonth; day++) {
+            cycleDates.forEach(dateInfo => {
                 let dayCount = 0;
                 data.persons.forEach(name => {
-                    if (data.records[name] && data.records[name][day]) {
+                    if (data.records[name] && data.records[name][dateInfo.fullDate]) {
                         dayCount++;
                     }
                 });
                 content += `${dayCount},`;
-            }
+            });
             const totalShifts = data.persons.reduce((sum, name) => {
                 const personRecords = data.records[name] || {};
                 return sum + Object.keys(personRecords).length;
             }, 0);
-            content += `${totalShifts}\n`;
+            const totalAbsences = data.persons.length * 31 - totalShifts;
+            content += `${totalShifts},${totalShifts},${totalAbsences}\n`;
             const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
