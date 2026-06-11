@@ -525,11 +525,21 @@
             const groupId = document.getElementById('groupSelect').value;
             const name = document.getElementById('nameSearch').value.trim();
 
+            console.log('=== loadData 调试 ===');
+            console.log('startDate:', startDate);
+            console.log('endDate:', endDate);
+            console.log('timeSlot:', timeSlot);
+            console.log('groupId:', groupId);
+            console.log('name:', name);
+
             if (startDate) params.append('start_date', startDate);
             if (endDate) params.append('end_date', endDate);
             if (timeSlot) params.append('time_slot', timeSlot);
             if (groupId) params.append('group_id', groupId);
             if (name) params.append('name', name);
+
+            const apiUrl = `/api/records?${params.toString()}`;
+            console.log('请求 API:', apiUrl);
 
             try {
                 const response = await fetch(`/api/records?${params.toString()}`);
@@ -607,14 +617,22 @@
         // 渲染分组切换标签
         function renderGroupTabs() {
             const groupCounts = {};
+            const groupNames = new Set();
             
             allRecords.forEach(record => {
                 const groupName = record.group_name || '未分组';
                 groupCounts[groupName] = (groupCounts[groupName] || 0) + 1;
+                groupNames.add(groupName);
             });
             
             const groupTabsEl = document.getElementById('groupTabs');
             const currentGroupId = document.getElementById('groupSelect').value;
+            
+            console.log('=== 调试信息 ===');
+            console.log('所有记录:', allRecords.length);
+            console.log('分组统计:', groupCounts);
+            console.log('当前选中的分组 ID:', currentGroupId);
+            console.log('分组选项:', Array.from(document.getElementById('groupSelect').options).map(o => ({value: o.value, text: o.text})));
             
             // 全部分组
             const allCount = allRecords.length;
@@ -629,13 +647,17 @@
             Object.entries(groupCounts).sort((a, b) => b[1] - a[1]).forEach(([groupName, count]) => {
                 // 查找该分组名称对应的 ID
                 let groupId = '';
-                const groupOptions = document.getElementById('groupSelect').options;
-                for (let i = 0; i < groupOptions.length; i++) {
-                    if (groupOptions[i].text === groupName) {
-                        groupId = groupOptions[i].value;
+                const select = document.getElementById('groupSelect');
+                for (let i = 0; i < select.options.length; i++) {
+                    console.log(`检查选项 ${i}: text="${select.options[i].text}", groupName="${groupName}", match=${select.options[i].text === groupName}`);
+                    if (select.options[i].text === groupName) {
+                        groupId = select.options[i].value;
+                        console.log(`找到匹配的分组 ID: ${groupId}`);
                         break;
                     }
                 }
+                
+                console.log(`分组 "${groupName}" 的 ID: "${groupId}"`);
                 
                 groupTabsEl.innerHTML += `
                     <div class="group-tab ${currentGroupId === groupId ? 'active' : ''}" 
@@ -648,8 +670,20 @@
 
         // 切换分组
         function switchGroup(groupId) {
+            console.log('=== 切换分组 ===');
+            console.log('点击的参数 groupId:', groupId);
+            
             const groupSelect = document.getElementById('groupSelect');
-            groupSelect.value = groupId;
+            
+            if (groupId === 'all') {
+                groupSelect.value = '';
+                console.log('设置为全部分组，groupSelect.value:', groupSelect.value);
+            } else {
+                groupSelect.value = groupId;
+                console.log('设置为特定分组，groupSelect.value:', groupSelect.value);
+            }
+            
+            console.log('准备调用 loadData()');
             loadData();
         }
 
