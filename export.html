@@ -614,24 +614,32 @@
             });
             
             const groupTabsEl = document.getElementById('groupTabs');
+            const currentGroupId = document.getElementById('groupSelect').value;
             
             // 全部分组
             const allCount = allRecords.length;
             groupTabsEl.innerHTML = `
-                <div class="group-tab ${!document.getElementById('groupSelect').value ? 'active' : ''}" 
-                     onclick="switchGroup('')">
+                <div class="group-tab ${!currentGroupId ? 'active' : ''}" 
+                     onclick="switchGroup('all')">
                     全部分组 <span class="count">${allCount}</span>
                 </div>
             `;
             
             // 各个分组
             Object.entries(groupCounts).sort((a, b) => b[1] - a[1]).forEach(([groupName, count]) => {
-                const isActive = document.getElementById('groupSelect').value === 
-                    (groupName === '未分组' ? '' : groupName);
+                // 查找该分组名称对应的 ID
+                let groupId = '';
+                const groupOptions = document.getElementById('groupSelect').options;
+                for (let i = 0; i < groupOptions.length; i++) {
+                    if (groupOptions[i].text === groupName) {
+                        groupId = groupOptions[i].value;
+                        break;
+                    }
+                }
                 
                 groupTabsEl.innerHTML += `
-                    <div class="group-tab ${groupName === '未分组' && !document.getElementById('groupSelect').value ? '' : (document.getElementById('groupSelect').value === (groupName === '未分组' ? '' : groupName) ? 'active' : '')}" 
-                         onclick="switchGroup('${groupName}')">
+                    <div class="group-tab ${currentGroupId === groupId ? 'active' : ''}" 
+                         onclick="switchGroup('${groupId}')">
                         ${groupName} <span class="count">${count}</span>
                     </div>
                 `;
@@ -639,26 +647,9 @@
         }
 
         // 切换分组
-        function switchGroup(groupName) {
+        function switchGroup(groupId) {
             const groupSelect = document.getElementById('groupSelect');
-            
-            if (groupName === '' || groupName === '未分组') {
-                groupSelect.value = '';
-            } else {
-                // 查找分组 ID
-                const groupOptions = groupSelect.options;
-                for (let i = 0; i < groupOptions.length; i++) {
-                    if (groupOptions[i].text === groupName) {
-                        groupSelect.value = groupOptions[i].value;
-                        break;
-                    }
-                }
-                if (!groupSelect.value) {
-                    // 如果没有找到，设为空
-                    groupSelect.value = '';
-                }
-            }
-            
+            groupSelect.value = groupId;
             loadData();
         }
 
