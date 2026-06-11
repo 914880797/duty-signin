@@ -61,24 +61,6 @@ export async function onRequestPost({ request, env }) {
     console.log('值班时段字符串:', personDutyTime);
     console.log('值班时段字符串长度:', personDutyTime?.length);
     
-    // 检查今天是否已经打过卡
-    const today = `${bjDate.getUTCFullYear()}-${pad(bjDate.getUTCMonth() + 1)}-${pad(bjDate.getUTCDate())}`;
-    const recentCheck = await env.DB.prepare(`
-      SELECT created_at FROM signin_records 
-      WHERE name = ? AND duty_date = ? AND duty_time = ?
-      ORDER BY created_at DESC LIMIT 1
-    `).bind(trimmedName, today, personDutyTime).first();
-
-    if (recentCheck) {
-      console.log('❌ 今天已经打过卡了');
-      return Response.json(
-        { error: `今天已经打过卡了，每个时段每天只能打卡一次` },
-        { status: 400 }
-      );
-    }
-    
-    console.log('✅ 未找到重复打卡记录');
-    
     // 验证当前时间是否在值班时间段内
     let currentTimeInMinutes = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
     const dutyRange = getDutyTimeRange(personDutyTime);
@@ -123,6 +105,23 @@ export async function onRequestPost({ request, env }) {
     }
     
     console.log('✅ 打卡成功');
+    
+    // 重复打卡检查：使用排班日期而不是今天（对于凌晨时段很重要）
+    const recentCheck = await env.DB.prepare(`
+      SELECT created_at FROM signin_records 
+      WHERE name = ? AND duty_date = ? AND duty_time = ?
+      ORDER BY created_at DESC LIMIT 1
+    `).bind(trimmedName, dutyConfig.duty_date, personDutyTime).first();
+
+    if (recentCheck) {
+      console.log('❌ 已经打过卡了（duty_date:', dutyConfig.duty_date + '）');
+      return Response.json(
+        { error: `今天已经打过卡了，每个时段每天只能打卡一次` },
+        { status: 400 }
+      );
+    }
+    
+    console.log('✅ 未找到重复打卡记录');
     
     // 插入打卡记录
     await env.DB.prepare(`
