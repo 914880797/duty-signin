@@ -74,21 +74,21 @@ export async function onRequestPost({ request, env }) {
     }
     
     // 验证当前时间是否在值班时间段内
-    const timeMatch = getCurrentDutyPeriod(finalTime);
+    const currentTimeInMinutes = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
     const dutyRange = getDutyTimeRange(personDutyTime);
     
+    console.log('当前时间（分钟）:', currentTimeInMinutes);
     console.log('值班时段:', personDutyTime);
-    console.log('当前时间范围:', timeMatch);
     console.log('值班时间范围:', dutyRange);
     console.log('===== 验证结果 =====');
     
-    if (dutyRange && timeMatch) {
-      const isValid = timeMatch.startTime >= dutyRange.startTime && 
-                      timeMatch.endTime <= dutyRange.endTime;
+    if (dutyRange) {
+      const isValid = currentTimeInMinutes >= dutyRange.startTime && 
+                      currentTimeInMinutes < dutyRange.endTime;
       
       console.log('时间验证:', isValid ? '通过' : '失败');
-      console.log('期望范围:', dutyRange.startTime, '-', dutyRange.endTime);
-      console.log('当前时间:', timeMatch.startTime, '-', timeMatch.endTime);
+      console.log('期望范围:', dutyRange.startTime, '-', dutyRange.endTime, '(' + personDutyTime + ')');
+      console.log('当前时间:', currentTimeInMinutes, '(' + finalTime + ')');
       
       if (!isValid) {
         return Response.json({ 
