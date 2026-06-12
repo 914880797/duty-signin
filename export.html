@@ -107,14 +107,15 @@
 
     function generateCycleDates(start, end) {
         cycleDates = [];
-        const s = new Date(start), e = new Date(end);
-        for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
-            const year = String(d.getFullYear());
-            const month = String(d.getMonth()+1).padStart(2,'0');
-            const day = String(d.getDate()).padStart(2,'0');
+        const s = new Date(start + 'T00:00:00Z');
+        const e = new Date(end + 'T00:00:00Z');
+        for (let d = new Date(s); d <= e; d.setUTCDate(d.getUTCDate() + 1)) {
+            const year = String(d.getUTCFullYear());
+            const month = String(d.getUTCMonth()+1).padStart(2,'0');
+            const day = String(d.getUTCDate()).padStart(2,'0');
             cycleDates.push({
                 fullDate: year + '-' + month + '-' + day,
-                displayDate: (d.getMonth()+1) + '月' + d.getDate() + '号'
+                displayDate: (d.getUTCMonth()+1) + '月' + d.getUTCDate() + '号'
             });
         }
     }
@@ -250,9 +251,12 @@
             return;
         }
         try {
+            // 获取北京时间
             const now = new Date();
-            const y = String(now.getFullYear());
-            const m = String(now.getMonth()+1).padStart(2,'0');
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjDate = new Date(bjTimestamp);
+            const y = String(bjDate.getUTCFullYear());
+            const m = String(bjDate.getUTCMonth()+1).padStart(2,'0');
             const days = cycleDates.length;
             const wb = { SheetNames: [], Sheets: {} };
             groups.forEach(g => {
