@@ -78,7 +78,7 @@
     </div>
     <script>
 (function() {
-    let currentSheet = '', allData = {}, groups = [], cycleStartDate = null, cycleDates = [];
+    let currentSheet = '', allData = {}, groups = [], cycleStartDate = null, cycleDates = [], dataLoaded = false;
 
     function init() {
         // 绑定按钮事件
@@ -139,9 +139,10 @@
             if (r.duty_date > globalMax) globalMax = r.duty_date;
             if (!data[gn].maxDate || r.duty_date > data[gn].maxDate) data[gn].maxDate = r.duty_date;
         });
-        Object.keys(data).forEach(k => data[k].persons.sort());
-        generateCycleDates(cycleStartDate, globalMax);
-        return data;
+            Object.keys(data).forEach(k => data[k].persons.sort());
+            generateCycleDates(cycleStartDate, globalMax);
+            dataLoaded = true;
+            return data;
     }
 
     function renderSheetTabs() {
@@ -219,9 +220,15 @@
 
     // 导出 Excel
     window.exportExcel = function() {
-        console.log('XLSX loaded:', typeof XLSX, 'groups:', groups, 'allData:', allData);
-        if (!groups || groups.length === 0) { alert('无数据'); return; }
         if (typeof XLSX === 'undefined') { alert('Excel 库未加载'); return; }
+        if (!dataLoaded) { 
+            alert('⏳ 数据加载中，请稍后再试'); 
+            return; 
+        }
+        if (!groups || groups.length === 0 || Object.keys(allData).length === 0) {
+            alert('⚠️ 没有可导出的数据');
+            return;
+        }
         try {
             const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
             const days = cycleDates.length;
@@ -241,14 +248,14 @@
                         if (v) s++;
                         row.push(v);
                     });
-                    const a = days - s;
-                    row.push(s, s, a);
+                    row.push(s, s, days - s);
                     data.push(row);
                 });
                 const ws = XLSX.utils.aoa_to_sheet(data);
                 wb.SheetNames.push(gn);
                 wb.Sheets[gn] = ws;
             });
+            if (wb.SheetNames.length === 0) { alert('无数据可导出'); return; }
             const filename = '值班表_' + y + m + '.xlsx';
             XLSX.writeFile(wb, filename);
             alert('✅ 已导出 Excel 文件：' + filename);
