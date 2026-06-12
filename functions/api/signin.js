@@ -90,13 +90,29 @@ export async function onRequestPost({ request, env }) {
     // 时间验证
     const dutyRange = getDutyTimeRange(dutyConfig.duty_time);
     
+    console.log('打卡验证:', {
+        name: trimmedName,
+        duty_time: dutyConfig.duty_time,
+        duty_date: dutyConfig.duty_date,
+        current_time: finalTime,
+        currentTimeInMinutes: currentTimeInMinutes,
+        dutyRange: dutyRange
+    });
+    
     if (dutyRange) {
       // 处理跨天时段：如果当前时间 < 6:00 且是跨天时段，给当前时间加 24 小时
       if (dutyRange.isOvernight && currentTimeInMinutes < 6 * 60) {
-        currentTimeInMinutes += 2 * 24 * 60;
+        currentTimeInMinutes += 24 * 60; // 只加 1 天，不是 2 天
       }
       
       const isValid = currentTimeInMinutes >= dutyRange.startTime && currentTimeInMinutes <= dutyRange.endTime;
+      
+      console.log('验证结果:', {
+        isValid,
+        startTime: dutyRange.startTime,
+        endTime: dutyRange.endTime,
+        currentTimeInMinutes
+      });
       
       if (!isValid) {
         return Response.json({ 
