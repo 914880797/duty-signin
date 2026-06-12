@@ -1,8 +1,4 @@
 {
   "name": "yldk",
-  "private": true,
-  "scripts": {
-    "deploy": "npx wrangler pages deploy . --project-name=yldk",
-    "dev": "npx wrangler pages dev ."
-  }
+  "private": true
 }
