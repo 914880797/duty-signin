@@ -26,7 +26,6 @@ export async function onRequestPost({ request, env }) {
     const trimmedName = name.trim();
 
     // 查询排班：查询今天、昨天、明天的排班
-    const today = `${bjDate.getUTCFullYear()}-${pad(bjDate.getUTCMonth() + 1)}-${pad(bjDate.getUTCDate())}`;
     const yesterday = new Date(bjTimestamp - (1 * 24 * 60 * 60 * 1000));
     const yesterdayStr = `${yesterday.getUTCFullYear()}-${pad(yesterday.getUTCMonth() + 1)}-${pad(yesterday.getUTCDate())}`;
     const tomorrow = new Date(bjTimestamp + (1 * 24 * 60 * 60 * 1000));
