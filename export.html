@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>导出预览 - 值班打卡系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: "Microsoft YaHei", sans-serif; background: #fff; color: #333; padding: 20px 30px; }
@@ -220,39 +221,15 @@
         document.querySelectorAll('#dutyTable tbody tr').forEach(r => r.classList.remove('highlight-row'));
     }
 
-    function generateExcelHTML() {
-        const days = cycleDates.length;
-        let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body>\n';
-        groups.forEach(gn => {
-            const gd = allData[gn] || { persons: [], records: {} };
-            html += '<table border="1"><caption>' + gn + '</caption><tr><th>姓名</th><th>分组</th>';
-            cycleDates.forEach(d => { html += '<th>' + d.displayDate + '</th>'; });
-            html += '<th>共计</th><th>累计</th><th>缺席</th></tr>\n';
-            gd.persons.forEach(nm => {
-                const rd = gd.records[nm] || {};
-                let s = 0;
-                html += '<tr><td>' + nm + '</td><td>' + gn + '</td>';
-                cycleDates.forEach(d => {
-                    const v = rd[d.fullDate] ? 1 : '';
-                    if (v) s++;
-                    html += '<td>' + (v ? '<b>' + v + '</b>' : '') + '</td>';
-                });
-                const a = days - s;
-                html += '<td>' + s + '</td><td>' + s + '</td><td>' + a + '</td></tr>\n';
-            });
-            html += '</table><br><br>\n';
-        });
-        html += '</body></html>';
-        return html;
-    }
-
     function exportCSV() {
-        if (groups.length === 0) { alert('无数据'); return; }
+        console.log('exportCSV called, groups:', groups, 'allData:', allData);
+        if (!groups || groups.length === 0) { alert('无数据'); return; }
         const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
         let downloaded = 0;
         groups.forEach((gn, idx) => {
-            const gd = allData[gn] || { persons: [], records: {} };
-            if (gd.persons.length === 0) return;
+            const gd = allData[gn];
+            console.log('Group', gn, 'data:', gd);
+            if (!gd || !gd.persons || gd.persons.length === 0) return;
             const days = cycleDates.length;
             let c = '\uFEFF 姓名，';
             cycleDates.forEach(dt => { c += dt.displayDate + ','; });
@@ -285,25 +262,43 @@
             URL.revokeObjectURL(url);
             downloaded++;
         });
-        setTimeout(() => alert('已导出 ' + downloaded + ' 个 CSV 文件'), 500);
+        setTimeout(() => alert('已导出 ' + downloaded + ' 个 CSV 文件'), 600);
     }
 
     function exportExcel() {
-        if (groups.length === 0) { alert('无数据'); return; }
+        console.log('exportExcel called, groups:', groups, 'allData:', allData);
+        if (!groups || groups.length === 0) { alert('无数据'); return; }
+        if (typeof XLSX === 'undefined') { alert('Excel 库未加载'); return; }
         try {
-            const html = generateExcelHTML();
-            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
             const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = '值班表_' + y + m + '.xls';
-            a.target = '_blank';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            alert('✅ 已导出 Excel 文件（多工作表格式）');
+            const days = cycleDates.length;
+            const wb = XLSX.utils.book_create();
+            groups.forEach(gn => {
+                const gd = allData[gn];
+                if (!gd || !gd.persons || gd.persons.length === 0) return;
+                console.log('Adding sheet:', gn, 'persons:', gd.persons.length);
+                const data = [['姓名', '分组']];
+                cycleDates.forEach(d => { data[0].push(d.displayDate); });
+                data[0].push('共计', '累计', '缺席');
+                gd.persons.forEach(nm => {
+                    const rd = gd.records[nm] || {};
+                    let s = 0;
+                    const row = [nm, gn];
+                    cycleDates.forEach(d => {
+                        const v = rd[d.fullDate] ? 1 : '';
+                        if (v) s++;
+                        row.push(v);
+                    });
+                    const a = days - s;
+                    row.push(s, s, a);
+                    data.push(row);
+                });
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                XLSX.utils.book_append_sheet(wb, ws, gn);
+            });
+            const filename = '值班表_' + y + m + '.xlsx';
+            XLSX.writeFile(wb, filename);
+            alert('✅ 已导出 Excel 文件：' + filename);
         } catch (e) {
             console.error('Excel error:', e);
             alert('导出失败：' + e.message);
