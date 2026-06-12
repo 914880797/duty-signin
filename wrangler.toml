@@ -1,8 +1,0 @@
-name = "yldk"
-compatibility_date = "2026-01-01"
-pages_build_output_dir = "."
-
-[[d1_databases]]
-binding = "DB"
-database_name = "yldk-db"
-database_id = "c0a600c2-92f5-4f82-8aec-c48ff15ff2f1"
