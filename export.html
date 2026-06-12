@@ -66,11 +66,18 @@
             <h1>导出预览</h1>
             <div class="export-buttons">
                 <a href="/" class="btn btn-back">🏠 打卡首页</a>
-                <a href="/schedule" class="btn btn-back">📅 排班管理</a>
+                <a href="/admin" class="btn btn-back">📅 排班管理</a>
+                <a href="/query" class="btn btn-back">🔍 排班查询</a>
                 <a href="/dashboard" class="btn btn-back">📊 数据看板</a>
                 <a href="/records" class="btn btn-back">📝 详细记录</a>
                 <button onclick="window.exportExcel()" class="btn btn-export-excel">📥 导出为 Excel</button>
             </div>
+            <div class="stats-bar">
+                <div class="stat-item"><span class="stat-label">总人数：</span><span class="stat-value" id="totalPersons">0</span></div>
+                <div class="stat-item"><span class="stat-label">累计值班：</span><span class="stat-value" id="totalShifts">0</span></div>
+                <div class="stat-item"><span class="stat-label">人均值班：</span><span class="stat-value" id="avgShifts">0</span></div>
+            </div>
+        </div>
             <div class="stats-bar">
                 <div class="stat-item"><span class="stat-label">总人数：</span><span class="stat-value" id="totalPersons">0</span></div>
                 <div class="stat-item"><span class="stat-label">累计值班：</span><span class="stat-value" id="totalShifts">0</span></div>
