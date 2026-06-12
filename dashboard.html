@@ -415,22 +415,41 @@
         let filteredRecords = [];
 
         // 初始化
-        window.addEventListener('DOMContentLoaded', function() {
-            initDates();
+        window.addEventListener('DOMContentLoaded', async function() {
+            await initDates();
             loadShifts();
             loadGroups();
             loadData();
         });
 
         // 初始化日期
-        function initDates() {
+        async function initDates() {
             const now = new Date();
             const endDate = getBeijingDate(now);
-            const startDate = new Date();
-            startDate.setDate(now.getDate() - 7); // 默认显示近 7 天
-
+            
+            // 尝试从 settings 获取打卡起始日期
+            let startDateValue;
+            try {
+                const res = await fetch('/api/settings');
+                const settings = await res.json();
+                if (settings && settings.cycleStartDate) {
+                    startDateValue = settings.cycleStartDate;
+                } else {
+                    // 默认显示近 7 天
+                    const startDate = new Date();
+                    startDate.setDate(now.getDate() - 7);
+                    startDateValue = getBeijingDate(startDate);
+                }
+            } catch (e) {
+                console.error('获取 settings 失败:', e);
+                // 默认显示近 7 天
+                const startDate = new Date();
+                startDate.setDate(now.getDate() - 7);
+                startDateValue = getBeijingDate(startDate);
+            }
+            
             document.getElementById('endDate').value = endDate;
-            document.getElementById('startDate').value = getBeijingDate(startDate);
+            document.getElementById('startDate').value = startDateValue;
         }
 
         // 获取北京日期字符串
