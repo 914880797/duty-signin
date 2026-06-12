@@ -66,7 +66,7 @@
             <h1>导出预览</h1>
             <div class="export-buttons">
                 <a href="/records" class="btn btn-back">⬅️ 返回记录页</a>
-                <button id="btnExportExcel" class="btn btn-export-excel">导出为 Excel</button>
+                <button onclick="window.exportExcel()" class="btn btn-export-excel">导出为 Excel</button>
             </div>
             <div class="stats-bar">
                 <div class="stat-item"><span class="stat-label">总人数：</span><span class="stat-value" id="totalPersons">0</span></div>
@@ -84,7 +84,6 @@
         // 绑定按钮事件
         document.getElementById('btnApply').addEventListener('click', applyFilters);
         document.getElementById('btnClear').addEventListener('click', clearFilters);
-        document.getElementById('btnExportExcel').addEventListener('click', exportExcel);
         loadSettings();
     }
 
