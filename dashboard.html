@@ -414,7 +414,7 @@
         let allRecords = [];
         let filteredRecords = [];
 
-        // 初始化
+        // Initialize
         window.addEventListener('DOMContentLoaded', async function() {
             await initDates();
             loadShifts();
@@ -422,30 +422,27 @@
             loadData();
         });
 
-        // 初始化日期
+        // Initialize dates
         async function initDates() {
             const now = new Date();
             const endDate = getBeijingDate(now);
             
-            // 尝试从 settings 获取打卡起始日期
             let startDateValue;
             try {
                 const res = await fetch('/api/settings');
                 const settings = await res.json();
-                console.log('Settings 响应:', settings);
+                console.log('Settings:', settings);
                 if (settings && settings.cycleStartDate) {
-                    console.log('使用打卡起始日期:', settings.cycleStartDate);
+                    console.log('Using cycleStartDate:', settings.cycleStartDate);
                     startDateValue = settings.cycleStartDate;
                 } else {
-                    console.log('无打卡起始日期，使用近 7 天');
-                    // 默认显示近 7 天
+                    console.log('No cycleStartDate, using last 7 days');
                     const startDate = new Date();
                     startDate.setDate(now.getDate() - 7);
                     startDateValue = getBeijingDate(startDate);
                 }
             } catch (e) {
-                console.error('获取 settings 失败:', e);
-                // 默认显示近 7 天
+                console.error('Failed to get settings:', e);
                 const startDate = new Date();
                 startDate.setDate(now.getDate() - 7);
                 startDateValue = getBeijingDate(startDate);
@@ -453,10 +450,7 @@
             
             document.getElementById('endDate').value = endDate;
             document.getElementById('startDate').value = startDateValue;
-            console.log('日期初始化完成:', {
-                startDate: startDateValue,
-                endDate: endDate
-            });
+            console.log('Dates initialized:', { startDate: startDateValue, endDate });
         }
 
         // 获取北京日期字符串
