@@ -181,7 +181,7 @@
         data.persons.forEach(name => {
             const rec = data.records[name] || {};
             let s = 0;
-            html += '<tr data-name="'+name+'" data-group="'+sheetName+'"><td>'+name+'</td><td class="group-col">'+sheetName+'</td>';
+            html += '<tr data-name="'+name+'" data-group="'+sheetName+'"><td class="name-col">'+name+'</td><td class="group-col">'+sheetName+'</td>';
             cycleDates.forEach(d => {
                 const v = rec[d.fullDate] ? 1 : '';
                 if (v) s++;
