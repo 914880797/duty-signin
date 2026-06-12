@@ -25,18 +25,60 @@ export async function onRequestPost({ request, env }) {
     
     const trimmedName = name.trim();
 
-    // 查询排班：放宽到从前天开始的排班（处理凌晨时段）
-    const twoDaysAgo = new Date(bjTimestamp - (2 * 24 * 60 * 60 * 1000));
-    const twoDaysAgoStr = `${twoDaysAgo.getUTCFullYear()}-${pad(twoDaysAgo.getUTCMonth() + 1)}-${pad(twoDaysAgo.getUTCDate())}`;
+    // 查询排班：查询今天、昨天、明天的排班
+    const today = `${bjDate.getUTCFullYear()}-${pad(bjDate.getUTCMonth() + 1)}-${pad(bjDate.getUTCDate())}`;
+    const yesterday = new Date(bjTimestamp - (1 * 24 * 60 * 60 * 1000));
+    const yesterdayStr = `${yesterday.getUTCFullYear()}-${pad(yesterday.getUTCMonth() + 1)}-${pad(yesterday.getUTCDate())}`;
+    const tomorrow = new Date(bjTimestamp + (1 * 24 * 60 * 60 * 1000));
+    const tomorrowStr = `${tomorrow.getUTCFullYear()}-${pad(tomorrow.getUTCMonth() + 1)}-${pad(tomorrow.getUTCDate())}`;
     
-    const dutyConfig = await env.DB.prepare(`
+    // 获取今天、昨天、明天的所有排班
+    const allConfigs = await env.DB.prepare(`
       SELECT name, duty_time, duty_date, group_id FROM duty_config
-      WHERE name = ? AND duty_date >= ?
-      ORDER BY duty_date ASC
-      LIMIT 1
-    `).bind(trimmedName, twoDaysAgoStr).first();
+      WHERE name = ? AND duty_date IN (?, ?, ?)
+      ORDER BY duty_date, duty_time
+    `).bind(trimmedName, yesterdayStr, today, tomorrowStr).all();
     
-    if (!dutyConfig || !dutyConfig.duty_time || dutyConfig.duty_time === '未安排') {
+    if (!allConfigs.results || allConfigs.results.length === 0) {
+        return Response.json(
+            { error: `未参与值班，请联系管理员添加排班` },
+            { status: 403 }
+        );
+    }
+    
+    // 找到当前时间所在的值班时段
+    let dutyConfig = null;
+    let currentTimeInMinutes = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
+    
+    for (const config of allConfigs.results) {
+        const range = getDutyTimeRange(config.duty_time);
+        if (!range) continue;
+        
+        // 处理跨天：如果是昨天排班且当前是午夜前，或今天排班且当前是凌晨
+        let adjustedTime = currentTimeInMinutes;
+        const configDate = config.duty_date;
+        
+        // 如果是昨天的排班且是跨天到凌晨的时段（如 23:00-04:00），当前时间加 24 小时比较
+        if (configDate === yesterdayStr && range.isOvernight && currentTimeInMinutes < 6 * 60) {
+            adjustedTime += 24 * 60;
+        }
+        // 如果是跨天时段且当前时间 < 6:00，给当前时间加 24 小时
+        if (range.isOvernight && currentTimeInMinutes < 6 * 60) {
+            adjustedTime += 24 * 60;
+        }
+        
+        if (adjustedTime >= range.startTime && adjustedTime <= range.endTime) {
+            dutyConfig = config;
+            break;
+        }
+    }
+    
+    // 如果没有找到匹配的时段，用第一个（处理提前打卡）
+    if (!dutyConfig) {
+        dutyConfig = allConfigs.results[0];
+    }
+    
+    if (!dutyConfig.duty_time || dutyConfig.duty_time === '未安排') {
       return Response.json(
         { error: `未参与值班，请联系管理员添加排班` },
         { status: 403 }
@@ -46,32 +88,31 @@ export async function onRequestPost({ request, env }) {
     const personDutyTime = dutyConfig.duty_time;
     
     // 时间验证
-    let currentTimeInMinutes = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
-    const dutyRange = getDutyTimeRange(personDutyTime);
+    const dutyRange = getDutyTimeRange(dutyConfig.duty_time);
     
     if (dutyRange) {
       // 处理跨天时段：如果当前时间 < 6:00 且是跨天时段，给当前时间加 24 小时
       if (dutyRange.isOvernight && currentTimeInMinutes < 6 * 60) {
-        currentTimeInMinutes += 24 * 60;
+        currentTimeInMinutes += 2 * 24 * 60;
       }
       
       const isValid = currentTimeInMinutes >= dutyRange.startTime && currentTimeInMinutes <= dutyRange.endTime;
       
       if (!isValid) {
         return Response.json({ 
-          error: `你的值班时间是 ${personDutyTime}，请在值班时间内打卡`,
-          duty_time: personDutyTime,
+          error: `你的值班时间是 ${dutyConfig.duty_time}，请在值班时间内打卡`,
+          duty_time: dutyConfig.duty_time,
           current_time: finalTime
         }, { status: 400 });
       }
     }
     
-    // 重复打卡检查：使用排班日期而非今天（对于凌晨时段很重要）
+    // 重复打卡检查：使用排班日期和排班时间
     const recentCheck = await env.DB.prepare(`
       SELECT created_at FROM signin_records 
       WHERE name = ? AND duty_date = ? AND duty_time = ?
       ORDER BY created_at DESC LIMIT 1
-    `).bind(trimmedName, dutyConfig.duty_date, personDutyTime).first();
+    `).bind(trimmedName, dutyConfig.duty_date, dutyConfig.duty_time).first();
 
     if (recentCheck) {
       return Response.json(
@@ -84,13 +125,13 @@ export async function onRequestPost({ request, env }) {
     await env.DB.prepare(`
       INSERT INTO signin_records (name, duty_date, duty_time, group_id, created_at, ip_address)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).bind(trimmedName, dutyConfig.duty_date, personDutyTime, dutyConfig.group_id || null, created_at, ip).run();
+    `).bind(trimmedName, dutyConfig.duty_date, dutyConfig.duty_time, dutyConfig.group_id || null, created_at, ip).run();
 
     return Response.json({ 
       ok: true, 
-      date: today, 
+      date: dutyConfig.duty_date, 
       time: created_at,
-      duty_time: personDutyTime
+      duty_time: dutyConfig.duty_time
     });
   } catch (e) {
     console.error('Signin error:', e);
@@ -101,14 +142,17 @@ export async function onRequestPost({ request, env }) {
 function getDutyTimeRange(dutyTime) {
   if (!dutyTime || dutyTime === '未安排') return null;
   
-  const match = dutyTime.match(/(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
+  // 移除所有空格，处理 "04 :00-06: 00" 这种情况
+  const cleanTime = dutyTime.replace(/\s+/g, '');
+  
+  const match = cleanTime.match(/(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
   if (!match) {
     return null;
   }
   
   let [, startHour, startMin, endHour, endMin] = match.map(Number);
   
-  // 处理 24:00 的情况（表示午夜 00:00）
+  // 记录原始开始时间用于判断跨天
   const originalStartHour = startHour;
   if (startHour === 24) {
     startHour = 0;
@@ -121,13 +165,12 @@ function getDutyTimeRange(dutyTime) {
   const endTime = endHour * 60 + endMin;
   
   // 跨天定义：原始开始时间大于结束时间（如 23:00-04:00）
-  // 注意：24:00-04:00 转换成 00:00-04:00 后，0 < 240，不是跨天
   const isOvernight = originalStartHour > endHour && originalStartHour !== 24;
   
   return {
     startTime: startTime,
     endTime: endTime,
-    name: dutyTime,
+    name: cleanTime,
     isOvernight: isOvernight
   };
 }
