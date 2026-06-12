@@ -221,7 +221,8 @@
         document.querySelectorAll('#dutyTable tbody tr').forEach(r => r.classList.remove('highlight-row'));
     }
 
-    function exportCSV() {
+    // 导出为全局函数
+    window.exportCSV = function() {
         console.log('exportCSV called, groups:', groups, 'allData:', allData);
         if (!groups || groups.length === 0) { alert('无数据'); return; }
         const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
@@ -265,7 +266,7 @@
         setTimeout(() => alert('已导出 ' + downloaded + ' 个 CSV 文件'), 600);
     }
 
-    function exportExcel() {
+    window.exportExcel = function() {
         console.log('exportExcel called, groups:', groups, 'allData:', allData);
         if (!groups || groups.length === 0) { alert('无数据'); return; }
         if (typeof XLSX === 'undefined') { alert('Excel 库未加载'); return; }
