@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>导出预览 - 值班打卡系统</title>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
     <style>
         * {
             margin: 0;
@@ -401,9 +401,6 @@
         let cycleDates = [];
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (typeof XLSX === 'undefined') {
-                console.log('SheetJS 正在加载...');
-            }
             loadSettings();
         });
 
@@ -594,6 +591,19 @@
             });
         };
 
+        // 下载 CSV 文件
+        function downloadCSV(name, content) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
         window.exportCSV = function() {
             if (groups.length === 0) {
                 alert('⚠️ 没有可导出的数据');
@@ -610,81 +620,81 @@
                 const groupData = allData[groupName] || { persons: [], records: {} };
                 if (groupData.persons.length === 0) return;
 
-                setTimeout(() => {
-                    let content = '\uFEFF';
-                    content += '姓 名\t';
-                    cycleDates.forEach(dateInfo => {
-                        content += dateInfo.displayDate + '\t';
-                    });
-                    content += '共计\t累计\t缺席\n';
+                let content = '\uFEFF';
+                content += '姓 名\t';
+                cycleDates.forEach(dateInfo => {
+                    content += dateInfo.displayDate + '\t';
+                });
+                content += '共计\t累计\t缺席\n';
 
+                groupData.persons.forEach(personKey => {
+                    const personData = groupData.records[personKey] || {};
+                    let personShifts = 0;
+                    content += personKey + '\t';
+                    cycleDates.forEach(dateInfo => {
+                        const hasShift = personData[dateInfo.fullDate] ? '1' : '';
+                        if (hasShift) personShifts++;
+                        content += hasShift + '\t';
+                    });
+                    const absences = totalDays - personShifts;
+                    content += personShifts + '\t' + personShifts + '\t' + absences + '\n';
+                });
+
+                content += '总计\t';
+                cycleDates.forEach(dateInfo => {
+                    let dayCount = 0;
                     groupData.persons.forEach(personKey => {
                         const personData = groupData.records[personKey] || {};
-                        let personShifts = 0;
-                        content += personKey + '\t';
-                        cycleDates.forEach(dateInfo => {
-                            const hasShift = personData[dateInfo.fullDate] ? '1' : '';
-                            if (hasShift) personShifts++;
-                            content += hasShift + '\t';
-                        });
-                        const absences = totalDays - personShifts;
-                        content += personShifts + '\t' + personShifts + '\t' + absences + '\n';
+                        if (personData[dateInfo.fullDate]) dayCount++;
                     });
+                    content += dayCount + '\t';
+                });
+                const groupTotalShifts = groupData.persons.reduce((sum, personKey) => {
+                    const personData = groupData.records[personKey] || {};
+                    return sum + Object.keys(personData).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).length;
+                }, 0);
+                const groupTotalAbsences = groupData.persons.length * totalDays - groupTotalShifts;
+                content += groupTotalShifts + '\t' + groupTotalShifts + '\t' + groupTotalAbsences + '\n';
 
-                    content += '总计\t';
-                    cycleDates.forEach(dateInfo => {
-                        let dayCount = 0;
-                        groupData.persons.forEach(personKey => {
-                            const personData = groupData.records[personKey] || {};
-                            if (personData[dateInfo.fullDate]) dayCount++;
-                        });
-                        content += dayCount + '\t';
-                    });
-                    const groupTotalShifts = groupData.persons.reduce((sum, personKey) => {
-                        const personData = groupData.records[personKey] || {};
-                        return sum + Object.keys(personData).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).length;
-                    }, 0);
-                    const groupTotalAbsences = groupData.persons.length * totalDays - groupTotalShifts;
-                    content += groupTotalShifts + '\t' + groupTotalShifts + '\t' + groupTotalAbsences + '\n';
-
-                    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = '值班表_' + groupName + '_' + year + month + day + '.csv';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(link.href);
-                }, idx * 300);
+                const filename = '值班表_' + groupName + '_' + year + month + day + '.csv';
+                setTimeout(() => {
+                    downloadCSV(filename, content);
+                }, idx * 500);
             });
 
             setTimeout(() => {
-                alert('✅ 已导出 ' + groups.length + ' 个 CSV 文件（' + groups.map(g => g.name).join('、') + '）');
-            }, groups.length * 300 + 100);
+                alert('已导出 ' + groups.length + ' 个 CSV 文件');
+            }, groups.length * 500 + 200);
         };
 
         window.exportExcel = function() {
+            console.log('exportExcel called');
+            console.log('groups:', groups);
+            console.log('XLSX:', typeof window.XLSX);
+
             if (groups.length === 0) {
                 alert('⚠️ 没有可导出的数据');
                 return;
             }
 
-            if (typeof XLSX === 'undefined') {
-                alert('❌ Excel 导出库加载失败，请刷新页面重试');
+            if (typeof window.XLSX === 'undefined') {
+                alert('Excel 库未加载，请刷新页面重试');
                 return;
             }
 
             try {
-                const wb = XLSX.utils.book_new();
                 const now = new Date();
                 const year = now.getFullYear();
                 const month = String(now.getMonth() + 1).padStart(2, '0');
                 const totalDays = cycleDates.length;
 
+                const wb = window.XLSX.utils.book_new();
+
                 groups.forEach(groupName => {
                     const groupData = allData[groupName] || { persons: [], records: {} };
+                    console.log('Group:', groupName, 'Persons:', groupData.persons.length);
+
                     const data = [['姓名']];
-                    
                     cycleDates.forEach(dateInfo => {
                         data[0].push(dateInfo.displayDate);
                     });
@@ -704,16 +714,20 @@
                         data.push(row);
                     });
 
-                    const ws = XLSX.utils.aoa_to_sheet(data);
-                    XLSX.utils.book_append_sheet(wb, ws, groupName);
+                    const ws = window.XLSX.utils.aoa_to_sheet(data);
+                    window.XLSX.utils.book_append_sheet(wb, ws, groupName);
+                    console.log('Sheet added:', groupName);
                 });
 
                 const filename = '值班表_' + year + month + '.xlsx';
-                XLSX.writeFile(wb, filename);
-                alert('✅ 已导出 Excel 文件，包含 ' + groups.map(g => g.name).join('、') + (groups.length > 1 ? ' 两个工作表' : ' 一个工作表'));
+                console.log('Writing file:', filename);
+                window.XLSX.writeFile(wb, filename);
+                console.log('File written');
+                
+                alert('✅ 已导出 Excel 文件：' + filename);
             } catch (error) {
                 console.error('Excel 导出失败:', error);
-                alert('❌ 导出失败：' + error.message);
+                alert('导出失败：' + error.message);
             }
         };
     </script>
