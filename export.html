@@ -54,14 +54,6 @@
 </head>
 <body>
     <div class="container">
-        <div class="filter-section">
-            <input type="text" id="searchInput" class="search-input" placeholder="搜索姓名...">
-            <div style="display:flex;gap:8px;">
-                <button id="btnApply" class="btn btn-apply">✓ 应用</button>
-                <button id="btnClear" class="btn btn-clear">✕ 清除</button>
-            </div>
-        </div>
-        <div class="sheet-tabs" id="sheetTabs"></div>
         <div class="header-section">
             <h1>导出预览</h1>
             <div class="export-buttons">
@@ -77,12 +69,14 @@
                 <div class="stat-item"><span class="stat-label">累计值班：</span><span class="stat-value" id="totalShifts">0</span></div>
                 <div class="stat-item"><span class="stat-label">人均值班：</span><span class="stat-value" id="avgShifts">0</span></div>
             </div>
-        </div>
-            <div class="stats-bar">
-                <div class="stat-item"><span class="stat-label">总人数：</span><span class="stat-value" id="totalPersons">0</span></div>
-                <div class="stat-item"><span class="stat-label">累计值班：</span><span class="stat-value" id="totalShifts">0</span></div>
-                <div class="stat-item"><span class="stat-label">人均值班：</span><span class="stat-value" id="avgShifts">0</span></div>
+            <div class="filter-section">
+                <input type="text" id="searchInput" class="search-input" placeholder="搜索姓名...">
+                <div style="display:flex;gap:8px;">
+                    <button id="btnApply" class="btn btn-apply">✓ 应用</button>
+                    <button id="btnClear" class="btn btn-clear">✕ 清除</button>
+                </div>
             </div>
+            <div class="sheet-tabs" id="sheetTabs"></div>
         </div>
         <div class="table-outer-container"><table class="duty-table" id="dutyTable"></table></div>
     </div>
