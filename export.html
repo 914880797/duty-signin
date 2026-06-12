@@ -207,53 +207,37 @@
             document.querySelectorAll('#dutyTable tbody tr[data-name="'+name+'"]').forEach(r => r.classList.add('highlight-row'));
         };
 
-        // 生成 Excel XML 格式（多工作表支持）
-        function generateExcelXML() {
+        // 生成 HTML 格式 Excel（多工作表支持）
+        function generateExcelHTML() {
             const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
             const days = cycleDates.length;
             
-            let xml = '<?xml version="1.0"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheetml" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n';
-            
-            // 样式
-            xml += '<Styles><Style ss:ID="header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#4CAF50" ss:Pattern="Solid"/></Style>' ;
-            xml += '<Style ss:ID="shift"><Font ss:Color="#1a3d5c" ss:Bold="1"/></Style></Styles>\n';
+            let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"';
+            html += ' xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body>\n';
             
             groups.forEach(gn => {
                 const gd = allData[gn] || { persons: [], records: {} };
-                xml += '<Worksheet ss:Name="' + gn + '">\n<Table>\n';
+                html += '<table border="1"><caption>' + gn + '</caption><tr><th>姓名</th><th>分组</th>';
+                cycleDates.forEach(d => { html += '<th>' + d.displayDate + '</th>'; });
+                html += '<th>共计</th><th>累计</th><th>缺席</th></tr>\n';
                 
-                // 表头
-                xml += '<Row><Cell ss:StyleID="header"><Data ss:Type="String">姓名</Data></Cell>';
-                xml += '<Cell ss:StyleID="header"><Data ss:Type="String">分组</Data></Cell>';
-                cycleDates.forEach(d => {
-                    xml += '<Cell ss:StyleID="header"><Data ss:Type="String">' + d.displayDate + '</Data></Cell>';
-                });
-                xml += '<Cell ss:StyleID="header"><Data ss:Type="String">共计</Data></Cell>';
-                xml += '<Cell ss:StyleID="header"><Data ss:Type="String">累计</Data></Cell>';
-                xml += '<Cell ss:StyleID="header"><Data ss:Type="String">缺席</Data></Cell></Row>\n';
-                
-                // 数据行
                 gd.persons.forEach(nm => {
                     const rd = gd.records[nm] || {};
                     let s = 0;
-                    xml += '<Row><Cell><Data ss:Type="String">' + nm + '</Data></Cell>';
-                    xml += '<Cell><Data ss:Type="String">' + gn + '</Data></Cell>';
+                    html += '<tr><td>' + nm + '</td><td>' + gn + '</td>';
                     cycleDates.forEach(d => {
                         const v = rd[d.fullDate] ? 1 : '';
                         if (v) s++;
-                        xml += '<Cell' + (v ? ' ss:StyleID="shift"' : '') + '><Data ss:Type="Number">' + v + '</Data></Cell>';
+                        html += '<td>' + (v ? '<b>' + v + '</b>' : '') + '</td>';
                     });
                     const a = days - s;
-                    xml += '<Cell><Data ss:Type="Number">' + s + '</Data></Cell>';
-                    xml += '<Cell><Data ss:Type="Number">' + s + '</Data></Cell>';
-                    xml += '<Cell><Data ss:Type="Number">' + a + '</Data></Cell></Row>\n';
+                    html += '<td>' + s + '</td><td>' + s + '</td><td>' + a + '</td></tr>\n';
                 });
-                
-                xml += '</Table></Worksheet>\n';
+                html += '</table><br><br>\n';
             });
             
-            xml += '</Workbook>';
-            return xml;
+            html += '</body></html>';
+            return html;
         }
 
         window.exportCSV = function() {
@@ -261,31 +245,30 @@
             const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
             let downloaded = 0;
             
-            groups.forEach((gn) => {
+            groups.forEach((gn, idx) => {
                 const gd = allData[gn] || { persons: [], records: {} };
                 if (gd.persons.length === 0) return;
                 const days = cycleDates.length;
-                let c = '\uFEFF 姓名\t';
-                cycleDates.forEach(dt => { c += dt.displayDate + '\t'; });
-                c += '共计\t累计\t缺席\n';
+                let c = '\uFEFF 姓名,';
+                cycleDates.forEach(dt => { c += dt.displayDate + ','; });
+                c += '共计，累计，缺席\n';
                 gd.persons.forEach(nm => {
                     const rd = gd.records[nm] || {};
                     let s = 0;
-                    c += nm + '\t';
-                    cycleDates.forEach(dt => { const v = rd[dt.fullDate] ? '1' : ''; if(v) s++; c += v + '\t'; });
+                    c += nm + ',';
+                    cycleDates.forEach(dt => { const v = rd[dt.fullDate] ? '1' : ''; if(v) s++; c += v + ','; });
                     const a = days - s;
-                    c += s + '\t' + s + '\t' + a + '\n';
+                    c += s + ',' + s + ',' + a + '\n';
                 });
-                c += '总计\t';
+                c += '总计，';
                 cycleDates.forEach(dt => {
                     let cnt = 0;
                     gd.persons.forEach(nm => { if ((gd.records[nm]||{})[dt.fullDate]) cnt++; });
-                    c += cnt + '\t';
+                    c += cnt + ',';
                 });
                 const totalS = gd.persons.reduce((sum, nm) => sum + Object.keys(gd.records[nm]||{}).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).length, 0);
-                c += totalS + '\t' + totalS + '\t' + (gd.persons.length * days - totalS) + '\n';
+                c += totalS + ',' + totalS + ',' + (gd.persons.length * days - totalS) + '\n';
                 
-                // 使用新窗口下载，避免被拦截
                 const blob = new Blob([c], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -305,8 +288,8 @@
         window.exportExcel = function() {
             if (groups.length === 0) { alert('无数据'); return; }
             try {
-                const xml = generateExcelXML();
-                const blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+                const html = generateExcelHTML();
+                const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
                 const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -322,6 +305,7 @@
                 console.error('Excel error:', e);
                 alert('导出失败：' + e.message);
             }
+        };
         };
     </script>
 </body>
