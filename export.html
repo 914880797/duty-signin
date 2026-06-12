@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>导出预览 - 值班打卡系统</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -401,6 +401,9 @@
         let cycleDates = [];
 
         window.addEventListener('DOMContentLoaded', () => {
+            if (typeof XLSX === 'undefined') {
+                console.log('SheetJS 正在加载...');
+            }
             loadSettings();
         });
 
@@ -429,8 +432,8 @@
                 const month = String(d.getMonth() + 1).padStart(2, '0');
                 const day = String(d.getDate()).padStart(2, '0');
                 cycleDates.push({
-                    fullDate: `${year}-${month}-${day}`,
-                    displayDate: `${d.getMonth() + 1}月${d.getDate()}号`,
+                    fullDate: year + '-' + month + '-' + day,
+                    displayDate: (d.getMonth() + 1) + '月' + d.getDate() + '号',
                     day: d.getDate()
                 });
             }
@@ -603,55 +606,61 @@
             const day = String(now.getDate()).padStart(2, '0');
             const totalDays = cycleDates.length;
 
-            groups.forEach(groupName => {
+            groups.forEach((groupName, idx) => {
                 const groupData = allData[groupName] || { persons: [], records: {} };
                 if (groupData.persons.length === 0) return;
 
-                let content = '\uFEFF';
-                content += '姓名\t';
-                cycleDates.forEach(dateInfo => {
-                    content += dateInfo.displayDate + '\t';
-                });
-                content += '共计\t累计\t缺席\n';
-
-                groupData.persons.forEach(personKey => {
-                    const personData = groupData.records[personKey] || {};
-                    let personShifts = 0;
-                    content += personKey + '\t';
+                setTimeout(() => {
+                    let content = '\uFEFF';
+                    content += '姓 名\t';
                     cycleDates.forEach(dateInfo => {
-                        const hasShift = personData[dateInfo.fullDate] ? '1' : '';
-                        if (hasShift) personShifts++;
-                        content += hasShift + '\t';
+                        content += dateInfo.displayDate + '\t';
                     });
-                    const absences = totalDays - personShifts;
-                    content += personShifts + '\t' + personShifts + '\t' + absences + '\n';
-                });
+                    content += '共计\t累计\t缺席\n';
 
-                content += '总计\t';
-                cycleDates.forEach(dateInfo => {
-                    let dayCount = 0;
                     groupData.persons.forEach(personKey => {
                         const personData = groupData.records[personKey] || {};
-                        if (personData[dateInfo.fullDate]) dayCount++;
+                        let personShifts = 0;
+                        content += personKey + '\t';
+                        cycleDates.forEach(dateInfo => {
+                            const hasShift = personData[dateInfo.fullDate] ? '1' : '';
+                            if (hasShift) personShifts++;
+                            content += hasShift + '\t';
+                        });
+                        const absences = totalDays - personShifts;
+                        content += personShifts + '\t' + personShifts + '\t' + absences + '\n';
                     });
-                    content += dayCount + '\t';
-                });
-                const groupTotalShifts = groupData.persons.reduce((sum, personKey) => {
-                    const personData = groupData.records[personKey] || {};
-                    return sum + Object.keys(personData).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).length;
-                }, 0);
-                const groupTotalAbsences = groupData.persons.length * totalDays - groupTotalShifts;
-                content += groupTotalShifts + '\t' + groupTotalShifts + '\t' + groupTotalAbsences + '\n';
 
-                const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `值班表_${groupName}_${year}${month}${day}.csv`;
-                link.click();
-                URL.revokeObjectURL(link.href);
+                    content += '总计\t';
+                    cycleDates.forEach(dateInfo => {
+                        let dayCount = 0;
+                        groupData.persons.forEach(personKey => {
+                            const personData = groupData.records[personKey] || {};
+                            if (personData[dateInfo.fullDate]) dayCount++;
+                        });
+                        content += dayCount + '\t';
+                    });
+                    const groupTotalShifts = groupData.persons.reduce((sum, personKey) => {
+                        const personData = groupData.records[personKey] || {};
+                        return sum + Object.keys(personData).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).length;
+                    }, 0);
+                    const groupTotalAbsences = groupData.persons.length * totalDays - groupTotalShifts;
+                    content += groupTotalShifts + '\t' + groupTotalShifts + '\t' + groupTotalAbsences + '\n';
+
+                    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = '值班表_' + groupName + '_' + year + month + day + '.csv';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
+                }, idx * 300);
             });
 
-            alert('✅ 已导出 ' + groups.length + ' 个 CSV 文件（' + groups.map(g => g.name).join('、') + '）');
+            setTimeout(() => {
+                alert('✅ 已导出 ' + groups.length + ' 个 CSV 文件（' + groups.map(g => g.name).join('、') + '）');
+            }, groups.length * 300 + 100);
         };
 
         window.exportExcel = function() {
@@ -661,46 +670,51 @@
             }
 
             if (typeof XLSX === 'undefined') {
-                alert('❌ SheetJS 库加载失败，请检查网络连接');
+                alert('❌ Excel 导出库加载失败，请刷新页面重试');
                 return;
             }
 
-            const wb = XLSX.utils.book_new();
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const totalDays = cycleDates.length;
+            try {
+                const wb = XLSX.utils.book_new();
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const totalDays = cycleDates.length;
 
-            groups.forEach(groupName => {
-                const groupData = allData[groupName] || { persons: [], records: {} };
-                const data = [['姓名']];
-                
-                cycleDates.forEach(dateInfo => {
-                    data[0].push(dateInfo.displayDate);
-                });
-                data[0].push('共计', '累计', '缺席');
-
-                groupData.persons.forEach(personKey => {
-                    const personData = groupData.records[personKey] || {};
-                    let personShifts = 0;
-                    const row = [personKey];
+                groups.forEach(groupName => {
+                    const groupData = allData[groupName] || { persons: [], records: {} };
+                    const data = [['姓名']];
+                    
                     cycleDates.forEach(dateInfo => {
-                        const hasShift = personData[dateInfo.fullDate] ? 1 : '';
-                        if (hasShift) personShifts++;
-                        row.push(hasShift);
+                        data[0].push(dateInfo.displayDate);
                     });
-                    const absences = totalDays - personShifts;
-                    row.push(personShifts, personShifts, absences);
-                    data.push(row);
+                    data[0].push('共计', '累计', '缺席');
+
+                    groupData.persons.forEach(personKey => {
+                        const personData = groupData.records[personKey] || {};
+                        let personShifts = 0;
+                        const row = [personKey];
+                        cycleDates.forEach(dateInfo => {
+                            const hasShift = personData[dateInfo.fullDate] ? 1 : '';
+                            if (hasShift) personShifts++;
+                            row.push(hasShift);
+                        });
+                        const absences = totalDays - personShifts;
+                        row.push(personShifts, personShifts, absences);
+                        data.push(row);
+                    });
+
+                    const ws = XLSX.utils.aoa_to_sheet(data);
+                    XLSX.utils.book_append_sheet(wb, ws, groupName);
                 });
 
-                const ws = XLSX.utils.aoa_to_sheet(data);
-                XLSX.utils.book_append_sheet(wb, ws, groupName);
-            });
-
-            const filename = `值班表_${year}${month}.xlsx`;
-            XLSX.writeFile(wb, filename);
-            alert('✅ 已导出 Excel 文件，包含 ' + groups.map(g => g.name).join('、') + (groups.length > 1 ? ' 两个工作表' : ' 一个工作表'));
+                const filename = '值班表_' + year + month + '.xlsx';
+                XLSX.writeFile(wb, filename);
+                alert('✅ 已导出 Excel 文件，包含 ' + groups.map(g => g.name).join('、') + (groups.length > 1 ? ' 两个工作表' : ' 一个工作表'));
+            } catch (error) {
+                console.error('Excel 导出失败:', error);
+                alert('❌ 导出失败：' + error.message);
+            }
         };
     </script>
 </body>
