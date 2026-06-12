@@ -21,7 +21,7 @@
         .export-tip { text-align: center; font-size: 12px; color: #ff7a1a; margin-bottom: 15px; padding: 8px 16px; background: #fff7e6; border-radius: 4px; display: inline-block; }
         .export-tip strong { font-weight: 600; }
         .btn { padding: 10px 24px; border: none; border-radius: 3px; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .btn-back { background: #f5f5f5; border: 1px solid #dcdfe6; color: #606266; }
+        .btn-back { background: #f5f5f5; border: 1px solid #dcdfe6; color: #606266; text-decoration: none; display: inline-block; }
         .btn-export-csv, .btn-export-excel { background: #0b95c9; color: white; }
         .stats-bar { display: flex; justify-content: center; gap: 40px; margin-bottom: 20px; padding: 12px 20px; background: #f9f9f9; border-radius: 4px; border: 1px solid #e0e0e0; }
         .stat-label { font-size: 13px; color: #666; }
@@ -56,8 +56,8 @@
         <div class="filter-section">
             <input type="text" id="searchInput" class="search-input" placeholder="搜索姓名...">
             <div style="display:flex;gap:8px;">
-                <button onclick="applyFilters()" class="btn btn-apply">✓ 应用</button>
-                <button onclick="clearFilters()" class="btn btn-clear">✕ 清除</button>
+                <button id="btnApply" class="btn btn-apply">✓ 应用</button>
+                <button id="btnClear" class="btn btn-clear">✕ 清除</button>
             </div>
         </div>
         <div class="sheet-tabs" id="sheetTabs"></div>
@@ -65,8 +65,8 @@
             <h1>导出预览</h1>
             <div class="export-buttons">
                 <a href="/records" class="btn btn-back">⬅️ 返回记录页</a>
-                <button onclick="exportCSV()" class="btn btn-export-csv">导出为 CSV</button>
-                <button onclick="exportExcel()" class="btn btn-export-excel">导出为 Excel</button>
+                <button id="btnExportCSV" class="btn btn-export-csv">导出为 CSV</button>
+                <button id="btnExportExcel" class="btn btn-export-excel">导出为 Excel</button>
             </div>
             <div class="export-tip">💡 建议使用 <strong>Excel 格式</strong> 导出，可保留会议室/电报分工作表</div>
             <div class="stats-bar">
@@ -78,241 +78,241 @@
         <div class="table-outer-container"><table class="duty-table" id="dutyTable"></table></div>
     </div>
     <script>
-        let currentSheet = '', allData = {}, groups = [], cycleStartDate = null, cycleDates = [];
-        window.addEventListener('DOMContentLoaded', loadSettings);
+(function() {
+    let currentSheet = '', allData = {}, groups = [], cycleStartDate = null, cycleDates = [];
 
-        async function loadSettings() {
-            try {
-                const res = await fetch('/api/settings');
-                const data = await res.json();
-                cycleStartDate = data.cycleStartDate || new Date().toISOString().split('T')[0];
-                loadData();
-            } catch (e) {
-                cycleStartDate = new Date().toISOString().split('T')[0];
-                loadData();
-            }
-        }
+    function init() {
+        // 绑定按钮事件
+        document.getElementById('btnApply').addEventListener('click', applyFilters);
+        document.getElementById('btnClear').addEventListener('click', clearFilters);
+        document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+        document.getElementById('btnExportExcel').addEventListener('click', exportExcel);
+        loadSettings();
+    }
 
-        function generateCycleDates(start, end) {
-            cycleDates = [];
-            const s = new Date(start), e = new Date(end);
-            for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
-                cycleDates.push({
-                    fullDate: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'),
-                    displayDate: (d.getMonth()+1) + '月' + d.getDate() + '号'
-                });
-            }
-        }
+    function loadSettings() {
+        fetch('/api/settings').then(r => r.json()).then(data => {
+            cycleStartDate = data.cycleStartDate || new Date().toISOString().split('T')[0];
+            loadData();
+        }).catch(() => {
+            cycleStartDate = new Date().toISOString().split('T')[0];
+            loadData();
+        });
+    }
 
-        async function loadData() {
-            try {
-                console.log('Loading data...');
-                const [recRes, grpRes] = await Promise.all([fetch('/api/records'), fetch('/api/groups')]);
-                const records = await recRes.json();
-                const grpData = await grpRes.json();
-                console.log('Records:', records.length, 'Groups:', grpData);
-                groups = grpData.data || grpData || [];
-                console.log('Groups parsed:', groups);
-                allData = processDataByGroup(records);
-                console.log('allData:', allData);
-                renderSheetTabs();
-                if (groups.length > 0) { currentSheet = groups[0].name; renderTable(currentSheet); }
-            } catch (e) {
-                console.error('Load failed:', e);
-                document.getElementById('dutyTable').innerHTML = '<tr><td colspan="40" class="empty">加载失败：' + e.message + '</td></tr>';
-            }
-        }
-
-        function processDataByGroup(records) {
-            const data = {};
-            groups.forEach(g => { data[g.name] = { persons: [], records: {}, maxDate: null }; });
-            if (!data['未分组']) data['未分组'] = { persons: [], records: {}, maxDate: null };
-            let globalMax = cycleStartDate;
-            records.forEach(r => {
-                const gn = r.group_name || '未分组';
-                if (!data[gn]) data[gn] = { persons: [], records: {}, maxDate: null };
-                if (!data[gn].persons.includes(r.name)) data[gn].persons.push(r.name);
-                if (!data[gn].records[r.name]) data[gn].records[r.name] = {};
-                data[gn].records[r.name][r.duty_date] = 1;
-                if (r.duty_date > globalMax) globalMax = r.duty_date;
-                if (!data[gn].maxDate || r.duty_date > data[gn].maxDate) data[gn].maxDate = r.duty_date;
+    function generateCycleDates(start, end) {
+        cycleDates = [];
+        const s = new Date(start), e = new Date(end);
+        for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
+            cycleDates.push({
+                fullDate: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'),
+                displayDate: (d.getMonth()+1) + '月' + d.getDate() + '号'
             });
-            Object.keys(data).forEach(k => data[k].persons.sort());
-            generateCycleDates(cycleStartDate, globalMax);
-            return data;
         }
+    }
 
-        function renderSheetTabs() {
-            document.getElementById('sheetTabs').innerHTML = groups.map((g,i) =>
-                '<div class="sheet-tab'+(i===0?' active':'')+'" onclick="switchSheet(\''+g.name+'\','+i+')">'+g.name+'</div>'
-            ).join('') || '<div class="sheet-tab active">未分组</div>';
+    function loadData() {
+        Promise.all([fetch('/api/records'), fetch('/api/groups')]).then(([recRes, grpRes]) => {
+            return Promise.all([recRes.json(), grpRes.json()]);
+        }).then(([records, grpData]) => {
+            console.log('Records:', records.length, 'Groups:', grpData);
+            groups = grpData.data || grpData || [];
+            console.log('Groups parsed:', groups);
+            allData = processDataByGroup(records);
+            console.log('allData:', allData);
+            renderSheetTabs();
+            if (groups.length > 0) { currentSheet = groups[0].name; renderTable(currentSheet); }
+        }).catch(e => {
+            console.error('Load failed:', e);
+            document.getElementById('dutyTable').innerHTML = '<tr><td colspan="40" class="empty">加载失败：' + e.message + '</td></tr>';
+        });
+    }
+
+    function processDataByGroup(records) {
+        const data = {};
+        groups.forEach(g => { data[g.name] = { persons: [], records: {}, maxDate: null }; });
+        if (!data['未分组']) data['未分组'] = { persons: [], records: {}, maxDate: null };
+        let globalMax = cycleStartDate;
+        records.forEach(r => {
+            const gn = r.group_name || '未分组';
+            if (!data[gn]) data[gn] = { persons: [], records: {}, maxDate: null };
+            if (!data[gn].persons.includes(r.name)) data[gn].persons.push(r.name);
+            if (!data[gn].records[r.name]) data[gn].records[r.name] = {};
+            data[gn].records[r.name][r.duty_date] = 1;
+            if (r.duty_date > globalMax) globalMax = r.duty_date;
+            if (!data[gn].maxDate || r.duty_date > data[gn].maxDate) data[gn].maxDate = r.duty_date;
+        });
+        Object.keys(data).forEach(k => data[k].persons.sort());
+        generateCycleDates(cycleStartDate, globalMax);
+        return data;
+    }
+
+    function renderSheetTabs() {
+        const html = groups.length > 0 ? groups.map((g,i) => 
+            '<div class="sheet-tab'+(i===0?' active':'')+'" data-group="'+g.name+'">'+g.name+'</div>'
+        ).join('') : '<div class="sheet-tab active">未分组</div>';
+        document.getElementById('sheetTabs').innerHTML = html;
+        // 绑定切换事件
+        document.querySelectorAll('.sheet-tab').forEach((tab, i) => {
+            tab.addEventListener('click', () => {
+                currentSheet = tab.dataset.group;
+                document.querySelectorAll('.sheet-tab').forEach((t, j) => t.classList.toggle('active', j === i));
+                renderTable(currentSheet);
+            });
+        });
+    }
+
+    function renderTable(sheetName) {
+        const table = document.getElementById('dutyTable');
+        const data = allData[sheetName] || { persons: [], records: {} };
+        console.log('Rendering table for', sheetName, 'persons:', data.persons.length);
+        if (data.persons.length === 0) {
+            table.innerHTML = '<tr><td colspan="40" class="empty">暂无数据</td></tr>';
+            updateStats(0, 0);
+            return;
         }
+        const days = cycleDates.length;
+        let html = '<thead><tr><th>姓名</th><th>分组</th>';
+        cycleDates.forEach(d => { html += '<th class="date-cell">'+d.displayDate+'</th>'; });
+        html += '<th class="stats-col-fixed">共计</th><th class="stats-col-fixed">累计</th><th class="stats-col-fixed">缺席</th></tr></thead><tbody>';
+        let ts = 0, ta = 0;
+        data.persons.forEach(name => {
+            const rec = data.records[name] || {};
+            let s = 0;
+            html += '<tr data-name="'+name+'" data-group="'+sheetName+'"><td>'+name+'</td><td>'+sheetName+'</td>';
+            cycleDates.forEach(d => {
+                const v = rec[d.fullDate] ? 1 : '';
+                if (v) s++;
+                html += '<td class="date-cell'+(v?' value-1':'')+'" data-date="'+d.fullDate+'">'+v+'</td>';
+            });
+            const a = days - s;
+            html += '<td class="stats-col-fixed">'+s+'</td><td class="stats-col-fixed">'+s+'</td><td class="stats-col-fixed">'+a+'</td></tr>';
+            ts += s; ta += a;
+        });
+        html += '</tbody>';
+        table.innerHTML = html;
+        // 绑定姓名点击高亮
+        table.querySelectorAll('td:first-child').forEach(td => {
+            td.addEventListener('click', function() {
+                const name = this.parentNode.dataset.name;
+                document.querySelectorAll('.highlight-row').forEach(r => r.classList.remove('highlight-row'));
+                table.querySelectorAll('tr[data-name="'+name+'"]').forEach(r => r.classList.add('highlight-row'));
+            });
+        });
+        updateStats(data.persons.length, ts);
+    }
 
-        window.switchSheet = function(name, idx) {
-            currentSheet = name;
-            document.querySelectorAll('.sheet-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
-            renderTable(name);
-        };
+    function updateStats(p, s) {
+        document.getElementById('totalPersons').textContent = p;
+        document.getElementById('totalShifts').textContent = s;
+        document.getElementById('avgShifts').textContent = p > 0 ? (s/p).toFixed(1) : '0';
+    }
 
-        function renderTable(sheetName) {
-            const table = document.getElementById('dutyTable');
-            const data = allData[sheetName] || { persons: [], records: {} };
-            if (data.persons.length === 0) {
-                table.innerHTML = '<tr><td colspan="40" class="empty">暂无数据</td></tr>';
-                updateStats(0, 0);
-                return;
-            }
-            const days = cycleDates.length;
-            let html = '<thead><tr><th style="position:sticky;left:0;z-index:30;min-width:80px;">姓名</th>';
-            html += '<th class="group-col" style="position:sticky;left:80px;z-index:29;">分组</th>';
-            cycleDates.forEach(d => { html += '<th class="date-cell">'+d.displayDate+'</th>'; });
-            html += '<th class="stats-col-fixed" style="right:165px;">共计</th>';
-            html += '<th class="stats-col-fixed" style="right:110px;">累计</th>';
-            html += '<th class="stats-col-fixed" style="right:0;">缺席</th></tr></thead><tbody>';
-            let ts = 0, ta = 0;
-            data.persons.forEach(name => {
-                const rec = data.records[name] || {};
+    function applyFilters() {
+        const v = document.getElementById('searchInput').value.trim().toLowerCase();
+        document.querySelectorAll('#dutyTable tbody tr').forEach(r => {
+            r.classList.toggle('highlight-row', v && r.dataset.name.toLowerCase().includes(v));
+        });
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.querySelectorAll('#dutyTable tbody tr').forEach(r => r.classList.remove('highlight-row'));
+    }
+
+    function generateExcelHTML() {
+        const days = cycleDates.length;
+        let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body>\n';
+        groups.forEach(gn => {
+            const gd = allData[gn] || { persons: [], records: {} };
+            html += '<table border="1"><caption>' + gn + '</caption><tr><th>姓名</th><th>分组</th>';
+            cycleDates.forEach(d => { html += '<th>' + d.displayDate + '</th>'; });
+            html += '<th>共计</th><th>累计</th><th>缺席</th></tr>\n';
+            gd.persons.forEach(nm => {
+                const rd = gd.records[nm] || {};
                 let s = 0;
-                html += '<tr data-name="'+name+'" data-group="'+sheetName+'">';
-                html += '<td style="position:sticky;left:0;z-index:20;background:#fff;" onclick="highlightRow(\''+name+'\')">'+name+'</td>';
-                html += '<td class="group-col" style="position:sticky;left:80px;z-index:19;background:#fff;">'+sheetName+'</td>';
+                html += '<tr><td>' + nm + '</td><td>' + gn + '</td>';
                 cycleDates.forEach(d => {
-                    const v = rec[d.fullDate] ? 1 : '';
+                    const v = rd[d.fullDate] ? 1 : '';
                     if (v) s++;
-                    html += '<td class="date-cell'+(v?' value-1':'')+'" data-date="'+d.fullDate+'">'+v+'</td>';
+                    html += '<td>' + (v ? '<b>' + v + '</b>' : '') + '</td>';
                 });
                 const a = days - s;
-                html += '<td class="stats-col-fixed" style="right:165px;">'+s+'</td>';
-                html += '<td class="stats-col-fixed" style="right:110px;">'+s+'</td>';
-                html += '<td class="stats-col-fixed" style="right:0;">'+a+'</td></tr>';
-                ts += s; ta += a;
+                html += '<td>' + s + '</td><td>' + s + '</td><td>' + a + '</td></tr>\n';
             });
-            html += '</tbody>';
-            table.innerHTML = html;
-            updateStats(data.persons.length, ts);
-        }
+            html += '</table><br><br>\n';
+        });
+        html += '</body></html>';
+        return html;
+    }
 
-        function updateStats(p, s) {
-            document.getElementById('totalPersons').textContent = p;
-            document.getElementById('totalShifts').textContent = s;
-            document.getElementById('avgShifts').textContent = p > 0 ? (s/p).toFixed(1) : '0';
-        }
-
-        window.applyFilters = function() {
-            const v = document.getElementById('searchInput').value.trim().toLowerCase();
-            document.querySelectorAll('#dutyTable tbody tr').forEach(r => {
-                r.classList.toggle('highlight-row', v && r.dataset.name.toLowerCase().includes(v));
-            });
-        };
-        window.clearFilters = function() {
-            document.getElementById('searchInput').value = '';
-            document.querySelectorAll('#dutyTable tbody tr').forEach(r => r.classList.remove('highlight-row'));
-        };
-        window.highlightRow = function(name) {
-            document.querySelectorAll('.highlight-row').forEach(r => r.classList.remove('highlight-row'));
-            document.querySelectorAll('#dutyTable tbody tr[data-name="'+name+'"]').forEach(r => r.classList.add('highlight-row'));
-        };
-
-        // 生成 HTML 格式 Excel（多工作表支持）
-        function generateExcelHTML() {
-            const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
+    function exportCSV() {
+        if (groups.length === 0) { alert('无数据'); return; }
+        const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
+        let downloaded = 0;
+        groups.forEach((gn, idx) => {
+            const gd = allData[gn] || { persons: [], records: {} };
+            if (gd.persons.length === 0) return;
             const days = cycleDates.length;
-            
-            let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"';
-            html += ' xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body>\n';
-            
-            groups.forEach(gn => {
-                const gd = allData[gn] || { persons: [], records: {} };
-                html += '<table border="1"><caption>' + gn + '</caption><tr><th>姓名</th><th>分组</th>';
-                cycleDates.forEach(d => { html += '<th>' + d.displayDate + '</th>'; });
-                html += '<th>共计</th><th>累计</th><th>缺席</th></tr>\n';
-                
-                gd.persons.forEach(nm => {
-                    const rd = gd.records[nm] || {};
-                    let s = 0;
-                    html += '<tr><td>' + nm + '</td><td>' + gn + '</td>';
-                    cycleDates.forEach(d => {
-                        const v = rd[d.fullDate] ? 1 : '';
-                        if (v) s++;
-                        html += '<td>' + (v ? '<b>' + v + '</b>' : '') + '</td>';
-                    });
-                    const a = days - s;
-                    html += '<td>' + s + '</td><td>' + s + '</td><td>' + a + '</td></tr>\n';
-                });
-                html += '</table><br><br>\n';
+            let c = '\uFEFF 姓名，';
+            cycleDates.forEach(dt => { c += dt.displayDate + ','; });
+            c += '共计，累计，缺席\n';
+            gd.persons.forEach(nm => {
+                const rd = gd.records[nm] || {};
+                let s = 0;
+                c += nm + ',';
+                cycleDates.forEach(dt => { const v = rd[dt.fullDate] ? '1' : ''; if(v) s++; c += v + ','; });
+                const a = days - s;
+                c += s + ',' + s + ',' + a + '\n';
             });
-            
-            html += '</body></html>';
-            return html;
+            c += '总计，';
+            cycleDates.forEach(dt => {
+                let cnt = 0;
+                gd.persons.forEach(nm => { if ((gd.records[nm]||{})[dt.fullDate]) cnt++; });
+                c += cnt + ',';
+            });
+            const totalS = gd.persons.reduce((sum, nm) => sum + Object.keys(gd.records[nm]||{}).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).length, 0);
+            c += totalS + ',' + totalS + ',' + (gd.persons.length * days - totalS) + '\n';
+            const blob = new Blob([c], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '值班表_' + gn + '_' + y + m + d + '.csv';
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            downloaded++;
+        });
+        setTimeout(() => alert('已导出 ' + downloaded + ' 个 CSV 文件'), 500);
+    }
+
+    function exportExcel() {
+        if (groups.length === 0) { alert('无数据'); return; }
+        try {
+            const html = generateExcelHTML();
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '值班表_' + y + m + '.xls';
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('✅ 已导出 Excel 文件（多工作表格式）');
+        } catch (e) {
+            console.error('Excel error:', e);
+            alert('导出失败：' + e.message);
         }
+    }
 
-        window.exportCSV = function() {
-            if (groups.length === 0) { alert('无数据'); return; }
-            const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
-            let downloaded = 0;
-            
-            groups.forEach((gn, idx) => {
-                const gd = allData[gn] || { persons: [], records: {} };
-                if (gd.persons.length === 0) return;
-                const days = cycleDates.length;
-                let c = '\uFEFF 姓名,';
-                cycleDates.forEach(dt => { c += dt.displayDate + ','; });
-                c += '共计，累计，缺席\n';
-                gd.persons.forEach(nm => {
-                    const rd = gd.records[nm] || {};
-                    let s = 0;
-                    c += nm + ',';
-                    cycleDates.forEach(dt => { const v = rd[dt.fullDate] ? '1' : ''; if(v) s++; c += v + ','; });
-                    const a = days - s;
-                    c += s + ',' + s + ',' + a + '\n';
-                });
-                c += '总计，';
-                cycleDates.forEach(dt => {
-                    let cnt = 0;
-                    gd.persons.forEach(nm => { if ((gd.records[nm]||{})[dt.fullDate]) cnt++; });
-                    c += cnt + ',';
-                });
-                const totalS = gd.persons.reduce((sum, nm) => sum + Object.keys(gd.records[nm]||{}).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).length, 0);
-                c += totalS + ',' + totalS + ',' + (gd.persons.length * days - totalS) + '\n';
-                
-                const blob = new Blob([c], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = '值班表_' + gn + '_' + y + m + d + '.csv';
-                a.target = '_blank';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                downloaded++;
-            });
-            
-            setTimeout(() => alert('已导出 ' + downloaded + ' 个 CSV 文件'), 500);
-        };
-
-        window.exportExcel = function() {
-            if (groups.length === 0) { alert('无数据'); return; }
-            try {
-                const html = generateExcelHTML();
-                const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-                const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = '值班表_' + y + m + '.xls';
-                a.target = '_blank';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                alert('✅ 已导出 Excel 文件（多工作表格式）');
-            } catch (e) {
-                console.error('Excel error:', e);
-                alert('导出失败：' + e.message);
-            }
-        };
-        };
+    // 页面加载完成后初始化
+    window.addEventListener('DOMContentLoaded', init);
+})();
     </script>
 </body>
 </html>
