@@ -174,7 +174,7 @@
             return;
         }
         const days = cycleDates.length;
-        let html = '<thead><tr><th class="name-col">姓名</th><th class="group-col">分组</th>';
+        let html = '<thead><tr><!--姓名--><th class="name-col">姓名</th><th class="group-col">分组</th>';
         cycleDates.forEach(d => { html += '<th class="date-cell">'+d.displayDate+'</th>'; });
         html += '<th class="stats-col-fixed">共计</th><th class="stats-col-fixed">累计</th><th class="stats-col-fixed">缺席</th></tr></thead><tbody>';
         let ts = 0, ta = 0;
