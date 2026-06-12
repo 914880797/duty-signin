@@ -552,7 +552,15 @@
             const totalRecords = filteredRecords.length;
             const uniquePersons = new Set(filteredRecords.map(r => r.name)).size;
             const today = getBeijingDate(new Date());
-            const todayCount = filteredRecords.filter(r => r.duty_date === today).length;
+            // 使用 created_at 转换为北京时间后比较
+            const todayCount = filteredRecords.filter(r => {
+                if (!r.created_at) return false;
+                const date = new Date(r.created_at);
+                const bjTimestamp = date.getTime() + (8 * 60 * 60 * 1000);
+                const bjDate = new Date(bjTimestamp);
+                const bjDateStr = `${bjDate.getUTCFullYear()}-${String(bjDate.getUTCMonth() + 1).padStart(2, '0')}-${String(bjDate.getUTCDate()).padStart(2, '0')}`;
+                return bjDateStr === today;
+            }).length;
             const groupsCount = new Set(filteredRecords.map(r => r.group_id || 'none')).size;
 
             const statsGrid = document.getElementById('statsGrid');
@@ -672,9 +680,8 @@
         function renderDateChart() {
             const dateCounts = {};
             filteredRecords.forEach(r => {
-                // 按 08:00 分界计算自然日
-                // 如果打卡时间是 08:00 前，算前一天的
-                const displayDate = getNaturalDate(r.duty_date, r.duty_time);
+                // 使用 created_at（实际打卡时间）转换为北京时间后按 08:00 分界计算
+                const displayDate = getNaturalDateFromCreatedAt(r.created_at, r.duty_time);
                 dateCounts[displayDate] = (dateCounts[displayDate] || 0) + 1;
             });
 
@@ -693,21 +700,28 @@
             `).join('');
         }
 
-        // 按 08:00 分界计算自然日
-        function getNaturalDate(dutyDate, dutyTime) {
-            // dutyTime 格式如 "04:00-06:00"，取开始时间
-            const startTime = dutyTime.split('-')[0];
-            const hour = parseInt(startTime.split(':')[0]);
+        // 从 created_at 计算自然日（按 08:00 分界）
+        function getNaturalDateFromCreatedAt(createdAt, dutyTime) {
+            if (!createdAt) return null;
             
-            // 如果打卡时间 < 08:00，算前一天
-            if (hour < 8) {
-                const date = new Date(dutyDate + 'T00:00:00');
-                date.setDate(date.getDate() - 1);
-                const pad = (n) => String(n).padStart(2, '0');
-                return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+            // 将 created_at 转换为北京时间
+            const date = new Date(createdAt);
+            const bjTimestamp = date.getTime() + (8 * 60 * 60 * 1000);
+            const bjDate = new Date(bjTimestamp);
+            
+            const bjHour = bjDate.getUTCHours();
+            const pad = (n) => String(n).padStart(2, '0');
+            
+            // 获取北京日期
+            let displayDate = `${bjDate.getUTCFullYear()}-${pad(bjDate.getUTCMonth() + 1)}-${pad(bjDate.getUTCDate())}`;
+            
+            // 如果北京时间 < 08:00，算前一天
+            if (bjHour < 8) {
+                bjDate.setUTCDate(bjDate.getUTCDate() - 1);
+                displayDate = `${bjDate.getUTCFullYear()}-${pad(bjDate.getUTCMonth() + 1)}-${pad(bjDate.getUTCDate())}`;
             }
             
-            return dutyDate;
+            return displayDate;
         }
 
         // 清除筛选
