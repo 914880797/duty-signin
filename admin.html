@@ -1245,7 +1245,12 @@
                     throw new Error(clearResult.error || '清空记录失败');
                 }
                 
-                // 2. 保存新的周期起始日期到 localStorage
+                // 2. 保存新的周期起始日期到数据库和 localStorage
+                await fetch('/api/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cycleStartDate: newStartDate })
+                });
                 localStorage.setItem('cycleStartDate', newStartDate);
                 document.getElementById('currentCycleStart').innerText = newStartDate;
                 
