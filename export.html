@@ -32,10 +32,10 @@
         .duty-table thead th { background: #4CAF50; color: #fff; font-weight: 600; padding: 6px 8px; text-align: center; border: 1px solid #dcdfe6; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
         .duty-table tbody td { padding: 6px 8px; text-align: center; border: 1px solid #dcdfe6; height: 32px; white-space: nowrap; }
         .duty-table td.date-cell { min-width: 32px; max-width: 32px; }
-        .duty-table td:first-child, .duty-table th:first-child { position: sticky; left: 0; z-index: 20; background: #fff; text-align: left; min-width: 80px; font-weight: 500; }
-        .duty-table th:first-child { z-index: 30; }
-        .duty-table td:first-child { cursor: pointer; }
-        .duty-table td:first-child:hover { background: #e8f5e9; }
+        .duty-table td.name-col, .duty-table th.name-col { position: sticky; left: 0; z-index: 20; background: #fff; text-align: left; min-width: 80px; font-weight: 500; }
+        .duty-table th.name-col { z-index: 30; }
+        .duty-table td.name-col { cursor: pointer; }
+        .duty-table td.name-col:hover { background: #e8f5e9; }
         .duty-table td.group-col { position: sticky; left: 80px; z-index: 19; background: #fff; text-align: left; min-width: 70px; font-weight: 500; border-left: 2px solid #dcdfe6; }
         .duty-table th.group-col { position: sticky; left: 80px; z-index: 29; background: #4CAF50; border-left: 2px solid #dcdfe6; }
         .duty-table th.stats-col-fixed, .duty-table td.stats-col-fixed { position: sticky; right: 0; background: #fafafa; font-weight: 600; min-width: 55px; z-index: 20; border-left: 2px solid #dcdfe6; }
@@ -170,18 +170,18 @@
         console.log('Rendering table for', sheetName, 'persons:', data.persons.length);
         if (data.persons.length === 0) {
             table.innerHTML = '<tr><td colspan="40" class="empty">暂无数据</td></tr>';
-            updateStats(0, 0);
+            updateGlobalStats();
             return;
         }
         const days = cycleDates.length;
-        let html = '<thead><tr><th>姓名</th><th>分组</th>';
+        let html = '<thead><tr><th class="name-col">姓名</th><th class="group-col">分组</th>';
         cycleDates.forEach(d => { html += '<th class="date-cell">'+d.displayDate+'</th>'; });
         html += '<th class="stats-col-fixed">共计</th><th class="stats-col-fixed">累计</th><th class="stats-col-fixed">缺席</th></tr></thead><tbody>';
         let ts = 0, ta = 0;
         data.persons.forEach(name => {
             const rec = data.records[name] || {};
             let s = 0;
-            html += '<tr data-name="'+name+'" data-group="'+sheetName+'"><td>'+name+'</td><td>'+sheetName+'</td>';
+            html += '<tr data-name="'+name+'" data-group="'+sheetName+'"><td>'+name+'</td><td class="group-col">'+sheetName+'</td>';
             cycleDates.forEach(d => {
                 const v = rec[d.fullDate] ? 1 : '';
                 if (v) s++;
@@ -193,7 +193,6 @@
         });
         html += '</tbody>';
         table.innerHTML = html;
-        // 绑定姓名点击高亮
         table.querySelectorAll('td:first-child').forEach(td => {
             td.addEventListener('click', function() {
                 const name = this.parentNode.dataset.name;
@@ -201,13 +200,23 @@
                 table.querySelectorAll('tr[data-name="'+name+'"]').forEach(r => r.classList.add('highlight-row'));
             });
         });
-        updateStats(data.persons.length, ts);
+        updateGlobalStats();
     }
 
-    function updateStats(p, s) {
-        document.getElementById('totalPersons').textContent = p;
-        document.getElementById('totalShifts').textContent = s;
-        document.getElementById('avgShifts').textContent = p > 0 ? (s/p).toFixed(1) : '0';
+    function updateGlobalStats() {
+        let totalP = 0, totalS = 0;
+        Object.keys(allData).forEach(gn => {
+            const gd = allData[gn];
+            if (!gd || !gd.persons) return;
+            totalP += gd.persons.length;
+            gd.persons.forEach(nm => {
+                const rd = gd.records[nm] || {};
+                Object.keys(rd).forEach(() => { totalS++; });
+            });
+        });
+        document.getElementById('totalPersons').textContent = totalP;
+        document.getElementById('totalShifts').textContent = totalS;
+        document.getElementById('avgShifts').textContent = totalP > 0 ? (totalS/totalP).toFixed(1) : '0';
     }
 
     function applyFilters() {
