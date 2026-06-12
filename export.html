@@ -108,8 +108,11 @@
         cycleDates = [];
         const s = new Date(start), e = new Date(end);
         for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
+            const year = String(d.getFullYear());
+            const month = String(d.getMonth()+1).padStart(2,'0');
+            const day = String(d.getDate()).padStart(2,'0');
             cycleDates.push({
-                fullDate: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'),
+                fullDate: year + '-' + month + '-' + day,
                 displayDate: (d.getMonth()+1) + '月' + d.getDate() + '号'
             });
         }
@@ -246,7 +249,9 @@
             return;
         }
         try {
-            const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
+            const now = new Date();
+            const y = String(now.getFullYear());
+            const m = String(now.getMonth()+1).padStart(2,'0');
             const days = cycleDates.length;
             const wb = { SheetNames: [], Sheets: {} };
             groups.forEach(g => {
