@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>导出预览 - 值班打卡系统</title>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" crossorigin></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: "Microsoft YaHei", sans-serif; background: #fff; color: #333; padding: 20px 30px; }
@@ -24,7 +23,6 @@
         .btn { padding: 10px 24px; border: none; border-radius: 3px; font-size: 14px; font-weight: 600; cursor: pointer; }
         .btn-back { background: #f5f5f5; border: 1px solid #dcdfe6; color: #606266; }
         .btn-export-csv, .btn-export-excel { background: #0b95c9; color: white; }
-        .btn-debug { background: #9e9e9e; color: white; font-size: 12px; padding: 6px 12px; }
         .stats-bar { display: flex; justify-content: center; gap: 40px; margin-bottom: 20px; padding: 12px 20px; background: #f9f9f9; border-radius: 4px; border: 1px solid #e0e0e0; }
         .stat-label { font-size: 13px; color: #666; }
         .stat-value { font-size: 16px; font-weight: 700; color: #4CAF50; }
@@ -51,7 +49,6 @@
         .highlight-row td { background: #fff7e6 !important; }
         .btn-apply { background: #4CAF50; color: white; padding: 6px 15px; border-radius: 2px; font-size: 13px; }
         .btn-clear { background: #9e9e9e; color: white; padding: 6px 15px; border-radius: 2px; font-size: 13px; }
-        #debugInfo { margin-top: 10px; font-size: 12px; color: #666; background: #f5f5f5; padding: 10px; border-radius: 4px; display: none; white-space: pre-wrap; text-align: left; }
     </style>
 </head>
 <body>
@@ -70,7 +67,6 @@
                 <a href="/records" class="btn btn-back">⬅️ 返回记录页</a>
                 <button onclick="exportCSV()" class="btn btn-export-csv">导出为 CSV</button>
                 <button onclick="exportExcel()" class="btn btn-export-excel">导出为 Excel</button>
-                <button onclick="toggleDebug()" class="btn btn-debug">🐛 诊断</button>
             </div>
             <div class="export-tip">💡 建议使用 <strong>Excel 格式</strong> 导出，可保留会议室/电报分工作表</div>
             <div class="stats-bar">
@@ -78,17 +74,12 @@
                 <div class="stat-item"><span class="stat-label">累计值班：</span><span class="stat-value" id="totalShifts">0</span></div>
                 <div class="stat-item"><span class="stat-label">人均值班：</span><span class="stat-value" id="avgShifts">0</span></div>
             </div>
-            <div id="debugInfo"></div>
         </div>
         <div class="table-outer-container"><table class="duty-table" id="dutyTable"></table></div>
     </div>
     <script>
         let currentSheet = '', allData = {}, groups = [], cycleStartDate = null, cycleDates = [];
-
-        window.addEventListener('DOMContentLoaded', () => {
-            console.log('Page loaded, XLSX:', typeof window.XLSX);
-            loadSettings();
-        });
+        window.addEventListener('DOMContentLoaded', loadSettings);
 
         async function loadSettings() {
             try {
@@ -120,10 +111,7 @@
                 groups = (await grpRes.json()).data || [];
                 allData = processDataByGroup(records);
                 renderSheetTabs();
-                if (groups.length > 0) {
-                    currentSheet = groups[0].name;
-                    renderTable(currentSheet);
-                }
+                if (groups.length > 0) { currentSheet = groups[0].name; renderTable(currentSheet); }
             } catch (e) {
                 document.getElementById('dutyTable').innerHTML = '<tr><td colspan="40" class="empty">加载失败</td></tr>';
             }
@@ -210,33 +198,74 @@
                 r.classList.toggle('highlight-row', v && r.dataset.name.toLowerCase().includes(v));
             });
         };
-
         window.clearFilters = function() {
             document.getElementById('searchInput').value = '';
             document.querySelectorAll('#dutyTable tbody tr').forEach(r => r.classList.remove('highlight-row'));
         };
-
         window.highlightRow = function(name) {
             document.querySelectorAll('.highlight-row').forEach(r => r.classList.remove('highlight-row'));
             document.querySelectorAll('#dutyTable tbody tr[data-name="'+name+'"]').forEach(r => r.classList.add('highlight-row'));
         };
 
-        window.toggleDebug = function() {
-            const div = document.getElementById('debugInfo');
-            const xlsxInfo = typeof window.XLSX;
-            const keys = xlsxInfo === 'object' ? Object.keys(window.XLSX).slice(0, 20).join(', ') : 'N/A';
-            div.style.display = div.style.display === 'block' ? 'none' : 'block';
-            div.textContent = 'XLSX type: ' + xlsxInfo + '\nXLSX keys: ' + keys + '\nGroups: ' + groups.map(g => g.name).join(', ') + '\nRows: ' + (allData[groups[0]?.name]?.persons?.length || 0);
-        };
+        // 生成 Excel XML 格式（多工作表支持）
+        function generateExcelXML() {
+            const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
+            const days = cycleDates.length;
+            
+            let xml = '<?xml version="1.0"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheetml" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n';
+            
+            // 样式
+            xml += '<Styles><Style ss:ID="header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#4CAF50" ss:Pattern="Solid"/></Style>' ;
+            xml += '<Style ss:ID="shift"><Font ss:Color="#1a3d5c" ss:Bold="1"/></Style></Styles>\n';
+            
+            groups.forEach(gn => {
+                const gd = allData[gn] || { persons: [], records: {} };
+                xml += '<Worksheet ss:Name="' + gn + '">\n<Table>\n';
+                
+                // 表头
+                xml += '<Row><Cell ss:StyleID="header"><Data ss:Type="String">姓名</Data></Cell>';
+                xml += '<Cell ss:StyleID="header"><Data ss:Type="String">分组</Data></Cell>';
+                cycleDates.forEach(d => {
+                    xml += '<Cell ss:StyleID="header"><Data ss:Type="String">' + d.displayDate + '</Data></Cell>';
+                });
+                xml += '<Cell ss:StyleID="header"><Data ss:Type="String">共计</Data></Cell>';
+                xml += '<Cell ss:StyleID="header"><Data ss:Type="String">累计</Data></Cell>';
+                xml += '<Cell ss:StyleID="header"><Data ss:Type="String">缺席</Data></Cell></Row>\n';
+                
+                // 数据行
+                gd.persons.forEach(nm => {
+                    const rd = gd.records[nm] || {};
+                    let s = 0;
+                    xml += '<Row><Cell><Data ss:Type="String">' + nm + '</Data></Cell>';
+                    xml += '<Cell><Data ss:Type="String">' + gn + '</Data></Cell>';
+                    cycleDates.forEach(d => {
+                        const v = rd[d.fullDate] ? 1 : '';
+                        if (v) s++;
+                        xml += '<Cell' + (v ? ' ss:StyleID="shift"' : '') + '><Data ss:Type="Number">' + v + '</Data></Cell>';
+                    });
+                    const a = days - s;
+                    xml += '<Cell><Data ss:Type="Number">' + s + '</Data></Cell>';
+                    xml += '<Cell><Data ss:Type="Number">' + s + '</Data></Cell>';
+                    xml += '<Cell><Data ss:Type="Number">' + a + '</Data></Cell></Row>\n';
+                });
+                
+                xml += '</Table></Worksheet>\n';
+            });
+            
+            xml += '</Workbook>';
+            return xml;
+        }
 
         window.exportCSV = function() {
             if (groups.length === 0) { alert('无数据'); return; }
             const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
-            groups.forEach((gn, idx) => {
+            let downloaded = 0;
+            
+            groups.forEach((gn) => {
                 const gd = allData[gn] || { persons: [], records: {} };
                 if (gd.persons.length === 0) return;
                 const days = cycleDates.length;
-                let c = '\uFEFF姓名\t';
+                let c = '\uFEFF 姓名\t';
                 cycleDates.forEach(dt => { c += dt.displayDate + '\t'; });
                 c += '共计\t累计\t缺席\n';
                 gd.persons.forEach(nm => {
@@ -255,54 +284,43 @@
                 });
                 const totalS = gd.persons.reduce((sum, nm) => sum + Object.keys(gd.records[nm]||{}).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).length, 0);
                 c += totalS + '\t' + totalS + '\t' + (gd.persons.length * days - totalS) + '\n';
-                setTimeout(() => {
-                    const blob = new Blob([c], { type: 'text/csv;charset=utf-8;' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = '值班表_' + gn + '_' + y + m + d + '.csv';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    setTimeout(() => URL.revokeObjectURL(url), 100);
-                }, idx * 300);
+                
+                // 使用新窗口下载，避免被拦截
+                const blob = new Blob([c], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '值班表_' + gn + '_' + y + m + d + '.csv';
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                downloaded++;
             });
-            setTimeout(() => alert('已导出 ' + groups.length + ' 个 CSV 文件'), groups.length * 300 + 100);
+            
+            setTimeout(() => alert('已导出 ' + downloaded + ' 个 CSV 文件'), 500);
         };
 
         window.exportExcel = function() {
             if (groups.length === 0) { alert('无数据'); return; }
-            if (typeof window.XLSX === 'undefined') {
-                alert('Excel 库未加载，请刷新页面 (Ctrl+Shift+R)');
-                return;
-            }
-            console.log('exportExcel called, XLSX:', window.XLSX);
             try {
+                const xml = generateExcelXML();
+                const blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
                 const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
-                const days = cycleDates.length;
-                const wb = { SheetNames: [], Sheets: {} };
-                groups.forEach(gn => {
-                    const gd = allData[gn] || { persons: [], records: {} };
-                    const data = [['姓名']];
-                    cycleDates.forEach(dt => { data[0].push(dt.displayDate); });
-                    data[0].push('共计', '累计', '缺席');
-                    gd.persons.forEach(nm => {
-                        const rd = gd.records[nm] || {};
-                        let s = 0;
-                        const row = [nm];
-                        cycleDates.forEach(dt => { const v = rd[dt.fullDate] ? 1 : ''; if(v) s++; row.push(v); });
-                        row.push(s, s, days - s);
-                        data.push(row);
-                    });
-                    const ws = window.XLSX.utils.aoa_to_sheet(data);
-                    wb.SheetNames.push(gn);
-                    wb.Sheets[gn] = ws;
-                });
-                window.XLSX.writeFile(wb, '值班表_' + y + m + '.xlsx');
-                alert('✅ 已导出 Excel');
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '值班表_' + y + m + '.xls';
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert('✅ 已导出 Excel 文件（多工作表格式）');
             } catch (e) {
                 console.error('Excel error:', e);
-                alert('导出失败：' + e.message + '\n\n请检查控制台详情');
+                alert('导出失败：' + e.message);
             }
         };
     </script>
