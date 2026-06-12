@@ -233,7 +233,8 @@
             const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
             const days = cycleDates.length;
             const wb = { SheetNames: [], Sheets: {} };
-            groups.forEach(gn => {
+            groups.forEach(g => {
+                const gn = g.name;
                 const gd = allData[gn];
                 if (!gd || !gd.persons || gd.persons.length === 0) return;
                 const data = [['姓名', '分组']];
