@@ -672,7 +672,10 @@
         function renderDateChart() {
             const dateCounts = {};
             filteredRecords.forEach(r => {
-                dateCounts[r.duty_date] = (dateCounts[r.duty_date] || 0) + 1;
+                // 按 08:00 分界计算自然日
+                // 如果打卡时间是 08:00 前，算前一天的
+                const displayDate = getNaturalDate(r.duty_date, r.duty_time);
+                dateCounts[displayDate] = (dateCounts[displayDate] || 0) + 1;
             });
 
             const sortedDates = Object.entries(dateCounts).sort((a, b) => a[0].localeCompare(b[0]));
@@ -688,6 +691,23 @@
                     <div class="bar-value">${count}</div>
                 </div>
             `).join('');
+        }
+
+        // 按 08:00 分界计算自然日
+        function getNaturalDate(dutyDate, dutyTime) {
+            // dutyTime 格式如 "04:00-06:00"，取开始时间
+            const startTime = dutyTime.split('-')[0];
+            const hour = parseInt(startTime.split(':')[0]);
+            
+            // 如果打卡时间 < 08:00，算前一天
+            if (hour < 8) {
+                const date = new Date(dutyDate + 'T00:00:00');
+                date.setDate(date.getDate() - 1);
+                const pad = (n) => String(n).padStart(2, '0');
+                return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+            }
+            
+            return dutyDate;
         }
 
         // 清除筛选
