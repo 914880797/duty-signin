@@ -23,7 +23,7 @@
         .export-tip strong { font-weight: 600; }
         .btn { padding: 10px 24px; border: none; border-radius: 3px; font-size: 14px; font-weight: 600; cursor: pointer; }
         .btn-back { background: #f5f5f5; border: 1px solid #dcdfe6; color: #606266; text-decoration: none; display: inline-block; }
-        .btn-export-csv, .btn-export-excel { background: #0b95c9; color: white; }
+        .btn-export-excel { background: #0b95c9; color: white; }
         .stats-bar { display: flex; justify-content: center; gap: 40px; margin-bottom: 20px; padding: 12px 20px; background: #f9f9f9; border-radius: 4px; border: 1px solid #e0e0e0; }
         .stat-label { font-size: 13px; color: #666; }
         .stat-value { font-size: 16px; font-weight: 700; color: #4CAF50; }
@@ -66,10 +66,8 @@
             <h1>导出预览</h1>
             <div class="export-buttons">
                 <a href="/records" class="btn btn-back">⬅️ 返回记录页</a>
-                <button id="btnExportCSV" class="btn btn-export-csv">导出为 CSV</button>
                 <button id="btnExportExcel" class="btn btn-export-excel">导出为 Excel</button>
             </div>
-            <div class="export-tip">💡 建议使用 <strong>Excel 格式</strong> 导出，可保留会议室/电报分工作表</div>
             <div class="stats-bar">
                 <div class="stat-item"><span class="stat-label">总人数：</span><span class="stat-value" id="totalPersons">0</span></div>
                 <div class="stat-item"><span class="stat-label">累计值班：</span><span class="stat-value" id="totalShifts">0</span></div>
@@ -86,7 +84,6 @@
         // 绑定按钮事件
         document.getElementById('btnApply').addEventListener('click', applyFilters);
         document.getElementById('btnClear').addEventListener('click', clearFilters);
-        document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
         document.getElementById('btnExportExcel').addEventListener('click', exportExcel);
         loadSettings();
     }
@@ -221,51 +218,7 @@
         document.querySelectorAll('#dutyTable tbody tr').forEach(r => r.classList.remove('highlight-row'));
     }
 
-    // 导出为全局函数
-    window.exportCSV = function() {
-        console.log('exportCSV called, groups:', groups, 'allData:', allData);
-        if (!groups || groups.length === 0) { alert('无数据'); return; }
-        const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0'), d = String(now.getDate()).padStart(2,'0');
-        let downloaded = 0;
-        groups.forEach((gn, idx) => {
-            const gd = allData[gn];
-            console.log('Group', gn, 'data:', gd);
-            if (!gd || !gd.persons || gd.persons.length === 0) return;
-            const days = cycleDates.length;
-            let c = '\uFEFF 姓名，';
-            cycleDates.forEach(dt => { c += dt.displayDate + ','; });
-            c += '共计，累计，缺席\n';
-            gd.persons.forEach(nm => {
-                const rd = gd.records[nm] || {};
-                let s = 0;
-                c += nm + ',';
-                cycleDates.forEach(dt => { const v = rd[dt.fullDate] ? '1' : ''; if(v) s++; c += v + ','; });
-                const a = days - s;
-                c += s + ',' + s + ',' + a + '\n';
-            });
-            c += '总计，';
-            cycleDates.forEach(dt => {
-                let cnt = 0;
-                gd.persons.forEach(nm => { if ((gd.records[nm]||{})[dt.fullDate]) cnt++; });
-                c += cnt + ',';
-            });
-            const totalS = gd.persons.reduce((sum, nm) => sum + Object.keys(gd.records[nm]||{}).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).length, 0);
-            c += totalS + ',' + totalS + ',' + (gd.persons.length * days - totalS) + '\n';
-            const blob = new Blob([c], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = '值班表_' + gn + '_' + y + m + d + '.csv';
-            a.target = '_blank';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            downloaded++;
-        });
-        setTimeout(() => alert('已导出 ' + downloaded + ' 个 CSV 文件'), 600);
-    }
-
+    // 导出 Excel
     window.exportExcel = function() {
         console.log('exportExcel called, groups:', groups, 'allData:', allData);
         if (!groups || groups.length === 0) { alert('无数据'); return; }
