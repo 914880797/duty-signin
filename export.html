@@ -348,13 +348,13 @@
         };
 
         window.exportExcel = function() {
-            console.log('XLSX loaded:', typeof XLSX);
+            console.log('XLSX:', typeof XLSX, XLSX ? Object.keys(XLSX) : 'N/A');
             if (groups.length === 0) { alert('无数据'); return; }
             if (typeof XLSX === 'undefined') { alert('Excel 库未加载，请刷新'); return; }
             try {
                 const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
                 const days = cycleDates.length;
-                const wb = XLSX.utils.book_new();
+                const wb = { SheetNames: [], Sheets: {} };
                 groups.forEach(gn => {
                     const gd = allData[gn] || { persons: [], records: {} };
                     const data = [['姓名']];
@@ -369,7 +369,8 @@
                         data.push(row);
                     });
                     const ws = XLSX.utils.aoa_to_sheet(data);
-                    XLSX.utils.book_append_sheet(wb, ws, gn);
+                    wb.SheetNames.push(gn);
+                    wb.Sheets[gn] = ws;
                 });
                 XLSX.writeFile(wb, '值班表_' + y + m + '.xlsx');
                 alert('✅ 已导出 Excel');
