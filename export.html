@@ -106,14 +106,20 @@
 
         async function loadData() {
             try {
+                console.log('Loading data...');
                 const [recRes, grpRes] = await Promise.all([fetch('/api/records'), fetch('/api/groups')]);
                 const records = await recRes.json();
-                groups = (await grpRes.json()).data || [];
+                const grpData = await grpRes.json();
+                console.log('Records:', records.length, 'Groups:', grpData);
+                groups = grpData.data || grpData || [];
+                console.log('Groups parsed:', groups);
                 allData = processDataByGroup(records);
+                console.log('allData:', allData);
                 renderSheetTabs();
                 if (groups.length > 0) { currentSheet = groups[0].name; renderTable(currentSheet); }
             } catch (e) {
-                document.getElementById('dutyTable').innerHTML = '<tr><td colspan="40" class="empty">加载失败</td></tr>';
+                console.error('Load failed:', e);
+                document.getElementById('dutyTable').innerHTML = '<tr><td colspan="40" class="empty">加载失败：' + e.message + '</td></tr>';
             }
         }
 
