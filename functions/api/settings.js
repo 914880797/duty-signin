@@ -21,6 +21,8 @@ export async function onRequestGet({ env }) {
       SELECT value FROM settings WHERE key = 'cycle_start_date'
     `).first();
     
+    console.log('DB query result:', config);
+    
     const count = await env.DB.prepare(`
       SELECT COUNT(*) as total FROM signin_records
     `).first();
@@ -31,6 +33,7 @@ export async function onRequestGet({ env }) {
       totalRecords: count?.total || 0
     });
   } catch (error) {
+    console.error('Get settings error:', error);
     return Response.json({ 
       error: error.message 
     }, { status: 500 });
@@ -42,20 +45,33 @@ export async function onRequestPut({ request, env }) {
   try {
     const { cycleStartDate } = await request.json();
     
+    console.log('PUT /api/settings received:', cycleStartDate);
+    
     if (!cycleStartDate) {
       return Response.json({ error: '缺少起始日期' }, { status: 400 });
     }
     
-    await env.DB.prepare(`
+    const result = await env.DB.prepare(`
       INSERT OR REPLACE INTO settings (key, value, updated_at) 
       VALUES ('cycle_start_date', ?, CURRENT_TIMESTAMP)
     `).bind(cycleStartDate).run();
     
+    console.log('DB write result:', result);
+    
+    // 验证写入是否成功
+    const verify = await env.DB.prepare(`
+      SELECT value FROM settings WHERE key = 'cycle_start_date'
+    `).first();
+    
+    console.log('DB verify:', verify);
+    
     return Response.json({
       success: true,
-      message: '打卡周期设置已保存'
+      message: '打卡周期设置已保存',
+      cycleStartDate: verify?.value || null
     });
   } catch (error) {
+    console.error('Put settings error:', error);
     return Response.json({ 
       error: error.message 
     }, { status: 500 });

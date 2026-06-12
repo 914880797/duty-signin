@@ -1246,11 +1246,18 @@
                 }
                 
                 // 2. 保存新的周期起始日期到数据库和 localStorage
-                await fetch('/api/settings', {
+                const saveRes = await fetch('/api/settings', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ cycleStartDate: newStartDate })
                 });
+                const saveResult = await saveRes.json();
+                console.log('保存 settings 结果:', saveResult, 'status:', saveRes.status);
+                
+                if (!saveRes.ok) {
+                    throw new Error(saveResult.error || '保存 settings 失败');
+                }
+                
                 localStorage.setItem('cycleStartDate', newStartDate);
                 document.getElementById('currentCycleStart').innerText = newStartDate;
                 
