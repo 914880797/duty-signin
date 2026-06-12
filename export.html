@@ -219,17 +219,16 @@
 
     // 导出 Excel
     window.exportExcel = function() {
-        console.log('exportExcel called, groups:', groups, 'allData:', allData);
+        console.log('XLSX loaded:', typeof XLSX, 'groups:', groups, 'allData:', allData);
         if (!groups || groups.length === 0) { alert('无数据'); return; }
         if (typeof XLSX === 'undefined') { alert('Excel 库未加载'); return; }
         try {
             const now = new Date(), y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
             const days = cycleDates.length;
-            const wb = XLSX.utils.book_create();
+            const wb = { SheetNames: [], Sheets: {} };
             groups.forEach(gn => {
                 const gd = allData[gn];
                 if (!gd || !gd.persons || gd.persons.length === 0) return;
-                console.log('Adding sheet:', gn, 'persons:', gd.persons.length);
                 const data = [['姓名', '分组']];
                 cycleDates.forEach(d => { data[0].push(d.displayDate); });
                 data[0].push('共计', '累计', '缺席');
@@ -247,7 +246,8 @@
                     data.push(row);
                 });
                 const ws = XLSX.utils.aoa_to_sheet(data);
-                XLSX.utils.book_append_sheet(wb, ws, gn);
+                wb.SheetNames.push(gn);
+                wb.Sheets[gn] = ws;
             });
             const filename = '值班表_' + y + m + '.xlsx';
             XLSX.writeFile(wb, filename);
