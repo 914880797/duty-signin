@@ -79,6 +79,10 @@
         }
         .group-section {
             margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #2a2a40;
+            border-radius: 10px;
         }
         .group-header {
             background: rgba(108, 99, 255, 0.2);
@@ -127,17 +131,6 @@
             font-size: 14px;
         }
         .back-btn:hover { opacity: 0.8; }
-        .nav-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #6c63ff, #4a41d4);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            margin: 5px;
-            font-size: 14px;
-        }
-        .nav-btn:hover { opacity: 0.9; }
         .stats {
             display: flex;
             gap: 15px;
@@ -193,6 +186,11 @@
             <div>
                 <button onclick="queryRoster()" class="btn">🔍 查询</button>
                 <button onclick="clearFilters()" class="btn btn-secondary">清除筛选</button>
+                <div style="margin-top:15px;">
+                    <a href="/" class="back-btn">🏠 首页</a>
+                    <a href="/admin.html" class="back-btn">📅 排班管理</a>
+                    <a href="/dashboard.html" class="back-btn">📊 数据看板</a>
+                </div>
             </div>
         </div>
         
@@ -201,10 +199,6 @@
 
         <!-- 结果区域 -->
         <div id="result" class="result" style="display: none;"></div>
-
-        <a href="/" class="nav-btn">🏠 返回首页</a>
-        <a href="/admin.html" class="nav-btn">📅 排班管理</a>
-        <a href="/dashboard.html" class="nav-btn">📊 数据看板</a>
     </div>
 
     <script>
