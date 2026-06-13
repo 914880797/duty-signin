@@ -142,19 +142,47 @@
         groups.forEach(g => { data[g.name] = { persons: [], records: {}, maxDate: null }; });
         if (!data['未分组']) data['未分组'] = { persons: [], records: {}, maxDate: null };
         let globalMax = cycleStartDate;
+        
         records.forEach(r => {
             const gn = r.group_name || '未分组';
             if (!data[gn]) data[gn] = { persons: [], records: {}, maxDate: null };
             if (!data[gn].persons.includes(r.name)) data[gn].persons.push(r.name);
+            
+            // 使用 created_at 转换为北京时间后按 08:00 分界计算自然日
+            const displayDate = getDisplayDateFromCreatedAt(r.created_at);
+            
             if (!data[gn].records[r.name]) data[gn].records[r.name] = {};
-            data[gn].records[r.name][r.duty_date] = 1;
-            if (r.duty_date > globalMax) globalMax = r.duty_date;
-            if (!data[gn].maxDate || r.duty_date > data[gn].maxDate) data[gn].maxDate = r.duty_date;
+            data[gn].records[r.name][displayDate] = 1;
+            
+            if (displayDate > globalMax) globalMax = displayDate;
+            if (!data[gn].maxDate || displayDate > data[gn].maxDate) data[gn].maxDate = displayDate;
         });
-            Object.keys(data).forEach(k => data[k].persons.sort());
-            generateCycleDates(cycleStartDate, globalMax);
-            dataLoaded = true;
-            return data;
+        
+        Object.keys(data).forEach(k => data[k].persons.sort());
+        generateCycleDates(cycleStartDate, globalMax);
+        dataLoaded = true;
+        return data;
+    }
+
+    // 从 created_at 计算显示日期（北京时间，按 08:00 分界）
+    function getDisplayDateFromCreatedAt(createdAt) {
+        if (!createdAt) return null;
+        const date = new Date(createdAt);
+        const bjTimestamp = date.getTime() + (8 * 60 * 60 * 1000);
+        const bjDate = new Date(bjTimestamp);
+        const bjHour = bjDate.getUTCHours();
+        const pad = (n) => String(n).padStart(2, '0');
+        
+        // 获取北京日期
+        let displayDate = `${bjDate.getUTCFullYear()}-${pad(bjDate.getUTCMonth() + 1)}-${pad(bjDate.getUTCDate())}`;
+        
+        // 如果北京时间 < 08:00，算前一天
+        if (bjHour < 8) {
+            bjDate.setUTCDate(bjDate.getUTCDate() - 1);
+            displayDate = `${bjDate.getUTCFullYear()}-${pad(bjDate.getUTCMonth() + 1)}-${pad(bjDate.getUTCDate())}`;
+        }
+        
+        return displayDate;
     }
 
     function renderSheetTabs() {
