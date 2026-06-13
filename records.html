@@ -325,20 +325,31 @@
         let filteredRecords = [];
 
         // 页面加载时初始化
-        window.addEventListener('DOMContentLoaded', () => {
-            // 默认日期为今天
+        window.addEventListener('DOMContentLoaded', async () => {
             const now = new Date();
             const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
             const bjTime = new Date(bjTimestamp);
             const pad = (n) => String(n).padStart(2, '0');
             const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
             
-            // 默认开始日期为 30 天前
-            const startDate = new Date(bjTimestamp - (30 * 24 * 60 * 60 * 1000));
-            const startStr = `${startDate.getUTCFullYear()}-${pad(startDate.getUTCMonth() + 1)}-${pad(startDate.getUTCDate())}`;
+            // 获取设置的打卡起始日期
+            let startDate = today;
+            try {
+                const settingsResp = await fetch('/api/settings');
+                const settings = await settingsResp.json();
+                if (settings.cycleStartDate) {
+                    startDate = settings.cycleStartDate;
+                } else {
+                    // 如果没有设置，默认为 30 天前
+                    const defaultStart = new Date(bjTimestamp - (30 * 24 * 60 * 60 * 1000));
+                    startDate = `${defaultStart.getUTCFullYear()}-${pad(defaultStart.getUTCMonth() + 1)}-${pad(defaultStart.getUTCDate())}`;
+                }
+            } catch (error) {
+                console.error('加载设置失败:', error);
+            }
             
             document.getElementById('endDate').value = today;
-            document.getElementById('startDate').value = startStr;
+            document.getElementById('startDate').value = startDate;
 
             loadTimeSlots();
             loadGroups();
