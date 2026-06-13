@@ -380,7 +380,8 @@
         async function loadGroups() {
             try {
                 const response = await fetch('/api/groups');
-                const groups = await response.json();
+                const result = await response.json();
+                const groups = result.data || [];
                 
                 const select = document.getElementById('groupSelect');
                 if (Array.isArray(groups)) {
