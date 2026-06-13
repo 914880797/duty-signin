@@ -8,3 +8,6 @@ package-lock.json
 
 # Logs
 *.log
+
+# 管理员配置文件（包含敏感密码）
+functions/api/admin/admin-config.json
