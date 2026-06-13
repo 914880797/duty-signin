@@ -219,10 +219,18 @@
             margin-bottom: 20px;
         }
 
-        /* 回主页按钮 */
-        .back-home {
-            display: none;
+        /* 导航按钮 */
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 5px;
+            font-size: 14px;
         }
+        .back-btn:hover { opacity: 0.8; }
 
         /* 导出预览弹窗 */
         @media (max-width: 768px) {
@@ -252,17 +260,17 @@
     <div class="container">
         <div class="page-header">
             <h1>📋 详细打卡记录</h1>
-            <div class="header-actions">
-                <a href="/admin.html" class="btn btn-back">📅 排班管理</a>
-                <a href="/query.html" class="btn btn-back">🔍 排班查询</a>
-                <a href="/dashboard.html" class="btn btn-back">📊 数据看板</a>
-                <a href="/export.html" class="btn btn-export">📥 导出预览</a>
-                <a href="/" class="btn btn-back">← 返回主页</a>
-            </div>
         </div>
 
         <!-- 筛选区域 -->
         <div class="filter-section">
+            <div style="margin-bottom:15px;">
+                <a href="/" class="back-btn">🏠 首页</a>
+                <a href="/admin.html" class="back-btn">📅 排班管理</a>
+                <a href="/query.html" class="back-btn">🔍 排班查询</a>
+                <a href="/dashboard.html" class="back-btn">📊 数据看板</a>
+                <a href="/export.html" class="back-btn">📥 导出预览</a>
+            </div>
             <div class="filter-group">
                 <label>开始日期</label>
                 <input type="date" id="startDate">
