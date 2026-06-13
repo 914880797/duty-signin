@@ -416,7 +416,7 @@
         </div>
         
         <!-- 管理登录提示 -->
-        <div style="text-align: center; padding: 20px; background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 10px; margin-bottom: 20px;">
+        <div id="loginPrompt" style="text-align: center; padding: 20px; background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 10px; margin-bottom: 20px;">
             <p style="color: #ffc107; margin-bottom: 10px;">🔐 管理入口 - 请联系管理员获取访问权限</p>
             <button onclick="showLoginModal()" class="assign-btn" style="width: auto; padding: 10px 30px;">管理员登录</button>
         </div>
@@ -1371,23 +1371,39 @@
             const password = document.getElementById('adminPassword').value.trim();
             const msgEl = document.getElementById('loginMessage');
             
-            // TODO: 这里应该调用后端 API 进行认证
-            // 目前仅作为演示，实际使用时请替换为后端认证
-            if (username && password) {
-                // 存储管理员信息到 sessionStorage (页面会话有效)
-                sessionStorage.setItem('isAdminLoggedIn', 'true');
-                sessionStorage.setItem('adminUsername', username);
-                
-                document.getElementById('loginModal').style.display = 'none';
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('adminInfo').style.display = 'block';
-                document.getElementById('adminName').innerText = username;
-                
-                // 刷新页面数据
-                loadRoster();
-            } else {
-                msgEl.innerText = '❌ 请输入账号和密码';
-            }
+            // 调用后端 API 进行认证
+            fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // 存储管理员信息到 sessionStorage (页面会话有效)
+                    sessionStorage.setItem('isAdminLoggedIn', 'true');
+                    sessionStorage.setItem('adminUsername', username);
+                    
+                    // 隐藏登录弹窗和遮罩
+                    document.getElementById('loginModal').style.display = 'none';
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    // 隐藏登录提示区域
+                    document.getElementById('loginPrompt').style.display = 'none';
+                    // 显示管理员信息
+                    document.getElementById('adminInfo').style.display = 'block';
+                    document.getElementById('adminName').innerText = username;
+                    
+                    // 刷新页面数据
+                    loadRoster();
+                } else {
+                    msgEl.innerText = '❌ ' + (data.error || '登录失败');
+                }
+            })
+            .catch(error => {
+                console.error('登录请求失败:', error);
+                msgEl.innerText = '❌ 网络请求失败';
+            });
+        }
         }
 
         function handleLogout() {
@@ -1401,8 +1417,12 @@
             const isLoggedIn = sessionStorage.getItem('isAdminLoggedIn');
             if (isLoggedIn === 'true') {
                 const username = sessionStorage.getItem('adminUsername');
+                // 隐藏登录弹窗和遮罩
                 document.getElementById('loginModal').style.display = 'none';
                 document.getElementById('loginOverlay').style.display = 'none';
+                // 隐藏登录提示区域
+                document.getElementById('loginPrompt').style.display = 'none';
+                // 显示管理员信息
                 document.getElementById('adminInfo').style.display = 'block';
                 document.getElementById('adminName').innerText = username || '管理员';
             }

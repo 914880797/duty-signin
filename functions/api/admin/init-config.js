@@ -19,8 +19,9 @@ export async function onRequestPost({ request, env }) {
       )
     `).run();
     
-    // 清空现有管理员账号
+    // 清空现有管理员账号（确保旧密码失效）
     await env.DB.prepare(`DELETE FROM admin_users`).run();
+    console.log('已清空所有旧管理员账号');
     
     // 哈希函数（SHA-256 + salt）
     async function hashPassword(password, salt) {
