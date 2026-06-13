@@ -992,11 +992,17 @@
                     allowedPersonsList = personsData.data || [];
                 }
                 
-                // 获取今天的排班数据
+                // 获取今天的排班数据（包含绑定表）
                 const response = await fetch(`/api/config?date=${today}`);
                 const result = await response.json();
                 if (response.ok) {
                     allRoster = result.data || [];
+                    // 按时间排序
+                    allRoster.sort((a, b) => {
+                        const aIdx = shiftConfig.findIndex(s => s.name === a.duty_time);
+                        const bIdx = shiftConfig.findIndex(s => s.name === b.duty_time);
+                        return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
+                    });
                     displayRoster(allRoster);
                 } else {
                     showMessage('加载失败：' + result.error, 'error');
@@ -1011,7 +1017,7 @@
             const rosterList = document.getElementById('rosterList');
             
             if (data.length === 0) {
-                rosterList.innerHTML = `<div class="roster-empty">${currentSearch ? '未找到匹配的排班' : '今日暂无排班'}</div>`;
+                rosterList.innerHTML = `<div class="roster-empty">${currentSearch ? '未找到匹配的排班' : '今日暂无排班（可在下方添加）'}</div>`;
             } else {
                 data.sort((a, b) => {
                     const aIdx = shiftConfig.findIndex(s => s.name === a.duty_time);
