@@ -1356,7 +1356,7 @@
             }
         }
 
-        // 管理登录功能 - 使用 sessionStorage 存储登录状态
+        // 管理登录功能 - 使用 localStorage 存储登录状态
         function showLoginModal() {
             document.getElementById('loginModal').style.display = 'flex';
             document.getElementById('loginMessage').innerText = '';
@@ -1380,9 +1380,9 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // 存储管理员信息到 sessionStorage (页面会话有效)
-                    sessionStorage.setItem('isAdminLoggedIn', 'true');
-                    sessionStorage.setItem('adminUsername', username);
+                    // 存储管理员信息到 localStorage (页面会话有效)
+                    localStorage.setItem('isAdminLoggedIn', 'true');
+                    localStorage.setItem('adminUsername', username);
                     
                     // 隐藏登录弹窗和遮罩
                     document.getElementById('loginModal').style.display = 'none';
@@ -1407,16 +1407,16 @@
         }
 
         function handleLogout() {
-            sessionStorage.removeItem('isAdminLoggedIn');
-            sessionStorage.removeItem('adminUsername');
+            localStorage.removeItem('isAdminLoggedIn');
+            localStorage.removeItem('adminUsername');
             location.reload();
         }
 
         // 页面加载时检查登录状态
         window.addEventListener('DOMContentLoaded', function() {
-            const isLoggedIn = sessionStorage.getItem('isAdminLoggedIn');
+            const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
             if (isLoggedIn === 'true') {
-                const username = sessionStorage.getItem('adminUsername');
+                const username = localStorage.getItem('adminUsername');
                 // 隐藏登录弹窗和遮罩
                 document.getElementById('loginModal').style.display = 'none';
                 document.getElementById('loginOverlay').style.display = 'none';
@@ -1440,7 +1440,7 @@
 
         // 检查登录状态的辅助函数
         function checkAdminAuth() {
-            const isLoggedIn = sessionStorage.getItem('isAdminLoggedIn');
+            const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
             if (isLoggedIn !== 'true') {
                 alert('请先登录管理员账号');
                 showLoginModal();
