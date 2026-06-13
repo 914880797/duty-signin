@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>密码哈希测试</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #1a1a2e; color: #fff; }
+    input { padding: 8px; margin: 5px; width: 300px; }
+    button { padding: 8px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+    pre { background: #2a2a40; padding: 15px; border-radius: 5px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>🔐 密码哈希测试工具</h1>
+  <p>用于验证密码哈希是否与数据库中存储的一致</p>
+  
+  <div>
+    <label>密码：</label>
+    <input type="text" id="password" value="4568527913q" />
+  </div>
+  <div>
+    <label>Salt：</label>
+    <input type="text" id="salt" value="monkeycode_salt_2026" />
+  </div>
+  <button onclick="testHash()">生成哈希</button>
+  
+  <h3>结果：</h3>
+  <pre id="result"></pre>
+  
+  <h3>数据库中的哈希值（从 D1 复制）：</h3>
+  <input type="text" id="storedHash" placeholder="粘贴数据库中的 password_hash 值" />
+  <button onclick="compareHash()">对比</button>
+  <pre id="compareResult"></pre>
+  
+  <script>
+    async function hashPassword(password, salt) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password + salt);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    
+    async function testHash() {
+      const password = document.getElementById('password').value;
+      const salt = document.getElementById('salt').value;
+      
+      const hash = await hashPassword(password, salt);
+      document.getElementById('result').textContent = hash;
+      
+      // 自动复制到剪贴板
+      navigator.clipboard.writeText(hash);
+      alert('哈希已生成并复制到剪贴板！\n\n请去 D1 数据库执行：\nSELECT password_hash FROM admin_users WHERE username="admin";\n然后对比两个值是否一致');
+    }
+    
+    function compareHash() {
+      const generated = document.getElementById('result').textContent;
+      const stored = document.getElementById('storedHash').value.trim();
+      
+      if (generated === stored) {
+        document.getElementById('compareResult').textContent = '✅ 哈希值一致！密码正确。';
+        document.getElementById('compareResult').style.color = '#4CAF50';
+      } else {
+        document.getElementById('compareResult').textContent = '❌ 哈希值不一致！\n生成：' + generated + '\n存储：' + stored;
+        document.getElementById('compareResult').style.color = '#ff6b6b';
+      }
+    }
+  </script>
+</body>
+</html>

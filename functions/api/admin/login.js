@@ -7,17 +7,28 @@ export async function onRequestPost({ request, env }) {
       return Response.json({ error: '用户名和密码不能为空' }, { status: 400 });
     }
     
+    console.log('Login attempt:', { username, passwordLength: password.length });
+    
     // 从数据库查询管理员配置
     const admin = await env.DB.prepare(`
       SELECT username, password_hash FROM admin_users WHERE username = ? AND is_active = 1
     `).bind(username).first();
     
+    console.log('Database query result:', admin);
+    
     if (!admin) {
+      console.log('User not found or inactive');
       return Response.json({ error: '用户名或密码错误' }, { status: 401 });
     }
     
     // 验证密码（简单哈希对比）
     const inputHash = await hashPassword(password, 'monkeycode_salt_2026');
+    console.log('Password hash comparison:', {
+      inputHash,
+      storedHash: admin.password_hash,
+      match: inputHash === admin.password_hash
+    });
+    
     if (inputHash !== admin.password_hash) {
       return Response.json({ error: '用户名或密码错误' }, { status: 401 });
     }
