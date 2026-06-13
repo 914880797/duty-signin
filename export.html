@@ -31,6 +31,17 @@
         .stats-bar { display: flex; justify-content: center; gap: 40px; margin-bottom: 20px; padding: 12px 20px; background: #f9f9f9; border-radius: 4px; border: 1px solid #e0e0e0; }
         .stat-label { font-size: 13px; color: #666; }
         .stat-value { font-size: 16px; font-weight: 700; color: #4CAF50; }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .back-btn:hover { opacity: 0.8; }
         .table-outer-container { border: 1px solid #dcdfe6; overflow: auto; height: 65vh; }
         .duty-table { border-collapse: collapse; font-size: 13px; }
         .duty-table thead th { background: #4CAF50; color: #fff; font-weight: 600; padding: 6px 8px; text-align: center; border: 1px solid #dcdfe6; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
@@ -60,12 +71,12 @@
     <div class="container">
         <div class="header-section">
             <h1>导出预览</h1>
-            <div class="export-buttons">
-                <a href="/" class="btn btn-back">🏠 打卡首页</a>
-                <a href="/admin" class="btn btn-back">📅 排班管理</a>
-                <a href="/query" class="btn btn-back">🔍 排班查询</a>
-                <a href="/dashboard" class="btn btn-back">📊 数据看板</a>
-                <a href="/records" class="btn btn-back">📝 详细记录</a>
+            <div class="export-buttons" style="margin-bottom:15px;">
+                <a href="/" class="back-btn">🏠 打卡首页</a>
+                <a href="/admin.html" class="back-btn">📅 排班管理</a>
+                <a href="/query.html" class="back-btn">🔍 排班查询</a>
+                <a href="/dashboard.html" class="back-btn">📊 数据看板</a>
+                <a href="/records.html" class="back-btn">📝 详细记录</a>
                 <button onclick="window.exportExcel()" class="btn btn-export-excel">📥 导出为 Excel</button>
             </div>
             <div class="stats-bar">
