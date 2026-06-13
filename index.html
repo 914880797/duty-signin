@@ -48,6 +48,19 @@
             color: #fff;
         }
 
+        /* 导航按钮 */
+        .back-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 5px;
+            font-size: 13px;
+        }
+        .back-btn:hover { opacity: 0.8; }
+
         .logo-icon {
             font-size: 32px;
         }
@@ -228,6 +241,12 @@
             夜聊值班打卡
         </div>
         <div class="subtitle">输入姓名，系统自动匹配值班时段</div>
+        
+        <!-- 导航按钮 -->
+        <div style="margin:15px 0;">
+            <a href="/query.html" class="back-btn">🔍 排班查询</a>
+            <a href="/export.html" class="back-btn">📝 打卡查询</a>
+        </div>
 
         <!-- 时间模块 -->
         <div class="clock-section">
@@ -387,9 +406,5 @@
             }
         }
     </script>
-    <div style="text-align:center;padding:20px;">
-        <a href="/export.html" style="display:inline-block;padding:10px 20px;background:#0b95c9;color:white;text-decoration:none;border-radius:8px;margin:10px;font-size:16px;font-weight:600;">📋 查看记录</a>
-    </div>
-
 </body>
 </html>
