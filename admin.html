@@ -479,6 +479,19 @@
                     </select>
                 </div>
 
+                <div class="form-row">
+                    <span class="form-label">循环天数</span>
+                    <select id="repeatDays" class="form-select">
+                        <option value="1">仅今天</option>
+                        <option value="7">7 天</option>
+                        <option value="30">30 天</option>
+                        <option value="90">90 天</option>
+                        <option value="180">180 天</option>
+                        <option value="365" selected>365 天（一年）</option>
+                    </select>
+                    <span style="color: #8c92ac; font-size: 12px; margin-top: 5px;">💡 提示：排班将自动循环添加到未来 N 天，删除时可单独删除某一天的排班</span>
+                </div>
+
                 <button onclick="assignShift()" class="assign-btn">✅ 安排值班</button>
             </div>
 
@@ -1054,6 +1067,7 @@
             const shift = document.getElementById('shiftSelect').value.trim();
             const name = document.getElementById('nameInput').value.trim();
             const groupId = document.getElementById('groupSelect').value || null;
+            const repeatDays = parseInt(document.getElementById('repeatDays').value) || 365;
             
             if (!shift) { showMessage('⚠️ 请选择值班时段', 'error'); return; }
             if (!name) { showMessage('⚠️ 请输入昵称', 'error'); return; }
@@ -1072,7 +1086,7 @@
                 const response = await fetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date: today, config: config })
+                    body: JSON.stringify({ date: today, config: config, repeatDays: repeatDays })
                 });
                 const result = await response.json();
                 if (response.ok) {
@@ -1083,7 +1097,7 @@
                         body: JSON.stringify({ name: name })
                     }).catch(e => console.warn('添加到人员名单失败:', e));
                     
-                    showMessage('✅ 安排成功！', 'success');
+                    showMessage(`✅ 安排成功！已排版 ${repeatDays} 天`, 'success');
                     document.getElementById('shiftSelect').value = '';
                     document.getElementById('nameInput').value = '';
                     document.getElementById('groupSelect').value = '';
