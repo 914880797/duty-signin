@@ -978,14 +978,21 @@
         async function loadRoster() {
             const rosterList = document.getElementById('rosterList');
             rosterList.innerHTML = '<div class="loading">加载中...</div>';
-            // 使用北京时间（UTC+8）
             const now = new Date();
             const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
             const bjTime = new Date(bjTimestamp);
             const pad = (n) => String(n).padStart(2, '0');
-            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjDate.getUTCDate())}`;
             
             try {
+                // 获取允许人员名单（用于下拉选择）
+                const personsRes = await fetch('/api/persons');
+                const personsData = await personsRes.json();
+                if (personsData.success) {
+                    allowedPersonsList = personsData.data || [];
+                }
+                
+                // 获取今天的排班数据
                 const response = await fetch(`/api/config?date=${today}`);
                 const result = await response.json();
                 if (response.ok) {
@@ -1069,6 +1076,13 @@
                 });
                 const result = await response.json();
                 if (response.ok) {
+                    // 同时将人员添加到允许名单
+                    await fetch('/api/persons', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: name })
+                    }).catch(e => console.warn('添加到人员名单失败:', e));
+                    
                     showMessage('✅ 安排成功！', 'success');
                     document.getElementById('shiftSelect').value = '';
                     document.getElementById('nameInput').value = '';
