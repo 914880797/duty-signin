@@ -404,32 +404,6 @@
     </style>
 </head>
 <body>
-    <script>
-        // 页面加载时立即检查登录状态（在渲染任何内容之前）
-        (function() {
-            const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
-            if (isLoggedIn === 'true') {
-                // 已登录，等 DOM 准备好后隐藏遮罩
-                document.addEventListener('DOMContentLoaded', function() {
-                    const overlay = document.getElementById('loginOverlay');
-                    const modal = document.getElementById('loginModal');
-                    const prompt = document.getElementById('loginPrompt');
-                    const adminInfo = document.getElementById('adminInfo');
-                    
-                    if (overlay) overlay.style.setProperty('display', 'none', 'important');
-                    if (modal) modal.style.setProperty('display', 'none', 'important');
-                    if (prompt) prompt.style.setProperty('display', 'none', 'important');
-                    if (adminInfo) adminInfo.style.setProperty('display', 'block', 'important');
-                    
-                    const username = localStorage.getItem('adminUsername');
-                    const adminName = document.getElementById('adminName');
-                    if (adminName) adminName.innerText = username || '管理员';
-                    
-                    console.log('✅ 管理员已登录:', username);
-                });
-            }
-        })();
-    </script>
     <div class="container">
         <!-- 未登录遮罩层 -->
         <div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:999; display:flex; align-items:center; justify-content:center;">
@@ -1444,13 +1418,19 @@
             if (isLoggedIn === 'true') {
                 const username = localStorage.getItem('adminUsername');
                 // 隐藏登录弹窗和遮罩
-                document.getElementById('loginModal').style.display = 'none';
-                document.getElementById('loginOverlay').style.display = 'none';
-                // 隐藏登录提示区域
-                document.getElementById('loginPrompt').style.display = 'none';
-                // 显示管理员信息
-                document.getElementById('adminInfo').style.display = 'block';
-                document.getElementById('adminName').innerText = username || '管理员';
+                const loginModal = document.getElementById('loginModal');
+                const loginOverlay = document.getElementById('loginOverlay');
+                const loginPrompt = document.getElementById('loginPrompt');
+                const adminInfo = document.getElementById('adminInfo');
+                const adminName = document.getElementById('adminName');
+                
+                if (loginModal) loginModal.style.setProperty('display', 'none', 'important');
+                if (loginOverlay) loginOverlay.style.setProperty('display', 'none', 'important');
+                if (loginPrompt) loginPrompt.style.setProperty('display', 'none', 'important');
+                if (adminInfo) adminInfo.style.setProperty('display', 'block', 'important');
+                if (adminName) adminName.innerText = username || '管理员';
+                
+                console.log('✅ 管理员已登录:', username);
             }
         });
 
