@@ -405,6 +405,16 @@
 </head>
 <body>
     <div class="container">
+        <!-- 未登录遮罩层 -->
+        <div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:999; display:flex; align-items:center; justify-content:center;">
+            <div style="text-align:center; padding:40px;">
+                <div style="font-size:48px; margin-bottom:20px;">🔐</div>
+                <h2 style="color:#fff; font-size:24px; margin-bottom:15px;">管理员登录</h2>
+                <p style="color:#b0b0c0; font-size:14px; margin-bottom:30px;">请联系管理员获取访问权限</p>
+                <button onclick="showLoginModal()" class="assign-btn" style="padding:12px 40px; font-size:16px;">立即登录</button>
+            </div>
+        </div>
+        
         <!-- 管理登录提示 -->
         <div style="text-align: center; padding: 20px; background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 10px; margin-bottom: 20px;">
             <p style="color: #ffc107; margin-bottom: 10px;">🔐 管理入口 - 请联系管理员获取访问权限</p>
@@ -1352,6 +1362,8 @@
             document.getElementById('loginMessage').innerText = '';
             document.getElementById('adminUsername').value = '';
             document.getElementById('adminPassword').value = '';
+            // 保持遮罩层显示
+            document.getElementById('loginOverlay').style.display = 'flex';
         }
 
         function handleLogin() {
@@ -1367,6 +1379,7 @@
                 sessionStorage.setItem('adminUsername', username);
                 
                 document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('adminInfo').style.display = 'block';
                 document.getElementById('adminName').innerText = username;
                 
@@ -1389,6 +1402,7 @@
             if (isLoggedIn === 'true') {
                 const username = sessionStorage.getItem('adminUsername');
                 document.getElementById('loginModal').style.display = 'none';
+                document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('adminInfo').style.display = 'block';
                 document.getElementById('adminName').innerText = username || '管理员';
             }
