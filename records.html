@@ -513,7 +513,7 @@
             try {
                 const response = await fetch('/api/groups');
                 const result = await response.json();
-                const groups = result.data || [];
+                const groups = result.success ? (result.data || []) : [];
 
                 const select = document.getElementById('groupSelect');
                 if (Array.isArray(groups)) {

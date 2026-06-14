@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>详细打卡记录 - 值班打卡系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-export {
+            background: linear-gradient(90deg, #4caf50, #45a049);
+            color: white;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-back {
+            background: rgba(108, 99, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(108, 99, 255, 0.5);
+        }
+
+        .btn-back:hover {
+            background: rgba(108, 99, 255, 0.4);
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        /* 筛选区域 */
+        .filter-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            color: #b0b0c0;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #3a3a50;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #6c63ff, #5a52d5);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-export {
+            background: linear-gradient(90deg, #4caf50, #45a049);
+            color: white;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        /* 数据表格 */
+        .table-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: calc(100vh - 350px);
+            min-height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: rgba(108, 99, 255, 0.2);
+            color: #6c63ff;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 15px;
+            color: #e0e0e0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+
+        tr:hover td {
+            background: rgba(108, 99, 255, 0.1);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8c92ac;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8c92ac;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        /* 导航按钮 */
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .back-btn:hover { opacity: 0.8; }
+
+        /* 导出预览弹窗 */
+        @media (max-width: 768px) {
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .action-bar {
+                margin-left: 0;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>📋 详细打卡记录</h1>
+        </div>
+
+        <!-- 筛选区域 -->
+        <div class="filter-section">
+            <div style="margin-bottom:15px;">
+                <a href="/" class="back-btn">🏠 首页</a>
+                <a href="/admin.html" class="back-btn">📅 排班管理</a>
+                <a href="/query.html" class="back-btn">🔍 排班查询</a>
+                <a href="/dashboard.html" class="back-btn">📊 数据看板</a>
+                <a href="/export.html" class="back-btn">📥 导出预览</a>
+            </div>
+            <div class="filter-group">
+                <label>开始日期</label>
+                <input type="date" id="startDate">
+            </div>
+
+            <div class="filter-group">
+                <label>结束日期</label>
+                <input type="date" id="endDate">
+            </div>
+
+            <div class="filter-group">
+                <label>时段</label>
+                <select id="timeSlotSelect">
+                    <option value="">全部时段</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>分组</label>
+                <select id="groupSelect">
+                    <option value="">全部分组</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>姓名</label>
+                <input type="text" id="nameInput" placeholder="输入姓名">
+            </div>
+
+            <div class="action-bar">
+                <button onclick="loadData()" class="btn btn-export">🔄 刷新数据</button>
+                <button onclick="clearFilters()" class="btn btn-back">清除筛选</button>
+            </div>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>时段</th>
+                        <th>姓名</th>
+                        <th>分组</th>
+                        <th>打卡时间</th>
+                        <th>IP 地址</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsBody">
+                    <tr>
+                        <td colspan="6" class="loading">加载中...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let allRecords = [];
+        let filteredRecords = [];
+
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', async () => {
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+            
+            // 获取设置的打卡起始日期
+            let startDate = today;
+            try {
+                const settingsResp = await fetch('/api/settings');
+                const settings = await settingsResp.json();
+                if (settings.cycleStartDate) {
+                    startDate = settings.cycleStartDate;
+                } else {
+                    // 如果没有设置，默认为 30 天前
+                    const defaultStart = new Date(bjTimestamp - (30 * 24 * 60 * 60 * 1000));
+                    startDate = `${defaultStart.getUTCFullYear()}-${pad(defaultStart.getUTCMonth() + 1)}-${pad(defaultStart.getUTCDate())}`;
+                }
+            } catch (error) {
+                console.error('加载设置失败:', error);
+            }
+            
+            document.getElementById('endDate').value = today;
+            document.getElementById('startDate').value = startDate;
+
+            loadTimeSlots();
+            loadGroups();
+            loadData();
+        });
+
+        // 加载时段列表
+        async function loadTimeSlots() {
+            try {
+                const response = await fetch('/api/time-slots');
+                const responseData = await response.json();
+                
+                // 统一处理 {success: true, data: [...]} 格式
+                const slots = responseData.success ? (responseData.data || []) : [];
+                
+                const select = document.getElementById('timeSlotSelect');
+                slots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot.time_slot;
+                    option.textContent = slot.time_slot;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('加载时段失败:', error);
+            }
+        }
+
+        // 加载分组列表
+        async function loadGroups() {
+            try {
+                const response = await fetch('/api/groups');
+                const result = await response.json();
+                const groups = result.data || [];
+                
+                const select = document.getElementById('groupSelect');
+                if (Array.isArray(groups)) {
+                    groups.forEach(group => {
+                        const option = document.createElement('option');
+                        option.value = group.id;
+                        option.textContent = group.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载分组失败:', error);
+            }
+        }
+
+        // 加载数据
+        async function loadData() {
+            const tbody = document.getElementById('recordsBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
+
+            const params = new URLSearchParams();
+            
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const timeSlot = document.getElementById('timeSlotSelect').value;
+            const groupId = document.getElementById('groupSelect').value;
+            const name = document.getElementById('nameInput').value.trim();
+
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            if (timeSlot) params.append('duty_time', timeSlot);
+            if (groupId) params.append('group_id', groupId);
+            if (name) params.append('name', name);
+
+            try {
+                const response = await fetch(`/api/records?${params.toString()}`);
+                const responseData = await response.json();
+                
+                // 统一处理 {success: true, data: [...]} 格式
+                const records = responseData.success ? (responseData.data || []) : [];
+                
+                allRecords = records;
+                filteredRecords = records;
+
+                if (records.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty">
+                                <div class="empty-icon">📭</div>
+                                <div>暂无打卡记录</div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = records.map(record => `
+                    <tr>
+                        <td>${record.duty_date || '-'}</td>
+                        <td>${record.duty_time || '-'}</td>
+                        <td>${record.name || '-'}</td>
+                        <td>${record.group_name || '-'}</td>
+                        <td>${record.created_at ? formatTime(record.created_at) : '-'}</td>
+                        <td>${record.ip_address || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                tbody.innerHTML = `<tr><td colspan="6" class="empty">加载失败：${error.message}</td></tr>`;
+            }
+        }
+
+        // 格式化时间（转换为北京时间）
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            // 转换为北京时间（UTC+8）
+            const bjTimestamp = date.getTime() + (8 * 60 * 60 * 1000);
+            const bjDate = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${bjDate.getUTCFullYear()}-${pad(bjDate.getUTCMonth() + 1)}-${pad(bjDate.getUTCDate())} ${pad(bjDate.getUTCHours())}:${pad(bjDate.getUTCMinutes())}`;
+        }
+
+        // 清除筛选
+        function clearFilters() {
+            const now = new Date();
+            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
+            const bjTime = new Date(bjTimestamp);
+            const pad = (n) => String(n).padStart(2, '0');
+            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+            
+            const startDate = new Date(bjTimestamp - (30 * 24 * 60 * 60 * 1000));
+            const startStr = `${startDate.getUTCFullYear()}-${pad(startDate.getUTCMonth() + 1)}-${pad(startDate.getUTCDate())}`;
+
+            document.getElementById('startDate').value = startStr;
+            document.getElementById('endDate').value = today;
+            document.getElementById('timeSlotSelect').value = '';
+            document.getElementById('groupSelect').value = '';
+            document.getElementById('nameInput').value = '';
+            
+            loadData();
+        }
+    </script>
+</body>
+</html>

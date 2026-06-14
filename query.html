@@ -296,7 +296,6 @@
         }
 
         .empty {
-            padding: var(--spacing-lg) * 2;
             padding: calc(var(--spacing-lg) * 2);
             text-align: center;
             color: var(--text-muted);
@@ -460,6 +459,7 @@
         async function loadGroups() {
             try {
                 const response = await fetch('/api/groups');
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
                 
                 if (data.success) {

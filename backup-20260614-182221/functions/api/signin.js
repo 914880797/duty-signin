@@ -48,39 +48,25 @@ export async function onRequestPost({ request, env }) {
     // 找到当前时间所在的值班时段
     let dutyConfig = null;
     let currentTimeInMinutes = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
-    const dayInMinutes = 24 * 60;
     
     for (const config of allConfigs.results) {
         const range = getDutyTimeRange(config.duty_time);
         if (!range) continue;
         
+        // 处理跨天：如果是昨天排班且当前是午夜前，或今天排班且当前是凌晨
+        let adjustedTime = currentTimeInMinutes;
         const configDate = config.duty_date;
         
-        // 判断跨天时段需要扩展比较
-        let adjustedTime = currentTimeInMinutes;
-        let adjustedStart = range.startTime;
-        let adjustedEnd = range.endTime;
-        
-        if (range.isOvernight) {
-            // 对于跨天时段（如 23:00-04:00），比较逻辑：
-            // 如果当前时间在 00:00-endTime 之间，说明是跨天后的时间
-            // 将当前时间 + 24h，与 startTime~(endTime+24h) 比较
-            if (currentTimeInMinutes <= range.endTime) {
-                adjustedTime += dayInMinutes;
-                adjustedEnd += dayInMinutes;
-            } else if (currentTimeInMinutes >= range.startTime) {
-                // 当前时间在 start~23:59，是跨天前的时间
-                adjustedEnd += dayInMinutes;
-            }
+        // 如果是昨天的排班且是跨天到凌晨的时段（如 23:00-04:00），当前时间加 24 小时比较
+        if (configDate === yesterdayStr && range.isOvernight && currentTimeInMinutes < 6 * 60) {
+            adjustedTime += 24 * 60;
         }
-
-        // 如果是昨天的排班且是跨天时段且当前是凌晨
-        if (configDate === yesterdayStr && range.isOvernight && currentTimeInMinutes <= range.endTime) {
-            adjustedTime += dayInMinutes;
-            adjustedEnd += dayInMinutes;
+        // 如果是跨天时段且当前时间 < 6:00，给当前时间加 24 小时
+        if (range.isOvernight && currentTimeInMinutes < 6 * 60) {
+            adjustedTime += 24 * 60;
         }
         
-        if (adjustedTime >= adjustedStart && adjustedTime <= adjustedEnd) {
+        if (adjustedTime >= range.startTime && adjustedTime <= range.endTime) {
             dutyConfig = config;
             break;
         }
@@ -113,11 +99,9 @@ export async function onRequestPost({ request, env }) {
     });
     
     if (dutyRange) {
-      // 处理跨天时段：动态扩展结束时间
-      if (dutyRange.isOvernight && currentTimeInMinutes <= dutyRange.endTime) {
-        currentTimeInMinutes += dayInMinutes;
-      } else if (dutyRange.isOvernight) {
-        dutyRange.endTime += dayInMinutes;
+      // 处理跨天时段：如果当前时间 < 6:00 且是跨天时段，给当前时间加 24 小时
+      if (dutyRange.isOvernight && currentTimeInMinutes < 6 * 60) {
+        currentTimeInMinutes += 24 * 60; // 只加 1 天，不是 2 天
       }
       
       const isValid = currentTimeInMinutes >= dutyRange.startTime && currentTimeInMinutes <= dutyRange.endTime;
@@ -159,7 +143,7 @@ export async function onRequestPost({ request, env }) {
     `).bind(trimmedName, dutyConfig.duty_date, dutyConfig.duty_time, dutyConfig.group_id || null, created_at, ip).run();
 
     return Response.json({ 
-      success: true, 
+      ok: true, 
       date: dutyConfig.duty_date, 
       time: created_at,
       duty_time: dutyConfig.duty_time
