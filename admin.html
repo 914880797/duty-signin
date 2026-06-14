@@ -315,73 +315,33 @@
                 overflow: hidden;
             }
 
-            h1 {
-                margin-bottom: 8px;
-                font-size: 1.4rem;
-            }
-
-            .nav-row {
-                margin: 8px 0 !important;
-            }
-
-            .tabs {
-                flex-shrink: 0;
-                margin-bottom: 8px;
-                gap: 8px;
-            }
+            h1 { margin-bottom: 8px; font-size: 1.4rem; }
+            .nav-row { margin: 8px 0 !important; }
+            .tabs { flex-shrink: 0; margin-bottom: 8px; gap: 8px; }
 
             .tab-content { display: none; }
             .tab-content.active {
-                display: block;
-                flex: 1;
-                min-height: 0;
-                overflow-y: auto;
-            }
-
-            #rosterTab.active,
-            #groupsTab.active,
-            #settingsTab.active {
                 display: flex;
                 flex-direction: column;
                 flex: 1;
                 min-height: 0;
                 overflow-y: auto;
+                padding-bottom: 60px;
+                margin-bottom: 20px;
             }
-
-            .shift-config-table { min-width: auto; }
 
             .search-section { flex-shrink: 0; }
             .assign-form { flex-shrink: 0; }
+            .edit-form { flex-shrink: 0; }
             .info-box { flex-shrink: 0; }
+            .roster-list { overflow-y: auto; max-height: 60vh; flex: none; min-height: 100px; }
+            .shift-config-table { min-width: auto; }
 
-            .roster-list {
-                overflow-y: auto;
-                max-height: 60vh;
-                flex: none;
-                min-height: 100px;
-            }
-
-            #configTab {
-                display: none;
-            }
-
-            #configTab.active {
-                display: flex;
-                flex-direction: column;
-                flex: 1;
-                min-height: 0;
-            }
-
-            #configTab .warning-box { flex-shrink: 0; }
-            #configTab .table-wrapper {
-                flex: 1;
-                min-height: 0;
-                max-height: none;
-                overflow-y: auto;
-            }
-            #configTab .config-actions { flex-shrink: 0; margin-top: 8px; }
-            #configTab .save-config-btn { flex-shrink: 0; }
-            #configTab #configStatus { flex-shrink: 0; }
+            #configTab.active .warning-box { flex-shrink: 0; }
+            #configTab.active .table-wrapper { flex: 1; min-height: 0; max-height: none; overflow-y: auto; }
+            #configTab.active .config-actions { flex-shrink: 0; margin-top: 8px; }
+            #configTab.active .save-config-btn { flex-shrink: 0; }
+            #configTab.active #configStatus { flex-shrink: 0; }
         }
 
         @media (max-width: 360px) {
