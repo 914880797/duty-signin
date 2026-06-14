@@ -88,15 +88,41 @@
             outline-offset: 2px;
         }
 
-        /* 筛选区域 - Mobile First: 纵向堆叠 */
+        /* 筛选区域 */
         .filter-section {
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 16px;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
             display: flex;
-            flex-direction: column;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
             gap: 10px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-group label {
+            color: #b0b0c0;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #3a3a50;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            min-height: 44px;
         }
 
         .filter-group {
@@ -132,17 +158,16 @@
 
         .action-bar {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            gap: 10px;
+            margin-left: auto;
         }
 
         /* 通用按钮样式 */
         .btn {
-            min-height: 44px;
-            padding: 10px 16px;
+            padding: 10px 20px;
             border: none;
             border-radius: 8px;
-            font-size: clamp(13px, 3vw, 14px);
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
@@ -150,7 +175,6 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 100%;
         }
 
         .btn:focus-visible {
@@ -209,8 +233,8 @@
             max-height: calc(100dvh - 400px);
             min-height: 200px;
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            padding: 8px;
+            border-radius: 15px;
+            padding: 16px;
         }
 
         table {
@@ -284,14 +308,15 @@
             .filter-section {
                 flex-direction: row;
                 flex-wrap: wrap;
-                padding: 16px;
+                padding: 20px;
+                align-items: center;
             }
 
             .filter-group {
                 flex-direction: row;
                 align-items: center;
-                flex: 1 1 calc(50% - 8px);
-                min-width: 200px;
+                flex: 1 1 auto;
+                min-width: 150px;
             }
 
             .filter-group input,
@@ -309,8 +334,8 @@
             }
 
             .table-container {
-                padding: 12px;
-                min-height: 250px;
+                padding: 16px;
+                min-height: 300px;
             }
         }
 
@@ -361,7 +386,7 @@
                 flex: 1;
                 min-height: 0;
                 max-height: none;
-                padding: 10px;
+                padding: 16px;
                 margin-top: 0;
             }
 

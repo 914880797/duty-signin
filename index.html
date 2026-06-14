@@ -230,30 +230,47 @@
         .rules-list strong { color: #6c63ff; }
         .warning-text { color: #ff6b6b; font-weight: bold; margin-top: 5px; }
 
-        @media (min-width: 600px) {
+        @media (min-width: 600px) and (max-width: 1023px) {
             body { align-items: center; padding: 10px; }
-            .container { padding: 24px 32px; max-height: calc(100dvh - 20px); }
+            .container { padding: 24px 32px; }
             .clock-section { padding: 10px 15px; margin-bottom: 12px; }
             .time-display { font-size: 32px; margin-bottom: 2px; }
             .date-display { font-size: 12px; }
             .input-group { margin-bottom: 12px; }
             .text-input { padding: 8px 12px; font-size: 14px; }
             .submit-btn { padding: 8px; font-size: 14px; margin-bottom: 15px; }
-            .shift-grid { gap: 6px; font-size: 10px; }
+            .shift-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 10px; }
             .rules-list { font-size: 11px; line-height: 1.5; padding-top: 6px; }
             .info-box { margin-top: 10px; }
             .subtitle { margin-bottom: 8px; font-size: 12px; }
             .nav-row { margin: 8px 0; }
-            .logo { font-size: 24px; margin-bottom: 6px; font-size: 24px; }
+            .logo { font-size: 24px; margin-bottom: 6px; }
             .logo-icon { font-size: 26px; }
             .admin-link { font-size: 11px; padding: 4px 8px; top: 10px; right: 10px; }
             .shift-item.night { grid-column: auto; }
         }
 
         @media (min-width: 1024px) {
-            body { padding: 8px 40px; }
-            .container { max-width: 500px; padding: 20px 28px; }
-            .shift-grid { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+            body { padding: 40px 80px; }
+            .container { max-width: 720px; padding: 40px 48px; }
+            .logo { font-size: 36px; margin-bottom: 12px; }
+            .logo-icon { font-size: 40px; }
+            .subtitle { font-size: 16px; margin-bottom: 12px; }
+            .nav-row { margin: 14px 0; }
+            .back-btn { padding: 12px 24px; font-size: 15px; }
+            .clock-section { padding: 20px; margin-bottom: 20px; }
+            .time-display { font-size: 56px; }
+            .date-display { font-size: 15px; }
+            .input-group { margin-bottom: 20px; }
+            .input-label { font-size: 16px; margin-bottom: 10px; }
+            .text-input { padding: 14px 18px; font-size: 18px; }
+            .submit-btn { padding: 16px; font-size: 20px; margin-bottom: 30px; }
+            .shift-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 13px; }
+            .shift-item { padding: 10px 12px; }
+            .info-title { font-size: 16px; margin-bottom: 14px; }
+            .info-box { padding: 20px; margin-top: 16px; }
+            .rules-list { font-size: 14px; line-height: 2; padding-top: 12px; }
+            .admin-link { font-size: 13px; padding: 8px 12px; top: 18px; right: 18px; }
         }
 
         @media (max-width: 360px) {

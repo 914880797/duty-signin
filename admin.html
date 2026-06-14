@@ -77,7 +77,13 @@
             font-size: 13px; line-height: 1.5; word-break: break-word;
         }
 
-        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
+        .table-wrapper { 
+            overflow-x: auto; 
+            overflow-y: auto; 
+            max-height: 300px; 
+            -webkit-overflow-scrolling: touch; 
+            margin-bottom: 16px; 
+        }
         .shift-config-table { width: 100%; min-width: 400px; border-collapse: collapse; background: rgba(30, 30, 60, 0.5); border-radius: 10px; overflow: hidden; }
         .shift-config-table th {
             background: rgba(108, 99, 255, 0.2); color: #6c63ff;
@@ -308,6 +314,21 @@
                 max-height: none;
                 flex: 1;
                 min-height: 0;
+            }
+
+            #configTab {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .table-wrapper {
+                flex: 1;
+                min-height: 0;
+                max-height: none;
+            }
+
+            .config-actions, .save-config-btn {
+                flex-shrink: 0;
             }
         }
 
@@ -980,7 +1001,7 @@
                         '</div>' +
                         '<div class="roster-actions">' +
                             '<button onclick="showEditForm(\'' + safeTime + '\', \'' + safeName + '\', ' + groupIdVal + ')" class="action-btn edit-time-btn">\u270F\uFE0F 修改时段</button>' +
-                            '<button onclick="deleteShift(\'' + safeTime + '\', \'' + safeName + '\')" class="action-btn delete-btn">\U0001F5D1\uFE0F 删除</button>' +
+                            '<button onclick="deleteShift(\'' + safeTime + '\', \'' + safeName + '\')" class="action-btn delete-btn">🗑️ 删除</button>' +
                         '</div>' +
                     '</div>';
                 }).join('');
