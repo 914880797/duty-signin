@@ -384,68 +384,6 @@
             #configTab #configStatus { flex-shrink: 0; }
         }
 
-            .container {
-                max-width: 1000px;
-                max-height: calc(100dvh - 16px);
-                padding: 16px 20px;
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-            }
-
-            h1 {
-                margin-bottom: 8px;
-                font-size: 1.4rem;
-            }
-
-            .nav-row {
-                margin: 8px 0 !important;
-            }
-
-            .tabs {
-                flex-shrink: 0;
-                margin-bottom: 8px;
-                gap: 8px;
-            }
-
-            .tab-content.active {
-                flex: 1;
-                min-height: 0;
-                overflow-y: auto;
-            }
-
-            .shift-config-table { min-width: auto; }
-
-            .search-section { flex-shrink: 0; }
-            .assign-form { flex-shrink: 0; }
-            .info-box { flex-shrink: 0; }
-
-            .roster-list {
-                overflow-y: auto;
-                max-height: 60vh;
-                flex: none;
-                min-height: 100px;
-            }
-
-            #configTab {
-                display: flex;
-                flex-direction: column;
-                flex: 1;
-                min-height: 0;
-            }
-
-            #configTab .warning-box { flex-shrink: 0; }
-            #configTab .table-wrapper {
-                flex: 1;
-                min-height: 0;
-                max-height: none;
-                overflow-y: auto;
-            }
-            #configTab .config-actions { flex-shrink: 0; margin-top: 8px; }
-            #configTab .save-config-btn { flex-shrink: 0; }
-            #configTab #configStatus { flex-shrink: 0; }
-        }
-
         @media (max-width: 360px) {
             .container { padding: 12px 10px 20px; border-radius: 10px; }
             h1 { font-size: 18px; }
@@ -529,7 +467,7 @@
             <div class="search-section">
                 <div class="search-box">
                     <input type="text" id="searchInput" class="search-input" placeholder="搜索昵称（如：贪狼）">
-                    <button onclick="searchRoster()" class="search-btn">🔍 搜索</button>
+                    <button onclick="searchRoster()" class="search-btn">搜索</button>
                     <button onclick="clearSearch()" class="search-btn" style="background: linear-gradient(90deg, #9e9e9e, #757575);">清除</button>
                 </div>
             </div>
@@ -1135,7 +1073,6 @@
             }
             
             searchBtn.classList.add('searching');
-            searchBtn.textContent = '搜索中...';
             
             currentSearch = keyword;
             const filtered = allRoster.filter(item => item.name.toLowerCase().includes(keyword));
@@ -1143,7 +1080,6 @@
             setTimeout(() => {
                 displayRoster(filtered);
                 searchBtn.classList.remove('searching');
-                searchBtn.textContent = '🔍 搜索';
                 
                 if (filtered.length === 0) {
                     showMessage('未找到匹配 "' + keyword + '" 的排班', 'error');
