@@ -1367,6 +1367,66 @@
         }
 
         // 管理登录功能 - 使用 localStorage 存储登录状态
+        // 遮罩层登录处理
+        function handleOverlayLogin() {
+            const username = document.getElementById('overlayUsername').value.trim();
+            const password = document.getElementById('overlayPassword').value.trim();
+            const msgEl = document.getElementById('overlayMessage');
+
+            if (!username || !password) {
+                msgEl.innerText = '⚠️ 请输入账号和密码';
+                msgEl.style.color = '#ff6b6b';
+                return;
+            }
+
+            msgEl.innerText = '正在登录...';
+            msgEl.style.color = '#b0b0c0';
+
+            const apiUrl = window.location.origin + '/api/admin/login';
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'same-origin',
+                body: JSON.stringify({username: username, password: password})
+            })
+            .then(res => {
+                console.log('API 响应状态:', res.status);
+                return res.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    msgEl.innerText = '✅ 登录成功';
+                    msgEl.style.color = '#4CAF50';
+                    localStorage.setItem('isAdminLoggedIn', 'true');
+                    localStorage.setItem('adminUsername', username);
+
+                    setTimeout(() => {
+                        const overlay = document.getElementById('loginOverlay');
+                        const prompt = document.getElementById('loginPrompt');
+                        if (overlay) overlay.style.setProperty('display', 'none', 'important');
+                        if (prompt) prompt.style.setProperty('display', 'none', 'important');
+
+                        const adminInfo = document.getElementById('adminInfo');
+                        if (adminInfo) adminInfo.style.display = 'block';
+
+                        const adminName = document.getElementById('adminName');
+                        if (adminName) adminName.innerText = username;
+
+                        if (typeof loadRoster === 'function') loadRoster();
+                    }, 500);
+                } else {
+                    msgEl.innerText = '❌ ' + (data.error || '登录失败');
+                    msgEl.style.color = '#ff6b6b';
+                }
+            })
+            .catch(err => {
+                msgEl.innerText = '❌ 网络请求失败';
+                msgEl.style.color = '#ff6b6b';
+                console.error('Login fetch error:', err);
+            });
+        }
+
+        // 管理登录功能
         function showLoginModal() {
             document.getElementById('loginModal').style.display = 'flex';
             document.getElementById('loginMessage').innerText = '';
