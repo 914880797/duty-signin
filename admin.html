@@ -172,27 +172,37 @@
             max-height: 400px; overflow-y: auto; margin-bottom: 16px;
             -webkit-overflow-scrolling: touch;
         }
+        .roster-list::-webkit-scrollbar { width: 8px; }
+        .roster-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .roster-list::-webkit-scrollbar-thumb { background: rgba(108, 99, 255, 0.4); border-radius: 10px; }
         .roster-item {
             display: flex; flex-direction: column;
-            padding: 12px; border-bottom: 1px solid #2a2a40; gap: 8px;
+            padding: 14px 16px; border-bottom: 1px solid #2a2a40;
         }
         .roster-item:last-child { border-bottom: none; }
         .roster-item:hover { background: rgba(108, 99, 255, 0.1); }
         .roster-info { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .roster-time {
-            color: #6c63ff; font-weight: 600; font-size: 13px;
-            padding: 4px 8px; background: rgba(108, 99, 255, 0.2);
+            color: #6c63ff; font-weight: 600; font-size: 14px;
+            padding: 5px 10px; background: rgba(108, 99, 255, 0.2);
             border-radius: 5px; white-space: nowrap;
+            min-width: 100px;
         }
-        .roster-name { color: #e0e0e0; font-size: 14px; word-break: break-word; }
-        .roster-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .roster-name { color: #e0e0e0; font-size: 15px; flex: 1; }
+        .roster-group {
+            background: rgba(108, 99, 255, 0.1); color: #6c63ff;
+            padding: 4px 10px; border-radius: 5px; font-size: 12px;
+        }
+        .roster-actions { display: flex; gap: 8px; flex-wrap: wrap; }
         .action-btn {
-            padding: 8px 10px; min-height: 40px;
-            border: none; border-radius: 6px; font-size: 12px;
+            padding: 8px 16px;
+            border: none; border-radius: 6px; font-size: 13px;
             cursor: pointer; touch-action: manipulation;
+            white-space: nowrap;
         }
         .edit-time-btn { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
         .delete-btn { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; border: 1px solid #ff6b6b; }
+        .delete-btn:hover { background: rgba(255, 107, 107, 0.35); }
 
         .roster-empty { padding: 30px 16px; text-align: center; color: #8c92ac; }
 
@@ -246,6 +256,21 @@
             cursor: pointer; font-size: 13px; touch-action: manipulation;
         }
 
+        #rosterTab {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #rosterTab .search-section { flex-shrink: 0; margin-bottom: 12px; }
+        #rosterTab .assign-form { flex-shrink: 0; margin-bottom: 12px; }
+        #rosterTab .edit-form { flex-shrink: 0; margin-bottom: 12px; }
+        #rosterTab .roster-list {
+            overflow-y: auto;
+            max-height: 50vh;
+            min-height: 100px;
+            margin-bottom: 0;
+        }
+
         @media (min-width: 600px) {
             body { padding: 20px; }
             .container { padding: 24px 20px 32px; border-radius: 16px; }
@@ -256,8 +281,10 @@
             .search-box { flex-direction: row; }
             .form-row { flex-direction: row; align-items: center; }
             .form-label { min-width: 80px; }
-            .roster-item { flex-direction: row; padding: 14px 16px; }
-            .roster-list { max-height: 500px; }
+            .roster-list { max-height: 500px; flex: 0 1 auto; min-height: 100px; overflow-y: auto; }
+            .roster-item { flex-direction: row; padding: 12px 16px; align-items: center; justify-content: space-between; }
+            .roster-info { flex-wrap: wrap; margin-bottom: 0; }
+            .roster-actions { flex-shrink: 0; gap: 8px; }
             .assign-form { padding: 20px; margin-bottom: 20px; }
             .info-box { padding: 16px; margin-bottom: 20px; }
             .edit-form { padding: 20px; }
@@ -311,25 +338,28 @@
 
             .roster-list {
                 overflow-y: auto;
-                max-height: none;
-                flex: 1;
-                min-height: 0;
+                max-height: 60vh;
+                flex: none;
+                min-height: 100px;
             }
 
             #configTab {
                 display: flex;
                 flex-direction: column;
+                flex: 1;
+                min-height: 0;
             }
 
-            .table-wrapper {
+            #configTab .warning-box { flex-shrink: 0; }
+            #configTab .table-wrapper {
                 flex: 1;
                 min-height: 0;
                 max-height: none;
+                overflow-y: auto;
             }
-
-            .config-actions, .save-config-btn {
-                flex-shrink: 0;
-            }
+            #configTab .config-actions { flex-shrink: 0; margin-top: 8px; }
+            #configTab .save-config-btn { flex-shrink: 0; }
+            #configTab #configStatus { flex-shrink: 0; }
         }
 
         @media (max-width: 360px) {
@@ -991,17 +1021,18 @@
                 rosterList.innerHTML = data.map(item => {
                     const safeTime = String(item.duty_time || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                     const safeName = String(item.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    const safeGroup = item.group_name ? ('<span style="background: rgba(108, 99, 255, 0.1); color: #6c63ff; padding: 5px 10px; border-radius: 5px; font-size: 12px; margin-left: 10px;">' + String(item.group_name).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>') : '';
+                    const safeGroupName = String(item.group_name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
                     const groupIdVal = item.group_id || 'null';
+                    const groupHtml = item.group_name ? '<span class="roster-group">' + safeGroupName + '</span>' : '';
                     return '<div class="roster-item">' +
                         '<div class="roster-info">' +
                             '<span class="roster-time">' + safeTime + '</span>' +
                             '<span class="roster-name">' + safeName + '</span>' +
-                            safeGroup +
+                            groupHtml +
                         '</div>' +
                         '<div class="roster-actions">' +
                             '<button onclick="showEditForm(\'' + safeTime + '\', \'' + safeName + '\', ' + groupIdVal + ')" class="action-btn edit-time-btn">\u270F\uFE0F 修改时段</button>' +
-                            '<button onclick="deleteShift(\'' + safeTime + '\', \'' + safeName + '\')" class="action-btn delete-btn">🗑️ 删除</button>' +
+                            '<button onclick="deleteShift(\'' + safeTime + '\', \'' + safeName + '\')" class="action-btn delete-btn">\ud83d\uddd1\ufe0f 删除</button>' +
                         '</div>' +
                     '</div>';
                 }).join('');
