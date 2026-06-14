@@ -406,7 +406,7 @@
 <body>
     <div class="container">
         <!-- 未登录遮罩层 (包含输入框) -->
-        <div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:999; display:flex; align-items:center; justify-content:center;">
+        <div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter:blur(25px); z-index:999; display:flex; align-items:center; justify-content:center;">
             <div style="background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 20px; padding: 40px; border: 1px solid #2a2a40; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
                 <div style="font-size:48px; margin-bottom: 10px;">🔐</div>
                 <h2 style="color:#fff; font-size:24px; margin-bottom:30px; text-align:center;">管理员登录</h2>
@@ -1401,13 +1401,21 @@
                     msgEl.style.color = '#4CAF50';
                     localStorage.setItem('isAdminLoggedIn', 'true');
                     localStorage.setItem('adminUsername', username);
-                    // 隐藏遮罩
+                    
+                    // 500ms 后隐藏遮罩
                     setTimeout(() => {
-                        document.getElementById('loginOverlay').style.setProperty('display', 'none', 'important');
-                        document.getElementById('loginPrompt').style.setProperty('display', 'none', 'important');
-                        document.getElementById('adminInfo').style.display = 'block';
-                        document.getElementById('adminName').innerText = username;
-                        loadRoster();
+                        const overlay = document.getElementById('loginOverlay');
+                        const prompt = document.getElementById('loginPrompt');
+                        if (overlay) overlay.style.setProperty('display', 'none', 'important');
+                        if (prompt) prompt.style.setProperty('display', 'none', 'important');
+                        
+                        const adminInfo = document.getElementById('adminInfo');
+                        if (adminInfo) adminInfo.style.display = 'block';
+                        
+                        const adminName = document.getElementById('adminName');
+                        if (adminName) adminName.innerText = username;
+                        
+                        if (typeof loadRoster === 'function') loadRoster();
                     }, 500);
                 } else {
                     msgEl.innerText = '❌ ' + (data.error || '登录失败');
