@@ -1207,7 +1207,23 @@
         }
 
         // 加载打卡周期设置
-        function loadCycleSettings() {
+        async function loadCycleSettings() {
+            // 优先尝试从后端获取最新设置
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                if (data.success && data.cycleStartDate) {
+                    // 如果后端有值，同步到本地并显示
+                    localStorage.setItem('cycleStartDate', data.cycleStartDate);
+                    document.getElementById('cycleStartDate').value = data.cycleStartDate;
+                    document.getElementById('currentCycleStart').innerText = data.cycleStartDate;
+                    return;
+                }
+            } catch (e) {
+                console.error('Failed to load settings', e);
+            }
+
+            // 如果后端没有，则读取 localStorage
             const cycleStart = localStorage.getItem('cycleStartDate');
             if (cycleStart) {
                 document.getElementById('cycleStartDate').value = cycleStart;
