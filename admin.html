@@ -299,20 +299,20 @@
 
         @media (min-width: 1024px) {
             body {
-                height: 100dvh;
-                overflow: hidden;
+                min-height: 100dvh;
+                overflow-x: hidden;
                 display: flex;
-                align-items: center;
+                align-items: flex-start;
                 padding: 20px 40px;
             }
 
             .container {
-                max-height: calc(100dvh - 40px);
-                padding: 30px 36px 40px;
+                width: 100%;
                 max-width: 1400px;
+                padding: 30px 36px 40px;
                 display: flex;
                 flex-direction: column;
-                overflow: hidden;
+                overflow: visible;
             }
 
             h1 { margin-bottom: 8px; font-size: 1.4rem; }
