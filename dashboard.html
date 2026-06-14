@@ -66,8 +66,6 @@
             font-size: 14px;
         }
         .back-btn:hover { opacity: 0.8; }
-            display: inline-block;
-        }
 
         .btn-primary {
             background: linear-gradient(90deg, #6c63ff, #5a52d5);
@@ -534,15 +532,12 @@
                 if (!response.ok) {
                     throw new Error('HTTP ' + response.status);
                 }
-                allRecords = await response.json();
-                console.log('API 返回数据:', allRecords);
-                console.log('数据条数:', allRecords.length);
+                const responseData = await response.json();
+                console.log('API 返回数据:', responseData);
                 
-                // 确保是数组
-                if (!Array.isArray(allRecords)) {
-                    console.error('API 返回的不是数组:', typeof allRecords);
-                    allRecords = [];
-                }
+                // 统一处理 {success: true, data: [...]} 格式
+                allRecords = responseData.success ? (responseData.data || []) : [];
+                console.log('数据条数:', allRecords.length);
                 
                 // 筛选数据
                 filteredRecords = allRecords.filter(record => {

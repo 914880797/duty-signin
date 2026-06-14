@@ -630,6 +630,7 @@
         let currentSearch = '';
         let shiftConfig = [];
         let allGroups = [];
+        let allowedPersonsList = [];
 
         const defaultShifts = [
             { id: 1, name: '04:00-06:00', startTime: '04:00', endTime: '06:00' },
@@ -1210,14 +1211,15 @@
         // 加载打卡周期设置
         async function loadCycleSettings() {
             let cycleStart = null;
+            let settingsData = null;
             
-            // 优先尝试从后端获取最新设置
+            // 优先尝试从后端获取最新设置（只调用一次）
             try {
                 const res = await fetch('/api/settings');
-                const data = await res.json();
-                console.log('从后端获取设置:', data);
-                if (data.success && data.cycleStartDate) {
-                    cycleStart = data.cycleStartDate;
+                settingsData = await res.json();
+                console.log('从后端获取设置:', settingsData);
+                if (settingsData.success && settingsData.cycleStartDate) {
+                    cycleStart = settingsData.cycleStartDate;
                 }
             } catch (e) {
                 console.error('Failed to load settings', e);
@@ -1244,20 +1246,15 @@
                 document.getElementById('currentCycleStart').innerText = today;
             }
             
-            // 加载统计信息
-            loadCycleStats();
+            // 加载统计信息（复用 settingsData，避免重复请求）
+            loadCycleStats(cycleStart, settingsData);
         }
 
         // 加载周期统计
-        async function loadCycleStats() {
-            const cycleStart = localStorage.getItem('cycleStartDate');
-            
+        async function loadCycleStats(cycleStart, cachedSettingsData = null) {
             try {
-                // 获取打卡记录
-                let url = '/api/settings';
-                
-                const response = await fetch(url);
-                const data = await response.json();
+                // 使用缓存的设置数据，避免重复请求
+                const data = cachedSettingsData || (await fetch('/api/settings').then(res => res.json()));
                 
                 console.log('统计 API 返回数据:', data);
                 
@@ -1272,8 +1269,8 @@
                         
                         console.log('打卡记录数据:', recordsData);
                         
-                        // API 返回格式是 { results: [...] } 或直接是数组
-                        const records = Array.isArray(recordsData) ? recordsData : (recordsData.results || []);
+                        // 统一处理 {success: true, data: [...]} 格式
+                        const records = recordsData.success ? (recordsData.data || []) : [];
                         
                         if (records.length > 0) {
                             const uniqueDates = new Set(records.map(r => r.duty_date));

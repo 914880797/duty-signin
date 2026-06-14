@@ -134,12 +134,12 @@
     function loadData() {
         Promise.all([fetch('/api/records'), fetch('/api/groups')]).then(([recRes, grpRes]) => {
             return Promise.all([recRes.json(), grpRes.json()]);
-        }).then(([records, grpData]) => {
-            console.log('Records:', records.length, 'Groups:', grpData);
+        }).then(([recData, grpData]) => {
+            // 统一处理 {success: true, data: [...]} 格式
+            const records = recData.success ? (recData.data || []) : (Array.isArray(recData) ? recData : []);
             groups = grpData.data || grpData || [];
-            console.log('Groups parsed:', groups);
+            console.log('Records:', records.length, 'Groups:', groups);
             allData = processDataByGroup(records);
-            console.log('allData:', allData);
             renderSheetTabs();
             if (groups.length > 0) { currentSheet = groups[0].name; renderTable(currentSheet); }
         }).catch(e => {

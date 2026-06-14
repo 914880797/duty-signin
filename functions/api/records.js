@@ -46,10 +46,16 @@ export async function onRequestGet({ request, env }) {
   try {
     const { results } = await env.DB.prepare(sql).bind(...args).all();
     
-    return Response.json(results || [], {
+    return Response.json({
+      success: true,
+      data: results || []
+    }, {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ 
+      success: false,
+      error: error.message 
+    }, { status: 500 });
   }
 }

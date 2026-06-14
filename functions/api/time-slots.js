@@ -7,8 +7,14 @@ export async function onRequestGet({ env }) {
       ORDER BY duty_time ASC
     `).all();
     
-    return Response.json(results || []);
+    return Response.json({
+      success: true,
+      data: results || []
+    });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ 
+      success: false,
+      error: error.message 
+    }, { status: 500 });
   }
 }

@@ -368,17 +368,18 @@
         async function loadTimeSlots() {
             try {
                 const response = await fetch('/api/time-slots');
-                const slots = await response.json();
+                const responseData = await response.json();
+                
+                // 统一处理 {success: true, data: [...]} 格式
+                const slots = responseData.success ? (responseData.data || []) : [];
                 
                 const select = document.getElementById('timeSlotSelect');
-                if (Array.isArray(slots)) {
-                    slots.forEach(slot => {
-                        const option = document.createElement('option');
-                        option.value = slot.time_slot;
-                        option.textContent = slot.time_slot;
-                        select.appendChild(option);
-                    });
-                }
+                slots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot.time_slot;
+                    option.textContent = slot.time_slot;
+                    select.appendChild(option);
+                });
             } catch (error) {
                 console.error('加载时段失败:', error);
             }
@@ -420,13 +421,16 @@
 
             if (startDate) params.append('start_date', startDate);
             if (endDate) params.append('end_date', endDate);
-            if (timeSlot) params.append('time_slot', timeSlot);
+            if (timeSlot) params.append('duty_time', timeSlot);
             if (groupId) params.append('group_id', groupId);
             if (name) params.append('name', name);
 
             try {
                 const response = await fetch(`/api/records?${params.toString()}`);
-                const records = await response.json();
+                const responseData = await response.json();
+                
+                // 统一处理 {success: true, data: [...]} 格式
+                const records = responseData.success ? (responseData.data || []) : [];
                 
                 allRecords = records;
                 filteredRecords = records;
