@@ -202,14 +202,17 @@
         .loading { text-align: center; color: #8c92ac; padding: 16px; }
 
         .back-btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            padding: 10px 16px; min-height: 44px;
+            display: inline-block;
+            padding: 10px 20px;
             background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
-            color: #e0e0e0; text-decoration: none; border-radius: 8px;
-            font-size: 13px; margin: 4px; line-height: 1;
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 5px;
+            font-size: 14px;
+            min-height: auto;
         }
-        .back-btn:hover, .back-btn:focus-visible { opacity: 0.8; }
-        .back-btn:focus-visible { outline: 2px solid #6c63ff; outline-offset: 2px; }
+        .back-btn:hover { opacity: 0.8; }
 
         .nav-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
 
@@ -256,9 +259,56 @@
         }
 
         @media (min-width: 1024px) {
-            .container { max-width: 1000px; padding: 32px 36px 40px; border-radius: 20px; }
-            .tabs { gap: 10px; }
+            body {
+                height: 100dvh;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                padding: 8px 15px;
+            }
+
+            .container {
+                max-width: 1000px;
+                max-height: calc(100dvh - 16px);
+                padding: 16px 20px;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            h1 {
+                margin-bottom: 8px;
+                font-size: 1.4rem;
+            }
+
+            .nav-row {
+                margin: 8px 0 !important;
+            }
+
+            .tabs {
+                flex-shrink: 0;
+                margin-bottom: 8px;
+                gap: 8px;
+            }
+
+            .tab-content.active {
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
+            }
+
             .shift-config-table { min-width: auto; }
+
+            .search-section { flex-shrink: 0; }
+            .assign-form { flex-shrink: 0; }
+            .info-box { flex-shrink: 0; }
+
+            .roster-list {
+                overflow-y: auto;
+                max-height: none;
+                flex: 1;
+                min-height: 0;
+            }
         }
 
         @media (max-width: 360px) {
@@ -1174,7 +1224,7 @@
             
             try {
                 // 1. 清空所有打卡记录
-                const clearResponse = await fetch('/api/settings', {
+                const clearResponse = await fetch('/api/admin/clear-records', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });

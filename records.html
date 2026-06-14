@@ -69,23 +69,20 @@
         }
 
         .back-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 44px;
-            padding: 10px 16px;
+            display: inline-block;
+            padding: 10px 20px;
             background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
             color: #e0e0e0;
             text-decoration: none;
             border-radius: 8px;
-            font-size: clamp(13px, 3vw, 14px);
+            margin: 5px;
+            font-size: 14px;
             transition: opacity 0.2s ease;
-            width: 100%;
-            max-width: 300px;
         }
 
-        .back-btn:hover,
-        .back-btn:focus-visible {
+        .back-btn:hover {
+            opacity: 0.8;
+        }
             opacity: 0.8;
             outline: 2px solid #6c63ff;
             outline-offset: 2px;
@@ -284,11 +281,6 @@
                 justify-content: center;
             }
 
-            .back-btn {
-                width: auto;
-                max-width: none;
-            }
-
             .filter-section {
                 flex-direction: row;
                 flex-wrap: wrap;
@@ -325,51 +317,57 @@
         /* ====== 桌面端: 1024px+ ====== */
         @media (min-width: 1024px) {
             body {
-                padding: 20px;
+                height: 100dvh;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
             }
 
             .container {
                 border-radius: 20px;
-                padding: 30px;
+                padding: 16px 20px;
+                max-height: calc(100dvh - 40px);
+                display: flex;
+                flex-direction: column;
             }
 
             h1 {
-                margin-bottom: 30px;
+                margin-bottom: 12px;
+                font-size: 1.5rem;
             }
 
             .page-header {
                 flex-direction: row;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 30px;
+                margin-bottom: 12px;
+                flex-shrink: 0;
             }
 
             .filter-section {
-                padding: 20px;
-                margin-bottom: 25px;
-                gap: 15px;
+                flex-shrink: 0;
+                margin-bottom: 12px;
+                padding: 10px 14px;
             }
 
-            .filter-group {
-                flex: 1 1 auto;
+            .action-bar {
+                flex-direction: row;
+                flex-shrink: 0;
             }
+
+            .btn { width: auto; }
 
             .table-container {
-                padding: 20px;
-                max-height: calc(100dvh - 350px);
-                min-height: 300px;
+                flex: 1;
+                min-height: 0;
+                max-height: none;
+                padding: 10px;
+                margin-top: 0;
             }
 
-            th {
-                padding: 15px;
-            }
-
-            td {
-                padding: 12px 15px;
-            }
-
-            .empty {
-                padding: 60px 20px;
+            .table-wrapper {
+                height: 100%;
+                overflow-y: auto;
             }
         }
 
@@ -387,14 +385,14 @@
 <body>
     <div class="container" role="main">
         <div class="page-header">
-            <h1>详细打卡记录</h1>
-            <nav class="back-nav" aria-label="页面导航">
-                <a href="/" class="back-btn">首页</a>
-                <a href="/admin.html" class="back-btn">排班管理</a>
-                <a href="/query.html" class="back-btn">排班查询</a>
-                <a href="/dashboard.html" class="back-btn">数据看板</a>
-                <a href="/export.html" class="back-btn">导出预览</a>
-            </nav>
+            <h1>📋 详细打卡记录</h1>
+            <div style="margin-bottom:15px; display:flex; flex-wrap:wrap;">
+                <a href="/" class="back-btn">🏠 首页</a>
+                <a href="/admin.html" class="back-btn">📅 排班管理</a>
+                <a href="/query.html" class="back-btn">🔍 排班查询</a>
+                <a href="/dashboard.html" class="back-btn">📊 数据看板</a>
+                <a href="/export.html" class="back-btn">📥 导出预览</a>
+            </div>
         </div>
 
         <!-- 筛选区域 -->

@@ -46,15 +46,13 @@
         }
         .back-btn {
             display: inline-block;
-            padding: 10px 16px;
+            padding: 10px 20px;
             background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
             color: #e0e0e0;
             text-decoration: none;
             border-radius: 8px;
-            font-size: clamp(12px, 3vw, 14px);
-            min-height: 44px;
-            line-height: 24px;
-            white-space: nowrap;
+            margin: 5px;
+            font-size: 14px;
         }
         .back-btn:hover { opacity: 0.8; }
 
@@ -229,25 +227,76 @@
 
         /* Desktop 1024px+ */
         @media (min-width: 1024px) {
-            body { padding: 20px 30px; padding-left: calc(30px + env(safe-area-inset-left)); padding-right: calc(30px + env(safe-area-inset-right)); }
-            .container { max-width: 100%; }
-            .header-section { margin-bottom: 25px; }
-            .stats-bar { gap: 40px; padding: 12px 20px; }
-            .sheet-tabs { flex-wrap: nowrap; justify-content: flex-start; }
+            body {
+                height: 100dvh;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                padding: 8px 15px;
+            }
+
+            .container {
+                max-height: calc(100dvh - 16px);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .header-section {
+                margin-bottom: 10px;
+                flex-shrink: 0;
+            }
+
+            .header-section h1 {
+                margin-bottom: 6px;
+                font-size: 1.4rem;
+            }
+
+            .header-section > div[style] {
+                margin-bottom: 8px !important;
+            }
+
+            .export-buttons {
+                margin-bottom: 6px;
+            }
+
+            .stats-bar {
+                gap: 30px;
+                padding: 8px 14px;
+                margin-bottom: 6px;
+                flex-shrink: 0;
+            }
+
+            .filter-section {
+                flex-shrink: 0;
+                margin-bottom: 8px;
+            }
+
+            .sheet-tabs {
+                flex-shrink: 0;
+                margin-bottom: 6px;
+            }
+
+            .table-outer-container {
+                flex: 1;
+                min-height: 0;
+                height: auto;
+                overflow-y: auto;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header-section">
-            <h1>导出预览</h1>
-            <nav class="export-nav" aria-label="页面导航">
-                <a href="/" class="back-btn" aria-label="返回打卡首页">打卡首页</a>
-                <a href="/admin.html" class="back-btn" aria-label="前往排班管理">排班管理</a>
-                <a href="/query.html" class="back-btn" aria-label="前往排班查询">排班查询</a>
-                <a href="/dashboard.html" class="back-btn" aria-label="前往数据看板">数据看板</a>
-                <a href="/records.html" class="back-btn" aria-label="查看详细记录">详细记录</a>
-            </nav>
+            <h1>📥 导出预览</h1>
+            <div style="margin-bottom:15px;">
+                <a href="/" class="back-btn">🏠 打卡首页</a>
+                <a href="/admin.html" class="back-btn">📅 排班管理</a>
+                <a href="/query.html" class="back-btn">🔍 排班查询</a>
+                <a href="/dashboard.html" class="back-btn">📊 数据看板</a>
+                <a href="/records.html" class="back-btn">📋 详细记录</a>
+            </div>
             <div class="export-buttons" role="toolbar" aria-label="导出操作">
                 <button onclick="window.exportExcel()" class="btn btn-export-excel" aria-label="导出为 Excel 文件">导出为 Excel</button>
             </div>
