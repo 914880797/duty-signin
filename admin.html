@@ -689,7 +689,7 @@
                 <tr>
                     <td>${index + 1}</td>
                     <td><input type="text" class="form-input" value="${shift.name}" onchange="updateShiftName(${shift.id}, this.value)" style="padding: 8px;"></td>
-                    <td><input type="time" class="time-input" value="${shift.startTime}" onchange="updateShiftTime(${shift.id}, 'start', this.value)"></td>
+                    <td><input type="time" class="time-input" value="${shift.startTime === '24:00' ? '00:00' : shift.startTime}" onchange="updateShiftTime(${shift.id}, 'start', this.value)"></td>
                     <td><input type="time" class="time-input" value="${shift.endTime === '24:00' ? '00:00' : shift.endTime}" onchange="updateShiftTime(${shift.id}, 'end', this.value)"></td>
                     <td><button onclick="deleteShiftConfig(${shift.id})" class="delete-shift-btn">🗑️ 删除</button></td>
                 </tr>
@@ -1002,7 +1002,7 @@
             const now = new Date();
             const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
             const bjTime = new Date(bjTimestamp);
-            const pad = (n) => String(n).padStart(2, '0');
+            const pad = (n) => (n < 10 ? '0' : '') + String(n);
             const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
             
             try {
@@ -1088,7 +1088,7 @@
             const now = new Date();
             const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
             const bjTime = new Date(bjTimestamp);
-            const pad = (n) => String(n).padStart(2, '0');
+            const pad = (n) => (n < 10 ? '0' : '') + String(n);
             const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
             
             try {
@@ -1164,7 +1164,7 @@
             const now = new Date();
             const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
             const bjTime = new Date(bjTimestamp);
-            const pad = (n) => String(n).padStart(2, '0');
+            const pad = (n) => (n < 10 ? '0' : '') + String(n);
             const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
             
             try {
@@ -1217,7 +1217,7 @@
                 const now = new Date();
                 const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
                 const bjTime = new Date(bjTimestamp);
-                const pad = (n) => String(n).padStart(2, '0');
+                const pad = (n) => (n < 10 ? '0' : '') + String(n);
                 const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
                 document.getElementById('cycleStartDate').value = today;
                 document.getElementById('currentCycleStart').innerText = '未设置';
@@ -1329,7 +1329,7 @@
             const now = new Date();
             const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
             const bjTime = new Date(bjTimestamp);
-            const pad = (n) => String(n).padStart(2, '0');
+            const pad = (n) => (n < 10 ? '0' : '') + String(n);
             const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
             
             try {
