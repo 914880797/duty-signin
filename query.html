@@ -4,202 +4,420 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>排班查询</title>
+    <script src="/utils/date-utils.js"></script>
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-surface: linear-gradient(145deg, #1a1a2e, #16213e);
+            --bg-card: rgba(0, 0, 0, 0.3);
+            --bg-filter: rgba(108, 99, 255, 0.1);
+            --border-color: #2a2a40;
+            --border-filter: rgba(108, 99, 255, 0.3);
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0c0;
+            --text-muted: #8c92ac;
+            --accent: #6c63ff;
+            --accent-dark: #4a41d4;
+            --radius-sm: 8px;
+            --radius-md: 10px;
+            --radius-lg: 15px;
+            --spacing-xs: 8px;
+            --spacing-sm: 12px;
+            --spacing-md: 16px;
+            --spacing-lg: 20px;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-left: env(safe-area-inset-left, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
+        }
+
+        html {
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #0f0f1a;
-            color: #e0e0e0;
-            padding: 20px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: var(--spacing-md) var(--safe-left);
+            padding-bottom: max(var(--spacing-md), var(--safe-bottom));
+            padding-top: max(var(--spacing-md), var(--safe-top));
+            min-height: 100dvh;
+            font-size: clamp(14px, 2.5vw, 16px);
+            line-height: 1.5;
+            overflow-x: hidden;
         }
+
         .container {
-            max-width: 900px;
+            max-width: 100%;
             margin: 0 auto;
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            padding: 30px;
-            border-radius: 15px;
-            border: 1px solid #2a2a40;
+            background: var(--bg-surface);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            width: 100%;
         }
-        h1 { color: #fff; margin-bottom: 20px; }
+
+        h1 {
+            color: #fff;
+            margin: 0 0 var(--spacing-md) 0;
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Navigation */
+        nav {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-size: clamp(12px, 2vw, 14px);
+            min-height: 44px;
+            word-break: break-word;
+        }
+
+        .back-btn:hover,
+        .back-btn:focus {
+            opacity: 0.8;
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        /* Filter Section */
         .filter-section {
-            background: rgba(108, 99, 255, 0.1);
-            border: 1px solid rgba(108, 99, 255, 0.3);
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: var(--bg-filter);
+            border: 1px solid var(--border-filter);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
         }
+
         .filter-row {
             display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
         }
+
         .filter-group {
             flex: 1;
-            min-width: 200px;
+            min-width: 0;
         }
+
         .filter-group label {
             display: block;
-            margin-bottom: 8px;
-            color: #b0b0c0;
-            font-size: 14px;
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-secondary);
+            font-size: clamp(12px, 2vw, 14px);
         }
-        .filter-group select, .filter-group input {
+
+        .filter-group select,
+        .filter-group input {
             width: 100%;
-            padding: 10px 12px;
-            background: rgba(0, 0, 0, 0.3);
+            padding: var(--spacing-sm);
+            background: var(--bg-card);
             border: 1px solid #3a3a50;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             color: #fff;
-            font-size: 14px;
+            font-size: inherit;
+            min-height: 44px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
-        .filter-group select:focus, .filter-group input:focus {
+
+        .filter-group select:focus,
+        .filter-group input:focus {
             outline: none;
-            border-color: #6c63ff;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.3);
         }
+
+        .filter-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23b0b0c0' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right var(--spacing-sm) center;
+            padding-right: calc(var(--spacing-sm) + 16px);
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+
         .btn {
-            padding: 12px 25px;
-            background: linear-gradient(90deg, #6c63ff, #4a41d4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            background: linear-gradient(90deg, var(--accent), var(--accent-dark));
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 14px;
-            margin: 5px;
+            font-size: inherit;
+            font-family: inherit;
+            min-height: 44px;
+            transition: opacity 0.15s ease;
+            word-break: break-word;
         }
-        .btn:hover { opacity: 0.9; }
+
+        .btn:hover,
+        .btn:focus {
+            opacity: 0.9;
+            outline: 2px solid #fff;
+            outline-offset: 2px;
+        }
+
+        .btn:active {
+            opacity: 0.85;
+            transform: scale(0.98);
+        }
+
         .btn-secondary {
             background: linear-gradient(90deg, #9e9e9e, #757575);
         }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .stat-card {
+            background: var(--bg-filter);
+            border: 1px solid var(--border-filter);
+            border-radius: var(--radius-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: clamp(10px, 2vw, 12px);
+            color: var(--text-muted);
+            margin-top: var(--spacing-xs);
+        }
+
+        /* Results */
         .result {
-            margin-top: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
+            margin-top: var(--spacing-md);
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm);
         }
+
         .group-section {
-            margin-bottom: 20px;
-            border: 1px solid #2a2a40;
-            border-radius: 10px;
-            max-height: 200px;
+            margin-bottom: var(--spacing-md);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            max-height: 250px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
+
         .group-header {
             background: rgba(108, 99, 255, 0.2);
-            padding: 12px 20px;
-            border-left: 4px solid #6c63ff;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-left: 4px solid var(--accent);
             font-weight: bold;
-            color: #6c63ff;
-            font-size: 16px;
+            color: var(--accent);
+            font-size: clamp(14px, 2.5vw, 16px);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            word-break: break-word;
         }
+
         .result-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 20px;
-            border-bottom: 1px solid #2a2a40;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
             background: rgba(30, 30, 60, 0.5);
+            gap: var(--spacing-sm);
+            min-height: 44px;
         }
+
         .result-item:last-child {
             border-bottom: none;
         }
+
         .result-item:hover {
             background: rgba(108, 99, 255, 0.1);
         }
+
         .result-time {
-            color: #6c63ff;
+            color: var(--accent);
             font-weight: bold;
-            min-width: 100px;
+            min-width: 80px;
+            font-size: clamp(12px, 2vw, 14px);
+            white-space: nowrap;
         }
+
         .result-name {
-            color: #e0e0e0;
+            color: var(--text-primary);
             flex: 1;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
+
         .empty {
-            padding: 40px;
+            padding: var(--spacing-lg) * 2;
+            padding: calc(var(--spacing-lg) * 2);
             text-align: center;
-            color: #8c92ac;
+            color: var(--text-muted);
+            word-break: break-word;
         }
-        .back-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
-            color: #e0e0e0;
-            text-decoration: none;
-            border-radius: 8px;
-            margin: 5px;
-            font-size: 14px;
+
+        /* Tablet 600px+ */
+        @media (min-width: 600px) {
+            body {
+                padding: var(--spacing-lg);
+                padding-bottom: max(var(--spacing-lg), var(--safe-bottom));
+                padding-top: max(var(--spacing-lg), var(--safe-top));
+            }
+
+            .container {
+                padding: var(--spacing-lg);
+                border-radius: var(--radius-lg);
+            }
+
+            .filter-row {
+                flex-direction: row;
+            }
+
+            .group-section {
+                max-height: 350px;
+            }
+
+            .result-time {
+                min-width: 100px;
+            }
         }
-        .back-btn:hover { opacity: 0.8; }
-        .stats {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+
+        /* Desktop 1024px+ */
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 900px;
+            }
+
+            .filter-row {
+                flex-direction: row;
+            }
+
+            .group-section {
+                max-height: 400px;
+            }
         }
-        .stat-card {
-            background: rgba(108, 99, 255, 0.1);
-            border: 1px solid rgba(108, 99, 255, 0.3);
-            border-radius: 8px;
-            padding: 12px 20px;
-            flex: 1;
-            min-width: 150px;
-            text-align: center;
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+
+            .btn:active {
+                transform: none;
+            }
         }
-        .stat-number {
-            font-size: 24px;
-            font-weight: bold;
-            color: #6c63ff;
+
+        /* Scrollbar styling for webkit */
+        .group-section::-webkit-scrollbar {
+            width: 6px;
         }
-        .stat-label {
-            font-size: 12px;
-            color: #8c92ac;
-            margin-top: 5px;
+
+        .group-section::-webkit-scrollbar-track {
+            background: var(--bg-card);
+        }
+
+        .group-section::-webkit-scrollbar-thumb {
+            background: #3a3a50;
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📅 排班查询</h1>
-        
+    <div class="container" role="main">
+        <h1>排班查询</h1>
+
         <!-- 筛选区域 -->
         <div class="filter-section">
-            <div style="margin-bottom:15px;">
-                <a href="/" class="back-btn" style="margin-right:5px;">🏠 首页</a>
-                <a href="/admin.html" class="back-btn" style="margin-right:5px;">📅 排班管理</a>
-                <a href="/dashboard.html" class="back-btn" style="margin-right:5px;">📊 数据看板</a>
-                <a href="/records.html" class="back-btn" style="margin-right:5px;">📋 详细记录</a>
-                <a href="/export.html" class="back-btn">📥 导出预览</a>
-            </div>
+            <nav aria-label="主导航">
+                <div class="nav-links">
+                    <a href="/" class="back-btn" aria-label="返回首页">首页</a>
+                    <a href="/admin.html" class="back-btn" aria-label="排班管理">排班管理</a>
+                    <a href="/dashboard.html" class="back-btn" aria-label="数据看板">数据看板</a>
+                    <a href="/records.html" class="back-btn" aria-label="详细记录">详细记录</a>
+                    <a href="/export.html" class="back-btn" aria-label="导出预览">导出预览</a>
+                </div>
+            </nav>
             <div class="filter-row">
                 <div class="filter-group">
-                    <label>选择时段</label>
-                    <select id="shiftSelect">
+                    <label for="shiftSelect">选择时段</label>
+                    <select id="shiftSelect" aria-label="选择时段">
                         <option value="">-- 全部时段 --</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label>选择分组</label>
-                    <select id="groupSelect">
+                    <label for="groupSelect">选择分组</label>
+                    <select id="groupSelect" aria-label="选择分组">
                         <option value="">-- 全部分组 --</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label>按姓名搜索</label>
-                    <input type="text" id="nameSearch" placeholder="输入姓名关键词">
+                    <label for="nameSearch">按姓名搜索</label>
+                    <input type="text" id="nameSearch" placeholder="输入姓名关键词" aria-label="按姓名搜索">
                 </div>
             </div>
-            
-            <div>
-                <button onclick="queryRoster()" class="btn">🔍 查询</button>
-                <button onclick="clearFilters()" class="btn btn-secondary">清除筛选</button>
+
+            <div class="btn-group">
+                <button onclick="queryRoster()" class="btn" aria-label="查询排班">查询</button>
+                <button onclick="clearFilters()" class="btn btn-secondary" aria-label="清除筛选">清除筛选</button>
             </div>
         </div>
-        
+
         <!-- 统计信息 -->
-        <div id="stats" class="stats" style="display: none;"></div>
+        <div id="stats" class="stats" role="status" aria-live="polite" aria-label="统计信息" style="display: none;"></div>
 
         <!-- 结果区域 -->
-        <div id="result" class="result" style="display: none;"></div>
+        <div id="result" class="result" role="region" aria-live="polite" aria-label="查询结果" style="display: none;"></div>
     </div>
 
     <script>
@@ -270,12 +488,8 @@
             const groupId = document.getElementById('groupSelect').value;
             const nameSearch = document.getElementById('nameSearch').value.trim();
             
-            // 使用北京时间获取今天日期查询排班
-            const now = new Date();
-            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
-            const bjTime = new Date(bjTimestamp);
-            const pad = (n) => String(n).padStart(2, '0');
-            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
+            // 使用 DateUtils 获取北京时间今天日期查询排班
+            const today = DateUtils.todayBeijing();
             
             const resultEl = document.getElementById('result');
             resultEl.style.display = 'block';
@@ -286,7 +500,7 @@
                 const data = await response.json();
 
                 if (!response.ok || !data.success) {
-                    resultEl.innerHTML = '<div class="empty">❌ 查询失败：' + (data.error || '未知错误') + '</div>';
+                    resultEl.innerHTML = '<div class="empty">查询失败：' + (data.error || '未知错误') + '</div>';
                     return;
                 }
 
@@ -307,7 +521,7 @@
                 renderStats(filteredRoster);
             } catch (error) {
                 console.error('查询失败:', error);
-                resultEl.innerHTML = '<div class="empty">❌ 网络请求失败</div>';
+                resultEl.innerHTML = '<div class="empty">网络请求失败</div>';
             }
         }
 

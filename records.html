@@ -4,18 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>详细打卡记录 - 值班打卡系统</title>
+    <script src="/utils/date-utils.js"></script>
     <style>
-        * {
+        *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
         body {
             font-family: 'Microsoft YaHei', Arial, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            padding: 20px;
+            min-height: 100dvh;
+            padding: 12px;
+            padding-top: calc(12px + env(safe-area-inset-top));
+            padding-right: calc(12px + env(safe-area-inset-right));
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            padding-left: calc(12px + env(safe-area-inset-left));
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            font-size: clamp(14px, 2.5vw, 16px);
+            line-height: 1.5;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
 
         .container {
@@ -23,106 +39,126 @@
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 12px;
+            padding: 16px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 10px 18px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-export {
-            background: linear-gradient(90deg, #4caf50, #45a049);
-            color: white;
-        }
-
-        .btn-export:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
-        }
-
-        .btn-back {
-            background: rgba(108, 99, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(108, 99, 255, 0.5);
-        }
-
-        .btn-back:hover {
-            background: rgba(108, 99, 255, 0.4);
         }
 
         h1 {
             color: #fff;
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 28px;
+            margin-bottom: 20px;
+            font-size: clamp(1.25rem, 5vw, 1.75rem);
         }
 
-        /* 筛选区域 */
+        .page-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        /* 导航按钮区域 */
+        nav.back-nav {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 10px 16px;
+            background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: clamp(13px, 3vw, 14px);
+            transition: opacity 0.2s ease;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .back-btn:hover,
+        .back-btn:focus-visible {
+            opacity: 0.8;
+            outline: 2px solid #6c63ff;
+            outline-offset: 2px;
+        }
+
+        /* 筛选区域 - Mobile First: 纵向堆叠 */
         .filter-section {
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 25px;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 16px;
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .filter-group {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .filter-group label {
             color: #b0b0c0;
-            font-size: 14px;
-            white-space: nowrap;
+            font-size: clamp(12px, 3vw, 14px);
         }
 
         .filter-group input,
         .filter-group select {
-            padding: 10px 15px;
+            min-height: 44px;
+            padding: 10px 12px;
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid #3a3a50;
             border-radius: 8px;
             color: #fff;
-            font-size: 14px;
+            font-size: clamp(13px, 3vw, 14px);
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
         }
 
-        /* 按钮样式 */
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: 2px solid #6c63ff;
+            outline-offset: 0;
+        }
+
+        .action-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* 通用按钮样式 */
         .btn {
-            padding: 10px 20px;
+            min-height: 44px;
+            padding: 10px 16px;
             border: none;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: clamp(13px, 3vw, 14px);
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 2px;
         }
 
         .btn-primary {
@@ -131,8 +167,8 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
         }
 
         .btn-secondary {
@@ -151,47 +187,59 @@
         }
 
         .btn-export:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
         }
 
-        .action-bar {
-            display: flex;
-            gap: 10px;
-            margin-left: auto;
+        .btn-back {
+            background: rgba(108, 99, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(108, 99, 255, 0.5);
+        }
+
+        .btn-back:hover {
+            background: rgba(108, 99, 255, 0.4);
         }
 
         /* 数据表格 */
-        .table-container {
+        .table-wrapper {
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-container {
             overflow-y: auto;
-            max-height: calc(100vh - 350px);
-            min-height: 300px;
+            max-height: calc(100dvh - 400px);
+            min-height: 200px;
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 20px;
+            border-radius: 12px;
+            padding: 8px;
         }
 
         table {
             width: 100%;
+            min-width: 500px;
             border-collapse: collapse;
         }
 
         th {
             background: rgba(108, 99, 255, 0.2);
             color: #6c63ff;
-            padding: 15px;
+            padding: 10px 12px;
             text-align: left;
             font-weight: bold;
-            font-size: 14px;
+            font-size: clamp(12px, 2.5vw, 14px);
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 1;
         }
 
         td {
-            padding: 12px 15px;
+            padding: 8px 12px;
             color: #e0e0e0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 14px;
+            font-size: clamp(12px, 2.5vw, 14px);
         }
 
         tr:hover td {
@@ -204,127 +252,209 @@
 
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 30px;
             color: #8c92ac;
         }
 
         .empty {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 16px;
             color: #8c92ac;
         }
 
         .empty-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
+            font-size: clamp(48px, 10vw, 64px);
+            margin-bottom: 16px;
         }
 
-        /* 导航按钮 */
-        .back-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
-            color: #e0e0e0;
-            text-decoration: none;
-            border-radius: 8px;
-            margin: 5px;
-            font-size: 14px;
-        }
-        .back-btn:hover { opacity: 0.8; }
+        /* ====== 平板端: 600px+ ====== */
+        @media (min-width: 600px) {
+            body {
+                padding: 16px;
+            }
 
-        /* 导出预览弹窗 */
-        @media (max-width: 768px) {
+            .container {
+                border-radius: 16px;
+                padding: 20px;
+            }
+
+            nav.back-nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .back-btn {
+                width: auto;
+                max-width: none;
+            }
+
             .filter-section {
-                flex-direction: column;
-                align-items: stretch;
+                flex-direction: row;
+                flex-wrap: wrap;
+                padding: 16px;
             }
 
             .filter-group {
-                flex-direction: column;
-                align-items: stretch;
+                flex-direction: row;
+                align-items: center;
+                flex: 1 1 calc(50% - 8px);
+                min-width: 200px;
+            }
+
+            .filter-group input,
+            .filter-group select {
+                flex: 1;
             }
 
             .action-bar {
-                margin-left: 0;
-                flex-wrap: wrap;
+                flex-direction: row;
+                align-items: center;
             }
 
             .btn {
-                flex: 1;
-                min-width: 120px;
+                width: auto;
+            }
+
+            .table-container {
+                padding: 12px;
+                min-height: 250px;
+            }
+        }
+
+        /* ====== 桌面端: 1024px+ ====== */
+        @media (min-width: 1024px) {
+            body {
+                padding: 20px;
+            }
+
+            .container {
+                border-radius: 20px;
+                padding: 30px;
+            }
+
+            h1 {
+                margin-bottom: 30px;
+            }
+
+            .page-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+            }
+
+            .filter-section {
+                padding: 20px;
+                margin-bottom: 25px;
+                gap: 15px;
+            }
+
+            .filter-group {
+                flex: 1 1 auto;
+            }
+
+            .table-container {
+                padding: 20px;
+                max-height: calc(100dvh - 350px);
+                min-height: 300px;
+            }
+
+            th {
+                padding: 15px;
+            }
+
+            td {
+                padding: 12px 15px;
+            }
+
+            .empty {
+                padding: 60px 20px;
+            }
+        }
+
+        /* ====== 减少动画偏好 ====== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" role="main">
         <div class="page-header">
-            <h1>📋 详细打卡记录</h1>
+            <h1>详细打卡记录</h1>
+            <nav class="back-nav" aria-label="页面导航">
+                <a href="/" class="back-btn">首页</a>
+                <a href="/admin.html" class="back-btn">排班管理</a>
+                <a href="/query.html" class="back-btn">排班查询</a>
+                <a href="/dashboard.html" class="back-btn">数据看板</a>
+                <a href="/export.html" class="back-btn">导出预览</a>
+            </nav>
         </div>
 
         <!-- 筛选区域 -->
-        <div class="filter-section">
-            <div style="margin-bottom:15px;">
-                <a href="/" class="back-btn">🏠 首页</a>
-                <a href="/admin.html" class="back-btn">📅 排班管理</a>
-                <a href="/query.html" class="back-btn">🔍 排班查询</a>
-                <a href="/dashboard.html" class="back-btn">📊 数据看板</a>
-                <a href="/export.html" class="back-btn">📥 导出预览</a>
-            </div>
+        <div class="filter-section" role="search" aria-label="筛选条件">
             <div class="filter-group">
-                <label>开始日期</label>
-                <input type="date" id="startDate">
+                <label for="startDate">开始日期</label>
+                <input type="date" id="startDate" aria-label="筛选开始日期">
             </div>
 
             <div class="filter-group">
-                <label>结束日期</label>
-                <input type="date" id="endDate">
+                <label for="endDate">结束日期</label>
+                <input type="date" id="endDate" aria-label="筛选结束日期">
             </div>
 
             <div class="filter-group">
-                <label>时段</label>
-                <select id="timeSlotSelect">
+                <label for="timeSlotSelect">时段</label>
+                <select id="timeSlotSelect" aria-label="筛选时段">
                     <option value="">全部时段</option>
                 </select>
             </div>
 
             <div class="filter-group">
-                <label>分组</label>
-                <select id="groupSelect">
+                <label for="groupSelect">分组</label>
+                <select id="groupSelect" aria-label="筛选分组">
                     <option value="">全部分组</option>
                 </select>
             </div>
 
             <div class="filter-group">
-                <label>姓名</label>
-                <input type="text" id="nameInput" placeholder="输入姓名">
+                <label for="nameInput">姓名</label>
+                <input type="text" id="nameInput" placeholder="输入姓名" aria-label="按姓名筛选">
             </div>
 
             <div class="action-bar">
-                <button onclick="loadData()" class="btn btn-export">🔄 刷新数据</button>
-                <button onclick="clearFilters()" class="btn btn-back">清除筛选</button>
+                <button onclick="loadData()" class="btn btn-export" aria-label="刷新数据">刷新数据</button>
+                <button onclick="clearFilters()" class="btn btn-back" aria-label="清除所有筛选条件">清除筛选</button>
             </div>
         </div>
 
         <!-- 数据表格 -->
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>日期</th>
-                        <th>时段</th>
-                        <th>姓名</th>
-                        <th>分组</th>
-                        <th>打卡时间</th>
-                        <th>IP 地址</th>
-                    </tr>
-                </thead>
-                <tbody id="recordsBody">
-                    <tr>
-                        <td colspan="6" class="loading">加载中...</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="table-container" role="region" aria-label="打卡记录表格" tabindex="0">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">日期</th>
+                            <th scope="col">时段</th>
+                            <th scope="col">姓名</th>
+                            <th scope="col">分组</th>
+                            <th scope="col">打卡时间</th>
+                            <th scope="col">IP 地址</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody">
+                        <tr>
+                            <td colspan="6" class="loading">加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -334,12 +464,8 @@
 
         // 页面加载时初始化
         window.addEventListener('DOMContentLoaded', async () => {
-            const now = new Date();
-            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
-            const bjTime = new Date(bjTimestamp);
-            const pad = (n) => String(n).padStart(2, '0');
-            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
-            
+            const today = DateUtils.todayBeijing();
+
             // 获取设置的打卡起始日期
             let startDate = today;
             try {
@@ -348,14 +474,12 @@
                 if (settings.cycleStartDate) {
                     startDate = settings.cycleStartDate;
                 } else {
-                    // 如果没有设置，默认为 30 天前
-                    const defaultStart = new Date(bjTimestamp - (30 * 24 * 60 * 60 * 1000));
-                    startDate = `${defaultStart.getUTCFullYear()}-${pad(defaultStart.getUTCMonth() + 1)}-${pad(defaultStart.getUTCDate())}`;
+                    startDate = DateUtils.daysAgoBeijing(30);
                 }
             } catch (error) {
                 console.error('加载设置失败:', error);
             }
-            
+
             document.getElementById('endDate').value = today;
             document.getElementById('startDate').value = startDate;
 
@@ -369,10 +493,9 @@
             try {
                 const response = await fetch('/api/time-slots');
                 const responseData = await response.json();
-                
-                // 统一处理 {success: true, data: [...]} 格式
+
                 const slots = responseData.success ? (responseData.data || []) : [];
-                
+
                 const select = document.getElementById('timeSlotSelect');
                 slots.forEach(slot => {
                     const option = document.createElement('option');
@@ -391,7 +514,7 @@
                 const response = await fetch('/api/groups');
                 const result = await response.json();
                 const groups = result.data || [];
-                
+
                 const select = document.getElementById('groupSelect');
                 if (Array.isArray(groups)) {
                     groups.forEach(group => {
@@ -412,7 +535,7 @@
             tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
 
             const params = new URLSearchParams();
-            
+
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
             const timeSlot = document.getElementById('timeSlotSelect').value;
@@ -428,10 +551,9 @@
             try {
                 const response = await fetch(`/api/records?${params.toString()}`);
                 const responseData = await response.json();
-                
-                // 统一处理 {success: true, data: [...]} 格式
+
                 const records = responseData.success ? (responseData.data || []) : [];
-                
+
                 allRecords = records;
                 filteredRecords = records;
 
@@ -466,30 +588,20 @@
         // 格式化时间（转换为北京时间）
         function formatTime(isoString) {
             const date = new Date(isoString);
-            // 转换为北京时间（UTC+8）
-            const bjTimestamp = date.getTime() + (8 * 60 * 60 * 1000);
-            const bjDate = new Date(bjTimestamp);
-            const pad = (n) => String(n).padStart(2, '0');
-            return `${bjDate.getUTCFullYear()}-${pad(bjDate.getUTCMonth() + 1)}-${pad(bjDate.getUTCDate())} ${pad(bjDate.getUTCHours())}:${pad(bjDate.getUTCMinutes())}`;
+            return DateUtils.formatBeijingTime(date);
         }
 
         // 清除筛选
         function clearFilters() {
-            const now = new Date();
-            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
-            const bjTime = new Date(bjTimestamp);
-            const pad = (n) => String(n).padStart(2, '0');
-            const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
-            
-            const startDate = new Date(bjTimestamp - (30 * 24 * 60 * 60 * 1000));
-            const startStr = `${startDate.getUTCFullYear()}-${pad(startDate.getUTCMonth() + 1)}-${pad(startDate.getUTCDate())}`;
+            const today = DateUtils.todayBeijing();
+            const startStr = DateUtils.daysAgoBeijing(30);
 
             document.getElementById('startDate').value = startStr;
             document.getElementById('endDate').value = today;
             document.getElementById('timeSlotSelect').value = '';
             document.getElementById('groupSelect').value = '';
             document.getElementById('nameInput').value = '';
-            
+
             loadData();
         }
     </script>

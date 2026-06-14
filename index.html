@@ -2,404 +2,399 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f0f1a">
     <title>夜聊值班打卡</title>
     <style>
-        /* --- 全局样式重置 --- */
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #0f0f1a;
             color: #e0e0e0;
-            min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
+            align-items: flex-start;
+            padding: env(safe-area-inset-top, 12px) 12px env(safe-area-inset-bottom, 12px);
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
         }
 
-        /* --- 主容器 --- */
         .container {
             width: 100%;
             max-width: 500px;
             background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            padding: 20px 16px 24px;
             text-align: center;
             border: 1px solid #2a2a40;
             position: relative;
+            margin-top: env(safe-area-inset-top, 8px);
         }
 
-        /* --- Logo 和标题 --- */
         .logo {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             color: #fff;
+            word-break: break-word;
         }
 
-        /* 导航按钮 */
+        .nav-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
         .back-btn {
-            display: inline-block;
-            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 18px;
+            min-height: 44px;
             background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
             color: #e0e0e0;
             text-decoration: none;
             border-radius: 8px;
-            margin: 5px;
-            font-size: 13px;
+            font-size: 14px;
+            line-height: 1;
+            transition: opacity 0.2s;
         }
-        .back-btn:hover { opacity: 0.8; }
 
-        .logo-icon {
-            font-size: 32px;
-        }
+        .back-btn:hover, .back-btn:focus-visible { opacity: 0.8; }
+        .back-btn:focus-visible { outline: 2px solid #6c63ff; outline-offset: 2px; }
 
         .subtitle {
-            font-size: 14px;
+            font-size: 13px;
             color: #8c92ac;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
-        /* --- 管理入口按钮 --- */
         .admin-link {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 12px;
+            right: 12px;
             font-size: 12px;
             color: #6c63ff;
             text-decoration: none;
-            padding: 5px 10px;
+            padding: 6px 10px;
+            min-height: 44px;
+            min-width: 44px;
+            display: inline-flex;
+            align-items: center;
             border: 1px solid #6c63ff;
-            border-radius: 5px;
-            transition: all 0.2s;
+            border-radius: 8px;
+            transition: background 0.2s;
         }
 
-        .admin-link:hover {
+        .admin-link:hover, .admin-link:focus-visible {
             background: rgba(108, 99, 255, 0.2);
         }
 
-        /* --- 时间显示区 --- */
         .clock-section {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
+            border-radius: 12px;
+            padding: 16px 12px;
+            margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .time-display {
-            font-size: 48px;
+            font-size: clamp(32px, 8vw, 48px);
             font-weight: 300;
             color: #6c63ff;
-            font-family: 'Courier New', monospace;
+            font-family: 'Courier New', Courier, monospace;
             letter-spacing: 2px;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
+            font-variant-numeric: tabular-nums;
         }
 
         .date-display {
-            font-size: 14px;
+            font-size: 13px;
             color: #8c92ac;
         }
 
-        /* --- 输入区 --- */
         .input-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             text-align: left;
         }
 
         .input-label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-size: 14px;
             color: #b0b0c0;
         }
 
         .text-input {
             width: 100%;
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid #3a3a50;
+            padding: 12px 14px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1.5px solid #3a3a50;
             border-radius: 10px;
             color: #fff;
             font-size: 16px;
+            line-height: 1.4;
             outline: none;
-            transition: border-color 0.3s;
+            transition: border-color 0.25s;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
-        .text-input::placeholder {
-            color: #555;
-        }
+        .text-input::placeholder { color: #555; }
+        .text-input:focus { border-color: #6c63ff; }
 
-        .text-input:focus {
-            border-color: #6c63ff;
-        }
-
-        /* --- 按钮 --- */
         .submit-btn {
             width: 100%;
-            padding: 15px;
+            padding: 14px;
+            min-height: 48px;
             background: linear-gradient(90deg, #6c63ff, #4a41d4);
             border: none;
             border-radius: 10px;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
+            color: #fff;
+            font-size: 17px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-bottom: 25px;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+            margin-bottom: 20px;
+            touch-action: manipulation;
         }
 
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.4);
-        }
+        .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 12px rgba(108, 99, 255, 0.35); }
+        .submit-btn:active { transform: translateY(0); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-        /* --- 说明区 --- */
         .info-box {
             background: rgba(30, 30, 60, 0.5);
             border: 1px solid rgba(108, 99, 255, 0.3);
             border-radius: 10px;
-            padding: 15px;
+            padding: 14px 12px;
             text-align: left;
-            margin-top: 20px;
+            margin-top: 16px;
         }
 
         .info-title {
             color: #6c63ff;
-            font-weight: bold;
-            margin-bottom: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             font-size: 14px;
         }
 
         .shift-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 6px;
             font-size: 11px;
             color: #ccc;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .shift-item {
             background: rgba(108, 99, 255, 0.1);
-            padding: 6px 8px;
-            border-radius: 4px;
+            padding: 6px 4px;
+            border-radius: 5px;
             text-align: center;
             border: 1px solid rgba(108, 99, 255, 0.2);
+            word-break: break-all;
+            line-height: 1.3;
         }
 
         .shift-item.night {
             background: rgba(255, 107, 107, 0.15);
             border-color: rgba(255, 107, 107, 0.3);
             color: #ff8a80;
-            font-weight: bold;
+            font-weight: 600;
+            grid-column: 1 / -1;
         }
 
         .rules-list {
-            font-size: 11px;
+            font-size: 12px;
             color: #8c92ac;
-            line-height: 1.8;
+            line-height: 1.7;
             border-top: 1px solid rgba(108, 99, 255, 0.2);
             padding-top: 10px;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
-        .rules-list strong {
-            color: #6c63ff;
+        .rules-list strong { color: #6c63ff; }
+        .warning-text { color: #ff6b6b; font-weight: 600; margin-top: 4px; }
+
+        @media (min-width: 600px) {
+            body { align-items: center; padding: 20px; }
+            .container { padding: 32px 36px 40px; border-radius: 20px; }
+            .logo { font-size: 28px; margin-bottom: 10px; }
+            .subtitle { font-size: 14px; margin-bottom: 24px; }
+            .nav-row { margin: 16px 0; }
+            .clock-section { padding: 20px; margin-bottom: 28px; }
+            .input-group { margin-bottom: 24px; }
+            .submit-btn { margin-bottom: 24px; }
+            .info-box { margin-top: 20px; padding: 16px; }
+            .shift-grid { grid-template-columns: repeat(4, 1fr); }
+            .shift-item.night { grid-column: auto; }
         }
 
-        .warning-text {
-            color: #ff6b6b;
-            font-weight: bold;
-            margin-top: 5px;
+        @media (min-width: 1024px) {
+            .container { max-width: 540px; }
+            .shift-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 360px) {
+            .container { padding: 16px 12px 20px; border-radius: 12px; }
+            .logo { font-size: 20px; }
+            .shift-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+            }
         }
     </style>
+    <script src="/utils/date-utils.js"></script>
 </head>
 <body>
 
     <div class="container">
-        <!-- 管理入口 -->
-        <a href="/admin.html" class="admin-link">⚙️ 管理</a>
-        
-        <!-- 头部 -->
+
+        <a href="/admin.html" class="admin-link" aria-label="进入管理后台">\u2699\uFE0F 管理</a>
+
         <div class="logo">
-            <span class="logo-icon">📋</span>
-            夜聊值班打卡
+            <span class="logo-icon" aria-hidden="true">\U0001F4CB</span>
+            <span>夜聊值班打卡</span>
         </div>
         <div class="subtitle">输入姓名，系统自动匹配值班时段</div>
-        
-        <!-- 导航按钮 -->
-        <div style="margin:15px 0;">
-            <a href="/query.html" class="back-btn">🔍 排班查询</a>
-            <a href="/export.html" class="back-btn">📝 打卡查询</a>
+
+        <nav class="nav-row" aria-label="页面导航">
+            <a href="/query.html" class="back-btn">\U0001F50D 排班查询</a>
+            <a href="/export.html" class="back-btn">\U0001F4DD 打卡查询</a>
+        </nav>
+
+        <div class="clock-section" aria-label="当前北京时间">
+            <div class="time-display" id="current-time" aria-live="polite">00:00:00</div>
+            <div class="date-display" id="current-date">--</div>
         </div>
 
-        <!-- 时间模块 -->
-        <div class="clock-section">
-            <div class="time-display" id="current-time">00:00:00</div>
-            <div class="date-display" id="current-date">2026/06/09 二</div>
-        </div>
-
-        <!-- 输入表单 -->
-        <form onsubmit="handleSignin(event)">
+        <form onsubmit="handleSignin(event)" autocomplete="off" novalidate>
             <div class="input-group">
-                <label class="input-label">请输入您的值班姓名</label>
-                <input type="text" id="name" class="text-input" placeholder="例如：领悟" required autocomplete="off">
+                <label class="input-label" for="name">请输入您的值班姓名</label>
+                <input type="text" id="name" class="text-input" placeholder="例如：领悟" required
+                       autocomplete="off" autocapitalize="off" enterKeyHint="go">
             </div>
-
             <button type="submit" class="submit-btn">立即打卡</button>
         </form>
 
-        <!-- 值班时段说明 -->
         <div class="info-box">
-            <div class="info-title">📌 值班时段</div>
-            <div class="shift-grid" id="shiftGrid">
-                <div class="shift-item">04:00-06:00</div>
-                <div class="shift-item">06:00-08:00</div>
-                <div class="shift-item">08:00-09:30</div>
-                <div class="shift-item">09:30-11:00</div>
-                <div class="shift-item">11:00-12:30</div>
-                <div class="shift-item">12:30-14:00</div>
-                <div class="shift-item">14:00-15:30</div>
-                <div class="shift-item">15:30-17:00</div>
-                <div class="shift-item">17:00-18:30</div>
-                <div class="shift-item">18:30-20:00</div>
-                <div class="shift-item">20:00-21:30</div>
-                <div class="shift-item">21:30-23:00</div>
-                <div class="shift-item">23:00-24:00</div>
-                <div class="shift-item night">🌙 24:00-04:00 (夜班)</div>
+            <div class="info-title">\U0001F4CC 值班时段</div>
+            <div class="shift-grid" id="shiftGrid" role="list">
             </div>
-            
             <div class="rules-list">
-                <strong>⚠️ 打卡规则：</strong><br>
+                <strong>\u26A0\uFE0F 打卡规则：</strong><br>
                 1. 只有参与值班的人员才能打卡<br>
                 2. 必须在本人值班时间段内打卡<br>
                 3. 每人每天每个时段限打卡一次
-                <div class="warning-text">
-
-                </div>
+                <div class="warning-text"></div>
             </div>
         </div>
     </div>
 
     <script>
-        const defaultShifts = [
-            { id: 1, name: '04:00-06:00', startTime: '04:00', endTime: '06:00' },
-            { id: 2, name: '06:00-08:00', startTime: '06:00', endTime: '08:00' },
-            { id: 3, name: '08:00-09:30', startTime: '08:00', endTime: '09:30' },
-            { id: 4, name: '09:30-11:00', startTime: '09:30', endTime: '11:00' },
-            { id: 5, name: '11:00-12:30', startTime: '11:00', endTime: '12:30' },
-            { id: 6, name: '12:30-14:00', startTime: '12:30', endTime: '14:00' },
-            { id: 7, name: '14:00-15:30', startTime: '14:00', endTime: '15:30' },
-            { id: 8, name: '15:30-17:00', startTime: '15:30', endTime: '17:00' },
-            { id: 9, name: '17:00-18:30', startTime: '17:00', endTime: '18:30' },
-            { id: 10, name: '18:30-20:00', startTime: '18:30', endTime: '20:00' },
-            { id: 11, name: '20:00-21:30', startTime: '20:00', endTime: '21:30' },
-            { id: 12, name: '21:30-23:00', startTime: '21:30', endTime: '23:00' },
-            { id: 13, name: '23:00-24:00', startTime: '23:00', endTime: '24:00' },
-            { id: 14, name: '24:00-04:00', startTime: '24:00', endTime: '04:00' }
+        var defaultShifts = [
+            { id: 1, name: '04:00-06:00' },
+            { id: 2, name: '06:00-08:00' },
+            { id: 3, name: '08:00-09:30' },
+            { id: 4, name: '09:30-11:00' },
+            { id: 5, name: '11:00-12:30' },
+            { id: 6, name: '12:30-14:00' },
+            { id: 7, name: '14:00-15:30' },
+            { id: 8, name: '15:30-17:00' },
+            { id: 9, name: '17:00-18:30' },
+            { id: 10, name: '18:30-20:00' },
+            { id: 11, name: '20:00-21:30' },
+            { id: 12, name: '21:30-23:00' },
+            { id: 13, name: '23:00-24:00' },
+            { id: 14, name: '24:00-04:00' }
         ];
 
-        // 1. 实时时钟逻辑（显示北京时间）
         function updateClock() {
-            const now = new Date();
-            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
-            const bjDate = new Date(bjTimestamp);
-            
-            const pad = (n) => String(n).padStart(2, '0');
-            const timeStr = `${pad(bjDate.getUTCHours())}:${pad(bjDate.getUTCMinutes())}:${pad(bjDate.getUTCSeconds())}`;
-            const dateStr = `${bjDate.getUTCFullYear()}/${pad(bjDate.getUTCMonth() + 1)}/${pad(bjDate.getUTCDate())}`;
-            
-            document.getElementById('current-time').innerText = timeStr;
-            document.getElementById('current-date').innerText = dateStr;
+            var bj = DateUtils.getBeijingNow();
+            var h = String(bj.getUTCHours()).padStart(2, '0');
+            var m = String(bj.getUTCMinutes()).padStart(2, '0');
+            var s = String(bj.getUTCSeconds()).padStart(2, '0');
+            document.getElementById('current-time').innerText = h + ':' + m + ':' + s;
+            var Y = bj.getUTCFullYear();
+            var M = String(bj.getUTCMonth() + 1).padStart(2, '0');
+            var D = String(bj.getUTCDate()).padStart(2, '0');
+            document.getElementById('current-date').innerText = Y + '/' + M + '/' + D;
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        // 2. 加载时段配置
         function loadShiftConfig() {
-            const shiftConfig = JSON.parse(localStorage.getItem('shiftConfig')) || defaultShifts;
+            var shiftConfig = JSON.parse(localStorage.getItem('shiftConfig')) || defaultShifts;
             renderShiftGrid(shiftConfig);
         }
 
         function renderShiftGrid(shiftConfig) {
-            const grid = document.getElementById('shiftGrid');
-            grid.innerHTML = shiftConfig.map(shift => {
-                const isNight = shift.id === 14;
-                return `
-                    <div class="shift-item${isNight ? ' night' : ''}">
-                        ${isNight ? '🌙 ' : ''}${shift.name}${isNight ? ' (夜班)' : ''}
-                    </div>
-                `;
+            var grid = document.getElementById('shiftGrid');
+            grid.innerHTML = shiftConfig.map(function(shift) {
+                var isNight = shift.id === 14;
+                return '<div class="shift-item' + (isNight ? ' night' : '') + '" role="listitem">' +
+                    (isNight ? '\U0001F319 ' : '') + shift.name + (isNight ? ' (夜班)' : '') + '</div>';
             }).join('');
         }
 
-        // 初始化加载配置
         loadShiftConfig();
 
-        // 3. 打卡逻辑
         async function handleSignin(event) {
             event.preventDefault();
-            
-            const name = document.getElementById('name').value.trim();
-            const btn = document.querySelector('.submit-btn');
-            
-            if (!name) {
-                alert('请输入姓名！');
-                return;
-            }
-
-            // 使用北京时间（与后端保持一致）
-            const now = new Date();
-            const bjTimestamp = now.getTime() + (8 * 60 * 60 * 1000);
-            const bjDate = new Date(bjTimestamp);
-            
-            const pad = (n) => String(n).padStart(2, '0');
-            const currentTime = `${pad(bjDate.getUTCHours())}:${pad(bjDate.getUTCMinutes())}`;
-
+            var nameEl = document.getElementById('name');
+            var name = nameEl.value.trim();
+            var btn = document.querySelector('.submit-btn');
+            if (!name) { nameEl.focus(); return; }
+            var currentTime = DateUtils.getBeijingNow().toISOString().substr(11, 5);
             btn.innerText = '打卡中...';
             btn.disabled = true;
-
             try {
-                const response = await fetch('/api/signin', {
+                var response = await fetch('/api/signin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        name: name, 
-                        duty_time: '',
-                        current_time: currentTime  // 发送北京时间给后端
-                    })
+                    body: JSON.stringify({ name: name, duty_time: '', current_time: currentTime })
                 });
-                
-                const result = await response.json();
-                
+                var result = await response.json();
                 if (response.ok) {
-                    alert('✅ 打卡成功！\n日期：' + result.date + '\n时间：' + result.time + '\n值班时段：' + result.duty_time);
-                    document.getElementById('name').value = '';
+                    alert('\u2705 打卡成功！\n日期：' + result.date + '\n时间：' + result.time + '\n值班时段：' + result.duty_time);
+                    nameEl.value = '';
+                    nameEl.focus();
                 } else if (response.status === 400) {
-                    alert('⚠️ ' + result.error);
+                    alert('\u26A0\uFE0F ' + result.error);
                 } else if (response.status === 403) {
-                    alert('❌ ' + result.error + '\n\n请确认您的姓名是否与排班表中的完全一致');
+                    alert('\u274C ' + result.error + '\n\n请确认您的姓名是否与排班表中的完全一致');
                 } else {
-                    alert('❌ ' + result.error);
+                    alert('\u274C ' + result.error);
                 }
             } catch (error) {
                 console.error('打卡请求失败:', error);
-                alert('❌ 网络请求失败，请检查网络连接');
+                alert('\u274C 网络请求失败，请检查网络连接');
             } finally {
                 btn.innerText = '立即打卡';
                 btn.disabled = false;
