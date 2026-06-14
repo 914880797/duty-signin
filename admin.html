@@ -405,14 +405,23 @@
 </head>
 <body>
     <div class="container">
-        <!-- 未登录遮罩层 -->
+        <!-- 未登录遮罩层 (包含输入框) -->
         <div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:999; display:flex; align-items:center; justify-content:center;">
-            <div style="text-align:center; padding:40px;">
-                <div style="font-size:48px; margin-bottom:20px;">🔐</div>
-                <h2 style="color:#fff; font-size:24px; margin-bottom:15px;">管理员登录</h2>
-                <p style="color:#b0b0c0; font-size:14px; margin-bottom:30px;">请联系管理员获取访问权限</p>
-                <button onclick="showLoginModal()" class="assign-btn" style="padding:12px 40px; font-size:16px; margin-right:15px;">立即登录</button>
-                <a href="/" class="back-btn" style="padding:12px 30px; font-size:16px; color: #e0e0e0; text-decoration: none;">🏠 返回首页</a>
+            <div style="background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 20px; padding: 40px; border: 1px solid #2a2a40; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+                <div style="font-size:48px; margin-bottom: 10px;">🔐</div>
+                <h2 style="color:#fff; font-size:24px; margin-bottom:30px; text-align:center;">管理员登录</h2>
+                
+                <input type="text" id="overlayUsername" placeholder="请输入管理员账号" style="width:100%; padding:12px; margin-bottom:15px; border-radius: 8px; border: 1px solid #4a4a4a; background: #2a2a40; color: #fff; font-size: 14px; box-sizing: border-box;">
+                
+                <input type="password" id="overlayPassword" placeholder="请输入密码" style="width:100%; padding:12px; margin-bottom:20px; border-radius: 8px; border: 1px solid #4a4a4a; background: #2a2a40; color: #fff; font-size: 14px; box-sizing: border-box;">
+                
+                <button onclick="handleOverlayLogin()" class="assign-btn" style="width:100%; padding: 12px; font-size: 16px; border-radius: 8px; cursor: pointer; margin-bottom: 10px;">立即登录</button>
+                
+                <div id="overlayMessage" style="margin-top: 10px; color: #ff6b6b; font-size: 13px; min-height: 20px; text-align: center;"></div>
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="/" class="back-btn" style="color: #b0b0c0; text-decoration: none; font-size: 13px;">🏠 返回首页</a>
+                </div>
             </div>
         </div>
         
@@ -1365,6 +1374,51 @@
             document.getElementById('adminPassword').value = '';
             // 保持遮罩层显示
             document.getElementById('loginOverlay').style.display = 'flex';
+        }
+
+        // 遮罩层登录处理
+        function handleOverlayLogin() {
+            const username = document.getElementById('overlayUsername').value.trim();
+            const password = document.getElementById('overlayPassword').value.trim();
+            const msgEl = document.getElementById('overlayMessage');
+            
+            if (!username || !password) {
+                msgEl.innerText = '⚠️ 请输入账号和密码';
+                return;
+            }
+            
+            msgEl.innerText = '登录中...';
+            
+            fetch('/api/admin/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: username, password: password})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    msgEl.innerText = '✅ 登录成功';
+                    msgEl.style.color = '#4CAF50';
+                    localStorage.setItem('isAdminLoggedIn', 'true');
+                    localStorage.setItem('adminUsername', username);
+                    // 隐藏遮罩
+                    setTimeout(() => {
+                        document.getElementById('loginOverlay').style.setProperty('display', 'none', 'important');
+                        document.getElementById('loginPrompt').style.setProperty('display', 'none', 'important');
+                        document.getElementById('adminInfo').style.display = 'block';
+                        document.getElementById('adminName').innerText = username;
+                        loadRoster();
+                    }, 500);
+                } else {
+                    msgEl.innerText = '❌ ' + (data.error || '登录失败');
+                    msgEl.style.color = '#ff6b6b';
+                }
+            })
+            .catch(err => {
+                msgEl.innerText = '❌ 网络请求失败';
+                msgEl.style.color = '#ff6b6b';
+                console.error(err);
+            });
         }
 
         function handleLogin() {
