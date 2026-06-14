@@ -652,6 +652,7 @@
             loadShiftConfig();
             loadRoster();
             loadGroups();
+            loadCycleSettings();
             updateShiftSelects();
             updateGroupSelects();
         });
@@ -1208,24 +1209,28 @@
 
         // 加载打卡周期设置
         async function loadCycleSettings() {
+            let cycleStart = null;
+            
             // 优先尝试从后端获取最新设置
             try {
                 const res = await fetch('/api/settings');
                 const data = await res.json();
+                console.log('从后端获取设置:', data);
                 if (data.success && data.cycleStartDate) {
-                    // 如果后端有值，同步到本地并显示
-                    localStorage.setItem('cycleStartDate', data.cycleStartDate);
-                    document.getElementById('cycleStartDate').value = data.cycleStartDate;
-                    document.getElementById('currentCycleStart').innerText = data.cycleStartDate;
-                    return;
+                    cycleStart = data.cycleStartDate;
                 }
             } catch (e) {
                 console.error('Failed to load settings', e);
             }
 
             // 如果后端没有，则读取 localStorage
-            const cycleStart = localStorage.getItem('cycleStartDate');
+            if (!cycleStart) {
+                cycleStart = localStorage.getItem('cycleStartDate');
+            }
+            
+            // 显示数据
             if (cycleStart) {
+                localStorage.setItem('cycleStartDate', cycleStart);
                 document.getElementById('cycleStartDate').value = cycleStart;
                 document.getElementById('currentCycleStart').innerText = cycleStart;
             } else {
@@ -1236,7 +1241,7 @@
                 const pad = (n) => (n < 10 ? '0' : '') + String(n);
                 const today = `${bjTime.getUTCFullYear()}-${pad(bjTime.getUTCMonth() + 1)}-${pad(bjTime.getUTCDate())}`;
                 document.getElementById('cycleStartDate').value = today;
-                document.getElementById('currentCycleStart').innerText = '未设置';
+                document.getElementById('currentCycleStart').innerText = today;
             }
             
             // 加载统计信息
@@ -1249,20 +1254,34 @@
             
             try {
                 // 获取打卡记录
-                let url = '/api/records';
-                if (cycleStart) {
-                    url += `?start_date=${cycleStart}`;
-                }
+                let url = '/api/settings';
                 
                 const response = await fetch(url);
-                const records = await response.json();
+                const data = await response.json();
                 
-                if (Array.isArray(records)) {
-                    document.getElementById('totalRecords').innerText = records.length;
+                console.log('统计 API 返回数据:', data);
+                
+                if (data.success) {
+                    document.getElementById('totalRecords').innerText = data.totalRecords || 0;
                     
-                    // 计算已打卡天数
-                    const uniqueDates = new Set(records.map(r => r.duty_date));
-                    document.getElementById('checkedDays').innerText = uniqueDates.size;
+                    // 计算已打卡天数 - 需要获取详细记录
+                    if (cycleStart) {
+                        const recordsUrl = `/api/records?start_date=${cycleStart}`;
+                        const recordsResponse = await fetch(recordsUrl);
+                        const recordsData = await recordsResponse.json();
+                        
+                        console.log('打卡记录数据:', recordsData);
+                        
+                        // API 返回格式是 { results: [...] } 或直接是数组
+                        const records = Array.isArray(recordsData) ? recordsData : (recordsData.results || []);
+                        
+                        if (records.length > 0) {
+                            const uniqueDates = new Set(records.map(r => r.duty_date));
+                            document.getElementById('checkedDays').innerText = uniqueDates.size;
+                        } else {
+                            document.getElementById('checkedDays').innerText = 0;
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('加载统计失败:', error);
@@ -1415,20 +1434,25 @@
                     msgEl.style.color = '#4CAF50';
                     localStorage.setItem('isAdminLoggedIn', 'true');
                     localStorage.setItem('adminUsername', username);
+                    console.log('登录成功，准备进入后台并加载数据');
 
                     setTimeout(() => {
                         const overlay = document.getElementById('loginOverlay');
                         const prompt = document.getElementById('loginPrompt');
                         if (overlay) overlay.style.setProperty('display', 'none', 'important');
                         if (prompt) prompt.style.setProperty('display', 'none', 'important');
-
+                        
                         const adminInfo = document.getElementById('adminInfo');
                         if (adminInfo) adminInfo.style.display = 'block';
-
+                        
                         const adminName = document.getElementById('adminName');
                         if (adminName) adminName.innerText = username;
 
+                        // 关键修复：登录后显式加载所有数据
+                        if (typeof loadCycleSettings === 'function') loadCycleSettings();
                         if (typeof loadRoster === 'function') loadRoster();
+                        
+                        console.log('已调用数据加载函数');
                     }, 500);
                 } else {
                     msgEl.innerText = '❌ ' + (data.error || '登录失败');
