@@ -1436,68 +1436,7 @@
             document.getElementById('loginOverlay').style.display = 'flex';
         }
 
-        // 遮罩层登录处理
-        function handleOverlayLogin() {
-            const username = document.getElementById('overlayUsername').value.trim();
-            const password = document.getElementById('overlayPassword').value.trim();
-            const msgEl = document.getElementById('overlayMessage');
-            
-                if (!username || !password) {
-                    msgEl.innerText = '⚠️ 请输入账号和密码';
-                    return;
-                }
-                
-                msgEl.innerText = '正在登录...';
-                msgEl.style.color = '#b0b0c0';
-                
-                // 使用动态生成的绝对路径
-                const apiUrl = window.location.origin + '/api/admin/login';
-                console.log('尝试登录路径:', apiUrl);
-
-                fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    credentials: 'same-origin',
-                    body: JSON.stringify({username: username, password: password})
-                })
-                .then(res => {
-                    console.log('API 响应状态:', res.status);
-                    return res.json();
-                })
-                .then(data => {
-                if (data.success) {
-                    msgEl.innerText = '✅ 登录成功';
-                    msgEl.style.color = '#4CAF50';
-                    localStorage.setItem('isAdminLoggedIn', 'true');
-                    localStorage.setItem('adminUsername', username);
-                    
-                    // 500ms 后隐藏遮罩
-                    setTimeout(() => {
-                        const overlay = document.getElementById('loginOverlay');
-                        const prompt = document.getElementById('loginPrompt');
-                        if (overlay) overlay.style.setProperty('display', 'none', 'important');
-                        if (prompt) prompt.style.setProperty('display', 'none', 'important');
-                        
-                        const adminInfo = document.getElementById('adminInfo');
-                        if (adminInfo) adminInfo.style.display = 'block';
-                        
-                        const adminName = document.getElementById('adminName');
-                        if (adminName) adminName.innerText = username;
-                        
-                        if (typeof loadRoster === 'function') loadRoster();
-                    }, 500);
-                } else {
-                    msgEl.innerText = '❌ ' + (data.error || '登录失败');
-                    msgEl.style.color = '#ff6b6b';
-                }
-            })
-            .catch(err => {
-                msgEl.innerText = '❌ 网络请求失败';
-                msgEl.style.color = '#ff6b6b';
-                console.error(err);
-            });
-        }
-
+        // 原有的登录逻辑（备用）
         function handleLogin() {
             const username = document.getElementById('adminUsername').value.trim();
             const password = document.getElementById('adminPassword').value.trim();
@@ -1535,7 +1474,6 @@
                 console.error('登录请求失败:', error);
                 msgEl.innerText = '❌ 网络请求失败';
             });
-        }
         }
 
         function handleLogout() {
