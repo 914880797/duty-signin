@@ -308,7 +308,7 @@
 
             .container {
                 max-height: calc(100dvh - 40px);
-                padding: 30px 36px;
+                padding: 30px 36px 40px;
                 max-width: 1400px;
                 display: flex;
                 flex-direction: column;
@@ -326,22 +326,29 @@
                 flex: 1;
                 min-height: 0;
                 overflow-y: auto;
-                padding-bottom: 60px;
-                margin-bottom: 20px;
+                padding-bottom: 80px;
             }
 
             .search-section { flex-shrink: 0; }
             .assign-form { flex-shrink: 0; }
             .edit-form { flex-shrink: 0; }
             .info-box { flex-shrink: 0; }
-            .roster-list { overflow-y: auto; max-height: 60vh; flex: none; min-height: 100px; }
+            .roster-list { overflow-y: auto; max-height: none; flex: 1; min-height: 100px; }
             .shift-config-table { min-width: auto; }
 
+            #configTab.active { flex-direction: column; }
             #configTab.active .warning-box { flex-shrink: 0; }
-            #configTab.active .table-wrapper { flex: 1; min-height: 0; max-height: none; overflow-y: auto; }
-            #configTab.active .config-actions { flex-shrink: 0; margin-top: 8px; }
-            #configTab.active .save-config-btn { flex-shrink: 0; }
+            #configTab.active .table-wrapper { flex: 1; min-height: 0; max-height: none; overflow-y: auto; margin-bottom: 16px; }
+            #configTab.active .config-actions { flex-shrink: 0; margin-top: 8px; margin-bottom: 8px; }
+            #configTab.active .save-config-btn { flex-shrink: 0; margin-bottom: 16px; }
             #configTab.active #configStatus { flex-shrink: 0; }
+
+            #groupsTab.active { flex-direction: column; }
+            #groupsTab.active .assign-form { flex-shrink: 0; }
+            #groupsTab.active .roster-list { overflow-y: auto; max-height: none; flex: 1; min-height: 100px; }
+
+            #settingsTab.active .assign-form { flex-shrink: 0; }
+            #settingsTab.active .info-box { flex-shrink: 0; }
         }
 
         @media (max-width: 360px) {
