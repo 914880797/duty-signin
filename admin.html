@@ -67,8 +67,14 @@
             background: linear-gradient(90deg, #6c63ff, #4a41d4);
             border: none; border-radius: 8px; color: #fff;
             font-size: 14px; cursor: pointer; touch-action: manipulation;
+            transition: all 0.2s;
         }
-        .search-btn:hover { opacity: 0.9; }
+        .search-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .search-btn:active { transform: translateY(0); }
+        .search-btn.searching {
+            opacity: 0.7;
+            pointer-events: none;
+        }
 
         .warning-box {
             background: rgba(255, 193, 7, 0.1);
@@ -297,8 +303,86 @@
                 overflow: hidden;
                 display: flex;
                 align-items: center;
-                padding: 8px 15px;
+                padding: 20px 40px;
             }
+
+            .container {
+                max-height: calc(100dvh - 40px);
+                padding: 30px 36px;
+                max-width: 1400px;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            h1 {
+                margin-bottom: 8px;
+                font-size: 1.4rem;
+            }
+
+            .nav-row {
+                margin: 8px 0 !important;
+            }
+
+            .tabs {
+                flex-shrink: 0;
+                margin-bottom: 8px;
+                gap: 8px;
+            }
+
+            .tab-content { display: none; }
+            .tab-content.active {
+                display: block;
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
+            }
+
+            #rosterTab.active,
+            #groupsTab.active,
+            #settingsTab.active {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                min-height: 0;
+                overflow-y: auto;
+            }
+
+            .shift-config-table { min-width: auto; }
+
+            .search-section { flex-shrink: 0; }
+            .assign-form { flex-shrink: 0; }
+            .info-box { flex-shrink: 0; }
+
+            .roster-list {
+                overflow-y: auto;
+                max-height: 60vh;
+                flex: none;
+                min-height: 100px;
+            }
+
+            #configTab {
+                display: none;
+            }
+
+            #configTab.active {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                min-height: 0;
+            }
+
+            #configTab .warning-box { flex-shrink: 0; }
+            #configTab .table-wrapper {
+                flex: 1;
+                min-height: 0;
+                max-height: none;
+                overflow-y: auto;
+            }
+            #configTab .config-actions { flex-shrink: 0; margin-top: 8px; }
+            #configTab .save-config-btn { flex-shrink: 0; }
+            #configTab #configStatus { flex-shrink: 0; }
+        }
 
             .container {
                 max-width: 1000px;
@@ -1041,9 +1125,32 @@
 
         function searchRoster() {
             const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
-            if (!keyword) { displayRoster(allRoster); currentSearch = ''; return; }
+            const searchBtn = document.querySelector('.search-box .search-btn');
+            
+            if (!keyword) {
+                displayRoster(allRoster);
+                currentSearch = '';
+                showMessage('已显示全部排班', 'success');
+                return;
+            }
+            
+            searchBtn.classList.add('searching');
+            searchBtn.textContent = '搜索中...';
+            
             currentSearch = keyword;
-            displayRoster(allRoster.filter(item => item.name.toLowerCase().includes(keyword)));
+            const filtered = allRoster.filter(item => item.name.toLowerCase().includes(keyword));
+            
+            setTimeout(() => {
+                displayRoster(filtered);
+                searchBtn.classList.remove('searching');
+                searchBtn.textContent = '🔍 搜索';
+                
+                if (filtered.length === 0) {
+                    showMessage('未找到匹配 "' + keyword + '" 的排班', 'error');
+                } else {
+                    showMessage('找到 ' + filtered.length + ' 条匹配结果', 'success');
+                }
+            }, 100);
         }
 
         function clearSearch() {
