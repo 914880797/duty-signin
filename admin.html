@@ -86,7 +86,7 @@
         .table-wrapper { 
             overflow-x: auto; 
             overflow-y: auto; 
-            max-height: 300px; 
+            max-height: 400px; 
             -webkit-overflow-scrolling: touch; 
             margin-bottom: 16px; 
         }
@@ -683,6 +683,10 @@
                 endTime: '01:00'
             });
             renderShiftConfig();
+            setTimeout(() => {
+                const wrapper = document.querySelector('#configTab .table-wrapper');
+                if (wrapper) wrapper.scrollTop = wrapper.scrollHeight;
+            }, 50);
         }
 
         function deleteShiftConfig(id) {
