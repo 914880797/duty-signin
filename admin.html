@@ -338,7 +338,7 @@
 
             #configTab.active { flex-direction: column; }
             #configTab.active .warning-box { flex-shrink: 0; }
-            #configTab.active .table-wrapper { flex: 1; min-height: 0; max-height: none; overflow-y: auto; margin-bottom: 16px; }
+            #configTab.active .table-wrapper { flex: 1; min-height: 0; max-height: 420px; overflow-y: auto; margin-bottom: 16px; }
             #configTab.active .config-actions { flex-shrink: 0; margin-top: 8px; margin-bottom: 8px; }
             #configTab.active .save-config-btn { flex-shrink: 0; margin-bottom: 16px; }
             #configTab.active #configStatus { flex-shrink: 0; }
@@ -685,8 +685,10 @@
             renderShiftConfig();
             setTimeout(() => {
                 const wrapper = document.querySelector('#configTab .table-wrapper');
-                if (wrapper) wrapper.scrollTop = wrapper.scrollHeight;
-            }, 50);
+                if (wrapper) {
+                    wrapper.scrollTo({ top: wrapper.scrollHeight, behavior: 'smooth' });
+                }
+            }, 100);
         }
 
         function deleteShiftConfig(id) {
