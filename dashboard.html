@@ -263,7 +263,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-height: 250px;
+            max-height: 170px;
             overflow-y: auto;
         }
 
@@ -485,14 +485,15 @@
 
             .chart-container {
                 height: auto;
-                max-height: none;
-                flex: 1;
+                max-height: 300px;
+                flex: none;
                 min-height: 120px;
+                overflow-y: auto;
             }
 
             .bar-chart {
                 max-height: none;
-                height: 100%;
+                height: auto;
             }
 
             .bar-item {
