@@ -204,128 +204,53 @@
             background: rgba(108, 99, 255, 0.4);
         }
 
-        /* 打卡记录列表 */
-        .records-container {
+        /* 数据表格 */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-container {
             overflow-y: auto;
-            max-height: calc(100dvh - 360px);
+            max-height: calc(100dvh - 400px);
             min-height: 200px;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 15px;
             padding: 16px;
         }
 
-        .group-section {
-            margin-bottom: 16px;
-            border: 1px solid #2a2a40;
-            border-radius: 8px;
-            max-height: 280px;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+        table {
+            width: 100%;
+            min-width: 500px;
+            border-collapse: collapse;
         }
 
-        .group-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .group-header {
-            background: #1a1a2e;
-            padding: 10px 16px;
-            border-left: 4px solid #6c63ff;
-            font-weight: bold;
+        th {
+            background: rgba(108, 99, 255, 0.2);
             color: #6c63ff;
-            font-size: clamp(13px, 2.5vw, 15px);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: bold;
+            font-size: clamp(12px, 2.5vw, 14px);
+            white-space: nowrap;
             position: sticky;
             top: 0;
             z-index: 1;
         }
 
-        .records-list {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .record-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 16px;
+        td {
+            padding: 8px 12px;
+            color: #e0e0e0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(30, 30, 60, 0.5);
-            gap: 8px;
-            min-height: 44px;
-            flex-wrap: wrap;
-            font-size: clamp(12px, 2vw, 13px);
+            font-size: clamp(12px, 2.5vw, 14px);
         }
 
-        .record-item:last-child {
-            border-bottom: none;
-        }
-
-        .record-item:hover {
+        tr:hover td {
             background: rgba(108, 99, 255, 0.1);
         }
 
-        .record-date {
-            color: #6c63ff;
-            font-weight: bold;
-            white-space: nowrap;
-            min-width: 75px;
-        }
-
-        .record-time {
-            color: #a0a8c0;
-            white-space: nowrap;
-            min-width: 55px;
-        }
-
-        .record-name {
-            color: #e0e0e0;
-            font-weight: 500;
-            flex: 1;
-            min-width: 60px;
-            overflow-wrap: break-word;
-            word-break: break-word;
-        }
-
-        .record-checkin {
-            color: #8c92ac;
-            font-size: clamp(11px, 1.8vw, 12px);
-            white-space: nowrap;
-        }
-
-        .record-ip {
-            color: #6a6a80;
-            font-size: clamp(10px, 1.5vw, 11px);
-            white-space: nowrap;
-        }
-
-        .flat-list {
-            max-height: 520px;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            border: 1px solid #2a2a40;
-            border-radius: 8px;
-            background: rgba(30, 30, 60, 0.5);
-        }
-
-        /* Scrollbar styling */
-        .group-section::-webkit-scrollbar,
-        .flat-list::-webkit-scrollbar,
-        .records-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .group-section::-webkit-scrollbar-track,
-        .flat-list::-webkit-scrollbar-track,
-        .records-container::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .group-section::-webkit-scrollbar-thumb,
-        .flat-list::-webkit-scrollbar-thumb,
-        .records-container::-webkit-scrollbar-thumb {
-            background: #3a3a50;
-            border-radius: 3px;
+        tr:last-child td {
+            border-bottom: none;
         }
 
         .loading {
@@ -384,7 +309,7 @@
                 width: auto;
             }
 
-            .records-container {
+            .table-container {
                 padding: 16px;
                 min-height: 300px;
             }
@@ -446,27 +371,17 @@
 
             .btn { width: auto; }
 
-            .records-container {
+            .table-container {
                 flex: 1;
                 min-height: 0;
                 max-height: none;
                 padding: 16px;
                 margin-top: 0;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 16px;
-                align-content: flex-start;
             }
 
-            .group-section {
-                flex: 1 1 380px;
-                max-width: 100%;
-                max-height: 320px;
-                margin-bottom: 0;
-            }
-
-            .flat-list {
-                max-height: 700px;
+            .table-wrapper {
+                height: 100%;
+                overflow-y: auto;
             }
         }
 
@@ -533,16 +448,33 @@
             </div>
         </div>
 
-        <!-- 数据区域 -->
-        <div class="records-container" id="recordsContainer" role="region" aria-label="打卡记录" tabindex="0">
-            <div class="loading">加载中...</div>
+        <!-- 数据表格 -->
+        <div class="table-container" role="region" aria-label="打卡记录表格" tabindex="0">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">日期</th>
+                            <th scope="col">时段</th>
+                            <th scope="col">姓名</th>
+                            <th scope="col">分组</th>
+                            <th scope="col">打卡时间</th>
+                            <th scope="col">IP 地址</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody">
+                        <tr>
+                            <td colspan="6" class="loading">加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
         let allRecords = [];
         let filteredRecords = [];
-        let allGroups = [];
 
         // 页面加载时初始化
         window.addEventListener('DOMContentLoaded', async () => {
@@ -595,15 +527,11 @@
             try {
                 const response = await fetch('/api/groups');
                 const result = await response.json();
-
-                if (result.success) {
-                    allGroups = result.data || [];
-                }
+                const groups = result.success ? (result.data || []) : [];
 
                 const select = document.getElementById('groupSelect');
-                select.innerHTML = '<option value="">全部</option>';
-                if (Array.isArray(allGroups)) {
-                    allGroups.forEach(group => {
+                if (Array.isArray(groups)) {
+                    groups.forEach(group => {
                         const option = document.createElement('option');
                         option.value = group.id;
                         option.textContent = group.name;
@@ -617,8 +545,8 @@
 
         // 加载数据
         async function loadData() {
-            const container = document.getElementById('recordsContainer');
-            container.innerHTML = '<div class="loading">加载中...</div>';
+            const tbody = document.getElementById('recordsBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="loading">加载中...</td></tr>';
 
             const params = new URLSearchParams();
 
@@ -643,104 +571,32 @@
                 allRecords = records;
                 filteredRecords = records;
 
-                renderRecords(records, groupId);
+                if (records.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty">
+                                <div class="empty-icon">📭</div>
+                                <div>暂无打卡记录</div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = records.map(record => `
+                    <tr>
+                        <td>${record.duty_date || '-'}</td>
+                        <td>${record.duty_time || '-'}</td>
+                        <td>${record.name || '-'}</td>
+                        <td>${record.group_name || '-'}</td>
+                        <td>${record.created_at ? formatTime(record.created_at) : '-'}</td>
+                        <td>${record.ip_address || '-'}</td>
+                    </tr>
+                `).join('');
             } catch (error) {
                 console.error('加载数据失败:', error);
-                container.innerHTML = `<div class="empty">加载失败：${error.message}</div>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="empty">加载失败：${error.message}</td></tr>`;
             }
-        }
-
-        function renderRecords(data, groupId) {
-            const container = document.getElementById('recordsContainer');
-
-            if (data.length === 0) {
-                container.innerHTML = `
-                    <div class="empty">
-                        <div class="empty-icon">📭</div>
-                        <div>暂无打卡记录</div>
-                    </div>
-                `;
-                return;
-            }
-
-            if (groupId) {
-                renderFlatRecords(data, groupId);
-            } else {
-                renderGroupedRecords(data);
-            }
-        }
-
-        function renderFlatRecords(data, groupId) {
-            const container = document.getElementById('recordsContainer');
-            const group = allGroups.find(g => String(g.id) === String(groupId));
-            const groupName = group ? group.name : (data.length > 0 ? (data[0].group_name || '未分组') : '');
-            
-            data.sort((a, b) => {
-                const cmp = (a.duty_date || '').localeCompare(b.duty_date || '');
-                if (cmp !== 0) return cmp;
-                return (a.duty_time || '').localeCompare(b.duty_time || '');
-            });
-
-            let html = `<div class="group-header">${groupName} (${data.length}条)</div>`;
-            html += '<div class="flat-list">';
-            html += data.map(r => buildRecordItem(r)).join('');
-            html += '</div>';
-
-            container.innerHTML = html;
-        }
-
-        function renderGroupedRecords(data) {
-            const container = document.getElementById('recordsContainer');
-            
-            const groupedData = {};
-            data.forEach(item => {
-                const groupName = item.group_name || '未分组';
-                if (!groupedData[groupName]) {
-                    groupedData[groupName] = [];
-                }
-                groupedData[groupName].push(item);
-            });
-
-            const sortedGroups = Object.keys(groupedData).sort((a, b) => {
-                if (a === '未分组') return 1;
-                if (b === '未分组') return -1;
-                const groupA = allGroups.find(g => g.name === a);
-                const groupB = allGroups.find(g => g.name === b);
-                return (groupA?.order_index || 999) - (groupB?.order_index || 999);
-            });
-
-            let html = '';
-            sortedGroups.forEach(groupName => {
-                const items = groupedData[groupName];
-                items.sort((a, b) => {
-                    const cmp = (a.duty_date || '').localeCompare(b.duty_date || '');
-                    if (cmp !== 0) return cmp;
-                    return (a.duty_time || '').localeCompare(b.duty_time || '');
-                });
-
-                html += `
-                    <div class="group-section">
-                        <div class="group-header">${groupName} (${items.length}条)</div>
-                        <div class="records-list">
-                            ${items.map(r => buildRecordItem(r)).join('')}
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        function buildRecordItem(record) {
-            return `
-                <div class="record-item">
-                    <span class="record-date">${record.duty_date || '-'}</span>
-                    <span class="record-time">${record.duty_time || '-'}</span>
-                    <span class="record-name">${record.name || '-'}</span>
-                    <span class="record-checkin">${record.created_at ? formatTime(record.created_at) : '-'}</span>
-                    <span class="record-ip">${record.ip_address || '-'}</span>
-                </div>
-            `;
         }
 
         // 格式化时间（转换为北京时间）
