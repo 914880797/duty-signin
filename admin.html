@@ -341,14 +341,17 @@
             #configTab.active .table-wrapper { flex: 1; min-height: 0; max-height: 420px; overflow-y: auto; margin-bottom: 16px; }
             #configTab.active .config-actions { flex-shrink: 0; margin-top: 8px; margin-bottom: 8px; }
             #configTab.active .save-config-btn { flex-shrink: 0; margin-bottom: 16px; }
-            #configTab.active #configStatus { flex-shrink: 0; }
+            #configTab.active #configStatus { flex-shrink: 0; padding-bottom: 20px; }
 
-            #groupsTab.active { flex-direction: column; }
+            #groupsTab.active { flex-direction: column; padding-bottom: 20px; }
             #groupsTab.active .assign-form { flex-shrink: 0; }
-            #groupsTab.active .roster-list { overflow-y: auto; max-height: none; flex: 1; min-height: 100px; }
+            #groupsTab.active .roster-list { overflow-y: auto; max-height: none; flex: 1; min-height: 100px; margin-bottom: 20px; }
 
+            #settingsTab.active { padding-bottom: 20px; }
             #settingsTab.active .assign-form { flex-shrink: 0; }
-            #settingsTab.active .info-box { flex-shrink: 0; }
+            #settingsTab.active .info-box { flex-shrink: 0; margin-bottom: 20px; }
+
+            #rosterTab.active { padding-bottom: 20px; }
         }
 
         @media (max-width: 360px) {
