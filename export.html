@@ -178,16 +178,13 @@
         .duty-table td.name-col { cursor: pointer; }
         .duty-table td.name-col:hover { background: #e8f5e9; }
         .duty-table td.group-col {
-            position: sticky;
-            left: 90px;
-            z-index: 19;
             background: #fff;
             text-align: left;
             min-width: 70px;
             font-weight: 500;
             border-left: 2px solid #dcdfe6;
         }
-        .duty-table th.group-col { position: sticky; left: 90px; z-index: 29; background: #4CAF50; border-left: 2px solid #dcdfe6; }
+        .duty-table th.group-col { background: #4CAF50; border-left: 2px solid #dcdfe6; }
         .duty-table th.stats-col-fixed, .duty-table td.stats-col-fixed {
             position: sticky;
             right: 0;
@@ -223,6 +220,18 @@
             .search-input { width: 200px; }
             .filter-actions { flex-direction: row; }
             nav.export-nav { gap: 12px; }
+
+            .duty-table td.group-col {
+                position: sticky;
+                left: 90px;
+                z-index: 19;
+            }
+
+            .duty-table th.group-col {
+                position: sticky;
+                left: 90px;
+                z-index: 29;
+            }
         }
 
         /* Desktop 1024px+ */
