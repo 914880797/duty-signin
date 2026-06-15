@@ -90,76 +90,58 @@
 
         /* 筛选区域 */
         .filter-section {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 12px;
             padding: 20px;
-            margin-bottom: 25px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: flex-end;
+            margin-bottom: 20px;
+            border: 1px solid #2a2a40;
         }
 
-        .filter-group {
+        .filter-row {
             display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 10px;
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .filter-group label {
-            color: #b0b0c0;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-
-        .filter-group input,
-        .filter-group select {
-            padding: 10px 15px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid #3a3a50;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            min-height: 44px;
+            margin-bottom: 12px;
         }
 
         .filter-group {
+            flex: 1;
+            min-width: 0;
+            width: 100%;
             display: flex;
             flex-direction: column;
             gap: 6px;
         }
 
         .filter-group label {
-            color: #b0b0c0;
-            font-size: clamp(12px, 3vw, 14px);
+            color: #8c92ac;
+            font-size: clamp(12px, 2vw, 14px);
         }
 
         .filter-group input,
         .filter-group select {
-            min-height: 44px;
-            padding: 10px 12px;
-            background: rgba(0, 0, 0, 0.4);
+            width: 100%;
+            padding: clamp(8px, 2vw, 10px) 12px;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid #3a3a50;
             border-radius: 8px;
             color: #fff;
-            font-size: clamp(13px, 3vw, 14px);
+            font-size: clamp(12px, 2.5vw, 14px);
             -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
+            min-height: 44px;
         }
 
         .filter-group input:focus,
         .filter-group select:focus {
-            outline: 2px solid #6c63ff;
-            outline-offset: 0;
+            outline: none;
+            border-color: #6c63ff;
         }
 
         .action-bar {
             display: flex;
-            gap: 10px;
-            margin-left: auto;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 15px;
         }
 
         /* 通用按钮样式 */
@@ -306,22 +288,16 @@
             }
 
             .filter-section {
+                padding: 18px;
+            }
+
+            .filter-row {
                 flex-direction: row;
                 flex-wrap: wrap;
-                padding: 20px;
-                align-items: center;
             }
 
             .filter-group {
-                flex-direction: row;
-                align-items: center;
-                flex: 1 1 auto;
-                min-width: 150px;
-            }
-
-            .filter-group input,
-            .filter-group select {
-                flex: 1;
+                min-width: 160px;
             }
 
             .action-bar {
@@ -374,8 +350,18 @@
 
             .filter-section {
                 flex-shrink: 0;
-                margin-bottom: 12px;
-                padding: 10px 14px;
+                margin-bottom: 16px;
+                padding: 20px 24px;
+            }
+
+            .filter-row {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+
+            .filter-group {
+                min-width: 180px;
             }
 
             .action-bar {
@@ -425,33 +411,35 @@
 
         <!-- 筛选区域 -->
         <div class="filter-section" role="search" aria-label="筛选条件">
-            <div class="filter-group">
-                <label for="startDate">开始日期</label>
-                <input type="date" id="startDate" aria-label="筛选开始日期">
-            </div>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="startDate">开始日期</label>
+                    <input type="date" id="startDate" aria-label="筛选开始日期">
+                </div>
 
-            <div class="filter-group">
-                <label for="endDate">结束日期</label>
-                <input type="date" id="endDate" aria-label="筛选结束日期">
-            </div>
+                <div class="filter-group">
+                    <label for="endDate">结束日期</label>
+                    <input type="date" id="endDate" aria-label="筛选结束日期">
+                </div>
 
-            <div class="filter-group">
-                <label for="timeSlotSelect">时段</label>
-                <select id="timeSlotSelect" aria-label="筛选时段">
-                    <option value="">全部时段</option>
-                </select>
-            </div>
+                <div class="filter-group">
+                    <label for="timeSlotSelect">时段</label>
+                    <select id="timeSlotSelect" aria-label="筛选时段">
+                        <option value="">全部时段</option>
+                    </select>
+                </div>
 
-            <div class="filter-group">
-                <label for="groupSelect">分组</label>
-                <select id="groupSelect" aria-label="筛选分组">
-                    <option value="">全部分组</option>
-                </select>
-            </div>
+                <div class="filter-group">
+                    <label for="groupSelect">分组</label>
+                    <select id="groupSelect" aria-label="筛选分组">
+                        <option value="">全部分组</option>
+                    </select>
+                </div>
 
-            <div class="filter-group">
-                <label for="nameInput">姓名</label>
-                <input type="text" id="nameInput" placeholder="输入姓名" aria-label="按姓名筛选">
+                <div class="filter-group">
+                    <label for="nameInput">姓名</label>
+                    <input type="text" id="nameInput" placeholder="输入姓名" aria-label="按姓名筛选">
+                </div>
             </div>
 
             <div class="action-bar">
