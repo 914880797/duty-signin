@@ -103,8 +103,8 @@
 
         /* Filter Section */
         .filter-section {
-            background: var(--bg-filter);
-            border: 1px solid var(--border-filter);
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 1px solid #2a2a40;
             border-radius: var(--radius-md);
             padding: var(--spacing-md);
             margin-bottom: var(--spacing-md);
@@ -236,11 +236,27 @@
             padding: var(--spacing-sm);
         }
 
+        /* Flat list for single group results (mode 3/4) */
+        .flat-list {
+            max-height: 680px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: rgba(30, 30, 60, 0.5);
+            padding-bottom: 4px;
+        }
+
+        .flat-list::-webkit-scrollbar { width: 6px; }
+        .flat-list::-webkit-scrollbar-track { background: var(--bg-card); }
+        .flat-list::-webkit-scrollbar-thumb { background: #3a3a50; border-radius: 3px; }
+
+        /* Grouped results (mode 1/2) */
         .group-section {
             margin-bottom: var(--spacing-md);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
-            max-height: 250px;
+            max-height: 280px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -375,14 +391,18 @@
                 min-height: 0;
                 margin-top: 0;
                 padding: 8px;
-                overflow: hidden;
+                overflow-y: auto;
             }
 
             .group-section {
-                flex: 1;
-                min-height: 0;
-                max-height: none;
-                margin-bottom: 0;
+                flex: none;
+                max-height: 300px;
+                margin-bottom: 12px;
+                overflow-y: auto;
+            }
+
+            .flat-list {
+                max-height: 700px;
                 overflow-y: auto;
             }
         }
@@ -612,7 +632,36 @@
                 return;
             }
             
-            // 按分组归类
+            const shift = document.getElementById('shiftSelect').value;
+            const groupId = document.getElementById('groupSelect').value;
+            const isSingleGroup = !!groupId;
+            
+            if (isSingleGroup) {
+                renderFlatResults(data, resultEl);
+            } else {
+                renderGroupedResults(data, resultEl);
+            }
+        }
+
+        function renderFlatResults(data, resultEl) {
+            data.sort((a, b) => (a.duty_time || '').localeCompare(b.duty_time || ''));
+            
+            const groupName = data.length > 0 ? (data[0].group_name || '未分组') : '';
+            
+            let html = `<div class="group-header">${groupName} (${data.length}人)</div>`;
+            html += '<div class="flat-list">';
+            html += data.map(item => `
+                <div class="result-item">
+                    <span class="result-time">${item.duty_time}</span>
+                    <span class="result-name">${item.name}</span>
+                </div>
+            `).join('');
+            html += '</div>';
+            
+            resultEl.innerHTML = html;
+        }
+
+        function renderGroupedResults(data, resultEl) {
             const groupedData = {};
             data.forEach(item => {
                 const groupName = item.group_name || '未分组';
@@ -622,7 +671,6 @@
                 groupedData[groupName].push(item);
             });
             
-            // 按分组顺序排序
             const sortedGroups = Object.keys(groupedData).sort((a, b) => {
                 if (a === '未分组') return 1;
                 if (b === '未分组') return -1;
@@ -631,11 +679,9 @@
                 return (groupA?.order_index || 999) - (groupB?.order_index || 999);
             });
             
-            // 渲染结果
             let html = '';
             sortedGroups.forEach(groupName => {
                 const items = groupedData[groupName];
-                // 按时段排序
                 items.sort((a, b) => (a.duty_time || '').localeCompare(b.duty_time || ''));
                 
                 html += `
