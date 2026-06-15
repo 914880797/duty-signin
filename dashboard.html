@@ -254,7 +254,7 @@
 
         .chart-container {
             position: relative;
-            max-height: 170px;
+            max-height: 135px;
             overflow-y: auto;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -263,14 +263,15 @@
         .bar-chart {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .bar-item {
             display: flex;
             align-items: center;
             gap: 8px;
-            min-height: 24px;
+            height: 20px;
+            flex-shrink: 0;
         }
 
         .bar-label {
@@ -483,8 +484,8 @@
             }
 
             .chart-container {
-                max-height: 300px;
-                min-height: 120px;
+                max-height: 240px;
+                min-height: 100px;
                 overflow-y: auto;
             }
 
@@ -493,9 +494,8 @@
             }
 
             .bar-item {
-                min-height: 36px;
+                height: 32px;
                 gap: 14px;
-                padding: 6px 0;
             }
 
             .bar-label {
