@@ -58,10 +58,18 @@
 
         .nav-row {
             display: flex;
-            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
             justify-content: center;
-            gap: 0;
-            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .signin-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
         }
 
         .back-btn {
@@ -303,26 +311,28 @@
             <a href="/makeup.html" class="back-btn">🔄 补卡</a>
         </div>
 
-        <div class="announcement-bar" id="announcementBar" style="display:none;">
-            <span class="icon">📢</span>
-            <div class="marquee-wrap">
-                <span class="marquee-text empty" id="announcementText">暂无公告</span>
+        <div class="signin-row">
+            <div class="announcement-bar" id="announcementBar" style="display:none;">
+                <span class="icon">📢</span>
+                <div class="marquee-wrap">
+                    <span class="marquee-text empty" id="announcementText">暂无公告</span>
+                </div>
             </div>
+
+            <form onsubmit="handleSignin(event)" autocomplete="off" style="flex:1;min-width:200px;">
+                <div class="input-group">
+                    <label class="input-label" for="name">请输入您的值班姓名</label>
+                    <input type="text" id="name" class="text-input" placeholder="例如：领悟" required
+                           autocomplete="off" autocapitalize="off" enterKeyHint="go">
+                </div>
+                <button type="submit" class="submit-btn">立即打卡</button>
+            </form>
         </div>
 
         <div class="clock-section">
             <div class="time-display" id="current-time">00:00:00</div>
             <div class="date-display" id="current-date">--</div>
         </div>
-
-        <form onsubmit="handleSignin(event)" autocomplete="off">
-            <div class="input-group">
-                <label class="input-label" for="name">请输入您的值班姓名</label>
-                <input type="text" id="name" class="text-input" placeholder="例如：领悟" required
-                       autocomplete="off" autocapitalize="off" enterKeyHint="go">
-            </div>
-            <button type="submit" class="submit-btn">立即打卡</button>
-        </form>
 
         <div class="info-box">
             <div class="info-title">📌 值班时段</div>
