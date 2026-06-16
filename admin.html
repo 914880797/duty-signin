@@ -390,79 +390,6 @@
 
     </div>
 
-        <div id="announcementTab" class="tab-content">
-            <div class="search-section" style="margin-bottom:16px;">
-                <div class="form-title">📢 添加公告</div>
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                    <input type="text" id="announcementInput" class="search-input" placeholder="输入公告内容..." style="flex:1;min-width:200px;">
-                    <button onclick="addAnnouncement()" class="search-btn" style="background:linear-gradient(90deg,#4CAF50,#388E3C);">添加</button>
-                </div>
-            </div>
-            <div class="search-section">
-                <div class="form-title">📌 公告列表</div>
-                <table class="shift-table">
-                    <thead>
-                        <tr>
-                            <th>内容</th>
-                            <th style="width:140px;">创建时间</th>
-                            <th style="width:60px;">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="announcementBody">
-                        <tr><td colspan="3" style="text-align:center;color:#8c92ac;">暂无公告</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="batchTab" class="tab-content">
-            <div class="search-section">
-                <div class="form-title">🧠 智能导入（粘贴完整排班文本）</div>
-                <p style="color:#8c92ac;font-size:12px;margin-bottom:8px;">支持格式：分组名 + 时段 + 人员列表，自动解析</p>
-                <div class="form-row" style="flex-direction:column;align-items:stretch;">
-                    <textarea id="smartImportText" class="search-input" rows="8" placeholder="示例：&#10;电报值班&#10;8点～11点：叶小天，香蕉，超能量，展哥&#10;11点～14点：桐盈，茉莉，轻舞飞扬&#10;&#10;会议室值班&#10;8点～11点：伟，静等花开，神话&#10;11点～14点：白虎，敬霖，景汐" style="min-height:160px;resize:vertical;width:100%;max-width:100%;font-family:monospace;font-size:12px;"></textarea>
-                </div>
-                <div class="form-row">
-                    <span class="form-label">选择日期</span>
-                    <input type="date" id="smartImportDate" class="form-select" style="color:#fff;">
-                </div>
-                <div style="margin-top:12px;">
-                    <button onclick="smartImportPreview()" class="search-btn" style="background:linear-gradient(90deg,#ff7a1a,#e65100);">解析预览</button>
-                    <button onclick="smartImportSubmit()" class="search-btn" style="background:linear-gradient(90deg,#4CAF50,#388E3C);margin-left:8px;">一键导入</button>
-                    <span id="smartImportResult" style="margin-left:12px;font-size:13px;"></span>
-                </div>
-                <div id="smartImportPreview" style="margin-top:12px;max-height:200px;overflow-y:auto;"></div>
-            </div>
-
-            <div class="search-section">
-                <div class="form-title">📋 批量添加排班（单时段）</div>
-                <div class="form-row">
-                    <span class="form-label">选择日期</span>
-                    <input type="date" id="batchDate" class="form-select" style="color:#fff;">
-                </div>
-                <div class="form-row">
-                    <span class="form-label">选择时段</span>
-                    <select id="batchShift" class="form-select">
-                        <option value="">-- 请选择值班时段 --</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <span class="form-label">选择分组</span>
-                    <select id="batchGroup" class="form-select">
-                        <option value="">-- 不指定分组 --</option>
-                    </select>
-                </div>
-                <div class="form-row" style="flex-direction:column;align-items:stretch;">
-                    <span class="form-label">人员名单（每行一个姓名）</span>
-                    <textarea id="batchNames" class="search-input" rows="6" placeholder="贪狼&#10;破军&#10;七杀&#10;..." style="min-height:120px;resize:vertical;width:100%;max-width:100%;"></textarea>
-                </div>
-                <div style="margin-top:12px;">
-                    <button onclick="batchAddConfig()" class="search-btn" style="background:linear-gradient(90deg,#0b95c9,#0978a5);">批量添加排班</button>
-                    <span id="batchResult" style="margin-left:12px;font-size:13px;"></span>
-                </div>
-            </div>
-        </div>
-
         <!-- 管理登录提示 -->
         <div id="loginPrompt" style="text-align: center; padding: 20px; background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 10px; margin-bottom: 20px;">
             <p style="color: #ffc107; margin-bottom: 10px;">🔐 管理入口 - 请联系管理员获取访问权限</p>
@@ -666,6 +593,84 @@
             <button onclick="validateAndSaveConfig()" class="save-config-btn">💾 保存时段配置</button>
             <div id="configStatus" style="margin-top: 15px;"></div>
         </div>
+
+        <div id="announcementTab" class="tab-content">
+            <div class="search-section" style="margin-bottom:16px;">
+                <div class="form-title">📢 添加公告</div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <input type="text" id="announcementInput" class="search-input" placeholder="输入公告内容..." style="flex:1;min-width:200px;">
+                    <button onclick="addAnnouncement()" class="search-btn" style="background:linear-gradient(90deg,#4CAF50,#388E3C);">添加</button>
+                </div>
+            </div>
+            <div class="search-section">
+                <div class="form-title">📌 公告列表</div>
+                <table class="shift-table">
+                    <thead>
+                        <tr>
+                            <th>内容</th>
+                            <th style="width:140px;">创建时间</th>
+                            <th style="width:60px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="announcementBody">
+                        <tr><td colspan="3" style="text-align:center;color:#8c92ac;">暂无公告</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="batchTab" class="tab-content">
+            <div class="search-section">
+                <div class="form-title">🧠 智能导入（粘贴完整排班文本）</div>
+                <p style="color:#8c92ac;font-size:12px;margin-bottom:8px;">支持格式：分组名 + 时段 + 人员列表，自动解析</p>
+                <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:280px;">
+                        <div class="form-row" style="flex-direction:column;align-items:stretch;">
+                            <textarea id="smartImportText" class="search-input" rows="10" placeholder="示例：&#10;电报值班&#10;8点～11点：叶小天，香蕉，超能量，展哥&#10;11点～14点：桐盈，茉莉，轻舞飞扬&#10;&#10;会议室值班&#10;8点～11点：伟，静等花开，神话&#10;11点～14点：白虎，敬霖，景汐" style="min-height:200px;resize:vertical;width:100%;max-width:100%;font-family:monospace;font-size:12px;"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <span class="form-label">选择日期</span>
+                            <input type="date" id="smartImportDate" class="form-select" style="color:#fff;">
+                        </div>
+                        <div style="margin-top:12px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+                            <button onclick="smartImportPreview()" class="search-btn" style="background:linear-gradient(90deg,#ff7a1a,#e65100);">解析预览</button>
+                            <button onclick="smartImportSubmit()" class="search-btn" style="background:linear-gradient(90deg,#4CAF50,#388E3C);">一键导入</button>
+                            <span id="smartImportResult" style="font-size:13px;"></span>
+                        </div>
+                    </div>
+                    <div id="smartImportPreview" style="flex:1;min-width:280px;max-height:320px;overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px;"></div>
+                </div>
+            </div>
+
+            <div class="search-section">
+                <div class="form-title">📋 批量添加排班（单时段）</div>
+                <div class="form-row">
+                    <span class="form-label">选择日期</span>
+                    <input type="date" id="batchDate" class="form-select" style="color:#fff;">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">选择时段</span>
+                    <select id="batchShift" class="form-select">
+                        <option value="">-- 请选择值班时段 --</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">选择分组</span>
+                    <select id="batchGroup" class="form-select">
+                        <option value="">-- 不指定分组 --</option>
+                    </select>
+                </div>
+                <div class="form-row" style="flex-direction:column;align-items:stretch;">
+                    <span class="form-label">人员名单（每行一个姓名）</span>
+                    <textarea id="batchNames" class="search-input" rows="6" placeholder="贪狼&#10;破军&#10;七杀&#10;..." style="min-height:120px;resize:vertical;width:100%;max-width:100%;"></textarea>
+                </div>
+                <div style="margin-top:12px;">
+                    <button onclick="batchAddConfig()" class="search-btn" style="background:linear-gradient(90deg,#0b95c9,#0978a5);">批量添加排班</button>
+                    <span id="batchResult" style="margin-left:12px;font-size:13px;"></span>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
