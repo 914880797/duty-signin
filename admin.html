@@ -670,48 +670,6 @@
             </div>
 
         </div>
-                        <div class="form-row">
-                            <span class="form-label">选择日期</span>
-                            <input type="date" id="smartImportDate" class="form-select" style="color:#fff;">
-                        </div>
-                        <div style="margin-top:12px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
-                            <button onclick="smartImportPreview()" class="search-btn" style="background:linear-gradient(90deg,#ff7a1a,#e65100);">解析预览</button>
-                            <button onclick="smartImportSubmit()" class="search-btn" style="background:linear-gradient(90deg,#4CAF50,#388E3C);">一键导入</button>
-                            <span id="smartImportResult" style="font-size:13px;"></span>
-                        </div>
-                    </div>
-                    <div id="smartImportPreview" style="flex:1;min-width:280px;max-height:320px;overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px;"></div>
-                </div>
-            </div>
-
-            <div class="search-section">
-                <div class="form-title">📋 批量添加排班（单时段）</div>
-                <div class="form-row">
-                    <span class="form-label">选择日期</span>
-                    <input type="date" id="batchDate" class="form-select" style="color:#fff;">
-                </div>
-                <div class="form-row">
-                    <span class="form-label">选择时段</span>
-                    <select id="batchShift" class="form-select">
-                        <option value="">-- 请选择值班时段 --</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <span class="form-label">选择分组</span>
-                    <select id="batchGroup" class="form-select">
-                        <option value="">-- 不指定分组 --</option>
-                    </select>
-                </div>
-                <div class="form-row" style="flex-direction:column;align-items:stretch;">
-                    <span class="form-label">人员名单（每行一个姓名）</span>
-                    <textarea id="batchNames" class="search-input" rows="6" placeholder="贪狼&#10;破军&#10;七杀&#10;..." style="min-height:120px;resize:vertical;width:100%;max-width:100%;"></textarea>
-                </div>
-                <div style="margin-top:12px;">
-                    <button onclick="batchAddConfig()" class="search-btn" style="background:linear-gradient(90deg,#0b95c9,#0978a5);">批量添加排班</button>
-                    <span id="batchResult" style="margin-left:12px;font-size:13px;"></span>
-                </div>
-            </div>
-        </div>
 
     </div>
 
@@ -1837,6 +1795,16 @@
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].trim();
                 if (!line) continue;
+
+                // Skip numbered list headers
+                if (/^\d+[、.．]/.test(line)) continue;
+
+                // Group name detection: "会议室值班" or "会议室值班："
+                if (/(值班|分组)\s*[：:]?\s*$/.test(line)) {
+                    currentGroup = line.replace(/[：:]/g, '').replace(/\s+/g, '').replace(/值班$/, '').replace(/分组$/, '').trim();
+                    currentSlot = null;
+                    continue;
+                }
 
                 // Skip header lines like "六、23点～24点查缺补漏"，but extract time from them
                 if (/^[一二三四五六七八九十]+[、.．]/.test(line)) {
