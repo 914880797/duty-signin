@@ -1778,17 +1778,24 @@
 
         var smartImportParsed = [];
 
-        function parseChineseTime(timeStr) {
-            var clean = timeStr.replace(/\s+/g, '').replace(/～/g, '-').replace(/到/g, '-').replace(/：/g, ':');
-            var parts = clean.split('-');
-            if (parts.length !== 2) return null;
-            function parsePart(p) {
-                var m = p.match(/(\d+)点(\d+)?/);
-                if (!m) return null;
-                var h = parseInt(m[1]), mi = m[2] ? parseInt(m[2]) : 0;
-                return String(h).padStart(2, '0') + ':' + String(mi).padStart(2, '0');
+        function parseChineseTime(startStr, endStr) {
+            function parseOne(p) {
+                p = p.replace(/\s+/g, '');
+                var hm = p.match(/^(\d+):(\d+)$/);
+                if (hm) {
+                    var h = parseInt(hm[1]), m = parseInt(hm[2]);
+                    if (h === 24) h = 0;
+                    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+                }
+                var cm = p.match(/^(\d+)点(\d+)?$/);
+                if (cm) {
+                    var h2 = parseInt(cm[1]), m2 = cm[2] ? parseInt(cm[2]) : 0;
+                    if (h2 === 24) h2 = 0;
+                    return String(h2).padStart(2, '0') + ':' + String(m2).padStart(2, '0');
+                }
+                return null;
             }
-            var s = parsePart(parts[0]), e = parsePart(parts[1]);
+            var s = parseOne(startStr), e = parseOne(endStr);
             return s && e ? s + '-' + e : null;
         }
 
@@ -1827,42 +1834,41 @@
             var currentGroup = null;
             var currentSlot = null;
             var results = [];
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (!line) continue;
 
-            lines.forEach(function(line) {
-                line = line.trim();
-                if (!line) return;
-
-                if (/^[一二三四五六七八九十]+[、.．]/.test(line)) return;
-                if (/^\d+[、.．]/.test(line)) return;
-
-                if (/(值班|分组)\s*[：:]?\s*$/.test(line)) {
-                    currentGroup = line.replace(/[：:]/g, '').replace(/\s+/g, '').replace(/值班$/, '').replace(/分组$/, '').trim();
-                    currentSlot = null;
-                    return;
+                // Skip header lines like "六、23点～24点查缺补漏"，but extract time from them
+                if (/^[一二三四五六七八九十]+[、.．]/.test(line)) {
+                    var inner = line.match(/(\d+点(?:\s*\d+)?)\s*[～~到\-]\s*(\d+点(?:\s*\d+)?|\d+:\d+)/);
+                    if (inner) {
+                        var dt = parseChineseTime(inner[1], inner[2]);
+                        if (dt) currentSlot = dt;
+                    }
+                    continue;
                 }
 
-                var ta = line.match(/^(.+?点.+?点)[：:]\s*(.+)$/);
-                if (ta) {
-                    var dutyTime = parseChineseTime(ta[1]);
+                // Try time slot pattern: "8点～9点30" or "8点～9点30：张三，李四" or "18点 30～20点"
+                var tm = line.match(/^(\d+点(?:\s*\d+)?)\s*[～~到\-]\s*(\d+点(?:\s*\d+)?|\d+:\d+)([：:]\s*(.*))?$/);
+                if (tm) {
+                    var startStr = tm[1], endStr = tm[2];
+                    var namesAfter = tm[4] ? tm[4].trim() : '';
+                    var dutyTime = parseChineseTime(startStr, endStr);
                     if (dutyTime) {
-                        var names = ta[2].split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n && !/^\d/.test(n) && !/点$/.test(n); });
-                        if (names.length > 0) {
-                            results.push({ group: currentGroup, duty_time: dutyTime, names: names });
+                        if (namesAfter && /[,，、]/.test(namesAfter)) {
+                            var namesArr = namesAfter.split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n && !/^\d/.test(n); });
+                            if (namesArr.length > 0) {
+                                results.push({ group: currentGroup, duty_time: dutyTime, names: namesArr });
+                            }
+                            currentSlot = dutyTime;
+                        } else {
                             currentSlot = dutyTime;
                         }
                     }
-                    return;
+                    continue;
                 }
 
-                var tb = line.match(/^(.+?点.+?点)[：:]?\s*$/);
-                if (tb) {
-                    var dutyTime2 = parseChineseTime(tb[1]);
-                    if (dutyTime2) {
-                        currentSlot = dutyTime2;
-                    }
-                    return;
-                }
-
+                // Comma line with names
                 if (/[,，、]/.test(line) && currentGroup) {
                     var cleanLine = line.replace(/^[^,，、]+[：:]/g, '').replace(/^\d+[、.．]\s*/, '').replace(/查缺补漏.*$/, '');
                     var namesOnly = cleanLine.split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n && !/^\d/.test(n) && !/[：:]/.test(n) && n.length > 0 && !/^[\u4e00-\u9fa5]{1,2}[:：]/.test(n); });
@@ -1870,7 +1876,7 @@
                         results.push({ group: currentGroup, duty_time: currentSlot, names: namesOnly });
                     }
                 }
-            });
+            }
 
             return results;
         }
