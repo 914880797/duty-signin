@@ -1778,6 +1778,7 @@
         function parseSmartImport(text) {
             var lines = text.split('\n');
             var currentGroup = null;
+            var currentSlot = null;
             var results = [];
 
             lines.forEach(function(line) {
@@ -1786,10 +1787,10 @@
 
                 if (/^[一二三四五六七八九十]+[、.．]/.test(line)) return;
                 if (/^\d+[、.．]/.test(line)) return;
-                if (/^(电报|会议室|其他|夜聊)/.test(line) && line.length <= 6) return;
 
                 if (/(值班|分组)\s*[：:]?\s*$/.test(line)) {
-                    currentGroup = line.replace(/[：:]/g, '').replace(/\s+/g, '').trim();
+                    currentGroup = line.replace(/[：:]/g, '').replace(/\s+/g, '').replace(/值班$/, '').replace(/分组$/, '').trim();
+                    currentSlot = null;
                     return;
                 }
 
@@ -1797,9 +1798,10 @@
                 if (ta) {
                     var dutyTime = parseChineseTime(ta[1]);
                     if (dutyTime) {
-                        var names = ta[2].split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n && !/^\d/.test(n); });
+                        var names = ta[2].split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n && !/^\d/.test(n) && !/点$/.test(n); });
                         if (names.length > 0) {
                             results.push({ group: currentGroup, duty_time: dutyTime, names: names });
+                            currentSlot = dutyTime;
                         }
                     }
                     return;
@@ -1807,20 +1809,18 @@
 
                 var tb = line.match(/^(.+?点.+?点)[：:]?\s*$/);
                 if (tb) {
-                    var stripped = line.replace(/[：:]/g, '').replace(/[\u4e00-\u9fa5]+[：:]/g, '').trim();
-                    if (/[,，、]/.test(stripped)) {
-                        var names2 = stripped.split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n; });
-                        if (names2.length > 0 && currentGroup) {
-                            results.push({ group: currentGroup, duty_time: '未识别时段', names: names2 });
-                        }
+                    var dutyTime2 = parseChineseTime(tb[1]);
+                    if (dutyTime2) {
+                        currentSlot = dutyTime2;
                     }
                     return;
                 }
 
-                if (/[,，、]/.test(line)) {
-                    var namesOnly = line.replace(/^.+?[：:]/g, '').split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n && !/^\d/.test(n) && !/^[\u4e00-\u9fa5]+[：:]/.test(n); });
-                    if (namesOnly.length > 0 && currentGroup) {
-                        results.push({ group: currentGroup, duty_time: '未识别时段', names: namesOnly });
+                if (/[,，、]/.test(line) && currentGroup) {
+                    var cleanLine = line.replace(/^[^,，、]+[：:]/g, '').replace(/^\d+[、.．]\s*/, '').replace(/查缺补漏.*$/, '');
+                    var namesOnly = cleanLine.split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n && !/^\d/.test(n) && !/[：:]/.test(n) && n.length > 0 && !/^[\u4e00-\u9fa5]{1,2}[:：]/.test(n); });
+                    if (namesOnly.length > 0 && currentSlot) {
+                        results.push({ group: currentGroup, duty_time: currentSlot, names: namesOnly });
                     }
                 }
             });
@@ -1885,8 +1885,11 @@
         }
 
         function findGroupId(groupName) {
+            if (!groupName) return null;
             for (var i = 0; i < allGroups.length; i++) {
-                if (allGroups[i].name === groupName) return allGroups[i].id;
+                if (allGroups[i].name === groupName || allGroups[i].name.indexOf(groupName) !== -1 || groupName.indexOf(allGroups[i].name) !== -1) {
+                    return allGroups[i].id;
+                }
             }
             return null;
         }
