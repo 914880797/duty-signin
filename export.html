@@ -186,21 +186,12 @@
         }
         .duty-table th.group-col { background: #4CAF50; border-left: 2px solid #dcdfe6; }
         .duty-table th.stats-col-fixed, .duty-table td.stats-col-fixed {
-            position: sticky;
-            right: 0;
             background: #fafafa;
             font-weight: 600;
             min-width: 55px;
-            z-index: 20;
             border-left: 2px solid #dcdfe6;
         }
-        .duty-table th.stats-col-fixed { background: #4CAF50; z-index: 30; }
-        .duty-table td.stats-col-fixed:nth-last-child(3) { right: 165px; }
-        .duty-table td.stats-col-fixed:nth-last-child(2) { right: 110px; }
-        .duty-table td.stats-col-fixed:nth-last-child(1) { right: 0; }
-        .duty-table th.stats-col-fixed:nth-last-child(3) { right: 165px; z-index: 31; }
-        .duty-table th.stats-col-fixed:nth-last-child(2) { right: 110px; z-index: 31; }
-        .duty-table th.stats-col-fixed:nth-last-child(1) { right: 0; z-index: 31; }
+        .duty-table th.stats-col-fixed { background: #4CAF50; }
         .duty-table td.value-1 { color: #1a3d5c; font-weight: 600; }
         .highlight-row td { background: #fff7e6 !important; }
 
@@ -232,6 +223,19 @@
                 left: 90px;
                 z-index: 29;
             }
+
+            .duty-table th.stats-col-fixed, .duty-table td.stats-col-fixed {
+                position: sticky;
+                right: 0;
+                z-index: 20;
+            }
+            .duty-table th.stats-col-fixed { z-index: 30; }
+            .duty-table td.stats-col-fixed:nth-last-child(3) { right: 165px; }
+            .duty-table td.stats-col-fixed:nth-last-child(2) { right: 110px; }
+            .duty-table td.stats-col-fixed:nth-last-child(1) { right: 0; }
+            .duty-table th.stats-col-fixed:nth-last-child(3) { right: 165px; z-index: 31; }
+            .duty-table th.stats-col-fixed:nth-last-child(2) { right: 110px; z-index: 31; }
+            .duty-table th.stats-col-fixed:nth-last-child(1) { right: 0; z-index: 31; }
         }
 
         /* Desktop 1024px+ */
