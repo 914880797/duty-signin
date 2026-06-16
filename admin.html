@@ -417,7 +417,25 @@
 
         <div id="batchTab" class="tab-content">
             <div class="search-section">
-                <div class="form-title">📋 批量添加排班</div>
+                <div class="form-title">🧠 智能导入（粘贴完整排班文本）</div>
+                <p style="color:#8c92ac;font-size:12px;margin-bottom:8px;">支持格式：分组名 + 时段 + 人员列表，自动解析</p>
+                <div class="form-row" style="flex-direction:column;align-items:stretch;">
+                    <textarea id="smartImportText" class="search-input" rows="8" placeholder="示例：&#10;电报值班&#10;8点～11点：叶小天，香蕉，超能量，展哥&#10;11点～14点：桐盈，茉莉，轻舞飞扬&#10;&#10;会议室值班&#10;8点～11点：伟，静等花开，神话&#10;11点～14点：白虎，敬霖，景汐" style="min-height:160px;resize:vertical;width:100%;max-width:100%;font-family:monospace;font-size:12px;"></textarea>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">选择日期</span>
+                    <input type="date" id="smartImportDate" class="form-select" style="color:#fff;">
+                </div>
+                <div style="margin-top:12px;">
+                    <button onclick="smartImportPreview()" class="search-btn" style="background:linear-gradient(90deg,#ff7a1a,#e65100);">解析预览</button>
+                    <button onclick="smartImportSubmit()" class="search-btn" style="background:linear-gradient(90deg,#4CAF50,#388E3C);margin-left:8px;">一键导入</button>
+                    <span id="smartImportResult" style="margin-left:12px;font-size:13px;"></span>
+                </div>
+                <div id="smartImportPreview" style="margin-top:12px;max-height:200px;overflow-y:auto;"></div>
+            </div>
+
+            <div class="search-section">
+                <div class="form-title">📋 批量添加排班（单时段）</div>
                 <div class="form-row">
                     <span class="form-label">选择日期</span>
                     <input type="date" id="batchDate" class="form-select" style="color:#fff;">
@@ -1664,7 +1682,9 @@
             var today = new Date();
             var bj = new Date(today.getTime() + 8 * 60 * 60 * 1000);
             var pad = function(n) { return String(n).padStart(2, '0'); };
-            document.getElementById('batchDate').value = bj.getUTCFullYear() + '-' + pad(bj.getUTCMonth() + 1) + '-' + pad(bj.getUTCDate());
+            var dateStr = bj.getUTCFullYear() + '-' + pad(bj.getUTCMonth() + 1) + '-' + pad(bj.getUTCDate());
+            document.getElementById('batchDate').value = dateStr;
+            document.getElementById('smartImportDate').value = dateStr;
         }
 
         function batchAddConfig() {
@@ -1707,6 +1727,168 @@
                 result.textContent = '网络错误: ' + e.message;
                 result.style.color = '#f44336';
             });
+        }
+
+        var smartImportParsed = [];
+
+        function parseChineseTime(timeStr) {
+            var clean = timeStr.replace(/\s+/g, '').replace(/～/g, '-').replace(/到/g, '-').replace(/：/g, ':');
+            var parts = clean.split('-');
+            if (parts.length !== 2) return null;
+            function parsePart(p) {
+                var m = p.match(/(\d+)点(\d+)?/);
+                if (!m) return null;
+                var h = parseInt(m[1]), mi = m[2] ? parseInt(m[2]) : 0;
+                return String(h).padStart(2, '0') + ':' + String(mi).padStart(2, '0');
+            }
+            var s = parsePart(parts[0]), e = parsePart(parts[1]);
+            return s && e ? s + '-' + e : null;
+        }
+
+        function smartImportPreview() {
+            var text = document.getElementById('smartImportText').value;
+            var dateEl = document.getElementById('smartImportDate');
+            var today = new Date();
+            var bj = new Date(today.getTime() + 8 * 60 * 60 * 1000);
+            var pad = function(n) { return String(n).padStart(2, '0'); };
+            if (!dateEl.value) {
+                dateEl.value = bj.getUTCFullYear() + '-' + pad(bj.getUTCMonth() + 1) + '-' + pad(bj.getUTCDate());
+            }
+
+            smartImportParsed = parseSmartImport(text);
+            var preview = document.getElementById('smartImportPreview');
+            var result = document.getElementById('smartImportResult');
+
+            if (smartImportParsed.length === 0) {
+                preview.innerHTML = '<p style="color:#ff6b6b;text-align:center;">未解析到有效排班数据，请检查格式</p>';
+                result.textContent = '';
+                return;
+            }
+
+            var html = '<table class="shift-table" style="font-size:12px;"><thead><tr><th>分组</th><th>时段</th><th>人员</th></tr></thead><tbody>';
+            smartImportParsed.forEach(function(item) {
+                html += '<tr><td>' + (item.group || '-') + '</td><td>' + item.duty_time + '</td><td style="text-align:left;">' + item.names.join('、') + '</td></tr>';
+            });
+            html += '</tbody></table>';
+            preview.innerHTML = html;
+            result.textContent = '解析到 ' + smartImportParsed.length + ' 个排班条目';
+            result.style.color = '#4CAF50';
+        }
+
+        function parseSmartImport(text) {
+            var lines = text.split('\n');
+            var currentGroup = null;
+            var results = [];
+
+            lines.forEach(function(line) {
+                line = line.trim();
+                if (!line) return;
+
+                if (/^[一二三四五六七八九十]+[、.．]/.test(line)) return;
+                if (/^\d+[、.．]/.test(line)) return;
+                if (/^(电报|会议室|其他|夜聊)/.test(line) && line.length <= 6) return;
+
+                if (/(值班|分组)\s*[：:]?\s*$/.test(line)) {
+                    currentGroup = line.replace(/[：:]/g, '').replace(/\s+/g, '').trim();
+                    return;
+                }
+
+                var ta = line.match(/^(.+?点.+?点)[：:]\s*(.+)$/);
+                if (ta) {
+                    var dutyTime = parseChineseTime(ta[1]);
+                    if (dutyTime) {
+                        var names = ta[2].split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n && !/^\d/.test(n); });
+                        if (names.length > 0) {
+                            results.push({ group: currentGroup, duty_time: dutyTime, names: names });
+                        }
+                    }
+                    return;
+                }
+
+                var tb = line.match(/^(.+?点.+?点)[：:]?\s*$/);
+                if (tb) {
+                    var stripped = line.replace(/[：:]/g, '').replace(/[\u4e00-\u9fa5]+[：:]/g, '').trim();
+                    if (/[,，、]/.test(stripped)) {
+                        var names2 = stripped.split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n; });
+                        if (names2.length > 0 && currentGroup) {
+                            results.push({ group: currentGroup, duty_time: '未识别时段', names: names2 });
+                        }
+                    }
+                    return;
+                }
+
+                if (/[,，、]/.test(line)) {
+                    var namesOnly = line.replace(/^.+?[：:]/g, '').split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n && !/^\d/.test(n) && !/^[\u4e00-\u9fa5]+[：:]/.test(n); });
+                    if (namesOnly.length > 0 && currentGroup) {
+                        results.push({ group: currentGroup, duty_time: '未识别时段', names: namesOnly });
+                    }
+                }
+            });
+
+            return results;
+        }
+
+        function smartImportSubmit() {
+            if (smartImportParsed.length === 0) {
+                smartImportPreview();
+                if (smartImportParsed.length === 0) return;
+            }
+
+            var date = document.getElementById('smartImportDate').value;
+            if (!date) { alert('请选择日期'); return; }
+
+            if (!confirm('确定要导入 ' + smartImportParsed.length + ' 个排班条目到 ' + date + ' 吗？')) return;
+
+            var result = document.getElementById('smartImportResult');
+            result.textContent = '导入中...';
+            result.style.color = '#8c92ac';
+
+            var completed = 0, total = 0;
+            var allNames = [];
+            smartImportParsed.forEach(function(item) {
+                item.names.forEach(function(name) {
+                    allNames.push({
+                        name: name,
+                        duty_date: date,
+                        duty_time: item.duty_time,
+                        group_id: item.group ? findGroupId(item.group) : null
+                    });
+                    total++;
+                });
+            });
+
+            function processNext(index) {
+                if (index >= allNames.length) {
+                    result.textContent = '导入完成: 成功 ' + completed + '/' + total;
+                    result.style.color = '#4CAF50';
+                    return;
+                }
+                var item = allNames[index];
+                fetch('/api/batch-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        names: [item.name],
+                        duty_date: item.duty_date,
+                        duty_time: item.duty_time,
+                        group_id: item.group_id
+                    })
+                }).then(r => r.json()).then(function(data) {
+                    if (data.success && data.inserted > 0) completed++;
+                    processNext(index + 1);
+                }).catch(function() {
+                    processNext(index + 1);
+                });
+            }
+
+            processNext(0);
+        }
+
+        function findGroupId(groupName) {
+            for (var i = 0; i < allGroups.length; i++) {
+                if (allGroups[i].name === groupName) return allGroups[i].id;
+            }
+            return null;
         }
     </script>
 </body>
