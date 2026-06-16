@@ -286,6 +286,37 @@
                 animation-duration: 0.01ms !important;
             }
         }
+
+        .announcement-bar {
+            background: rgba(255, 122, 26, 0.15);
+            border: 1px solid rgba(255, 122, 26, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            position: relative;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+        }
+        .announcement-bar .icon { flex-shrink: 0; margin-right: 8px; font-size: 14px; }
+        .announcement-bar .marquee-wrap {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        .announcement-bar .marquee-text {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 15s linear infinite;
+            color: #ffb74d;
+            font-size: 13px;
+        }
+        .announcement-bar .marquee-text.empty { color: #666; animation: none; }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
     </style>
     <script src="/utils/date-utils.js"></script>
 </head>
@@ -305,6 +336,13 @@
             <a href="/query.html" class="back-btn">🔍 排班查询</a>
             <a href="/export.html" class="back-btn">📝 打卡查询</a>
             <a href="/makeup.html" class="back-btn">🔄 补卡</a>
+        </div>
+
+        <div class="announcement-bar" id="announcementBar" style="display:none;">
+            <span class="icon">📢</span>
+            <div class="marquee-wrap">
+                <span class="marquee-text empty" id="announcementText">暂无公告</span>
+            </div>
         </div>
 
         <div class="clock-section">
@@ -396,6 +434,27 @@
         }
 
         loadShiftConfig();
+        loadAnnouncements();
+
+        function loadAnnouncements() {
+            fetch('/api/announcements').then(r => r.json()).then(data => {
+                var list = (data.success ? data.data : []) || [];
+                var bar = document.getElementById('announcementBar');
+                var text = document.getElementById('announcementText');
+
+                if (list.length === 0) {
+                    bar.style.display = 'none';
+                    return;
+                }
+
+                bar.style.display = 'flex';
+                var joined = list.map(function(a) { return a.content; }).join('　　');
+                text.textContent = joined;
+                text.classList.remove('empty');
+            }).catch(function() {
+                document.getElementById('announcementBar').style.display = 'none';
+            });
+        }
 
         async function handleSignin(event) {
             event.preventDefault();

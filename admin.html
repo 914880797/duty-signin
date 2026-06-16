@@ -386,9 +386,64 @@
                 <div style="margin-top: 20px; text-align: center;">
                     <a href="/" class="back-btn" style="color: #b0b0c0; text-decoration: none; font-size: 13px;">🏠 返回首页</a>
                 </div>
+        </div>
+
+        <div id="announcementTab" class="tab-content">
+            <div class="search-section" style="margin-bottom:16px;">
+                <div class="form-title">📢 添加公告</div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <input type="text" id="announcementInput" class="search-input" placeholder="输入公告内容..." style="flex:1;min-width:200px;">
+                    <button onclick="addAnnouncement()" class="search-btn" style="background:linear-gradient(90deg,#4CAF50,#388E3C);">添加</button>
+                </div>
+            </div>
+            <div class="search-section">
+                <div class="form-title">📌 公告列表</div>
+                <table class="shift-table">
+                    <thead>
+                        <tr>
+                            <th>内容</th>
+                            <th style="width:140px;">创建时间</th>
+                            <th style="width:60px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="announcementBody">
+                        <tr><td colspan="3" style="text-align:center;color:#8c92ac;">暂无公告</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-        
+
+        <div id="batchTab" class="tab-content">
+            <div class="search-section">
+                <div class="form-title">📋 批量添加排班</div>
+                <div class="form-row">
+                    <span class="form-label">选择日期</span>
+                    <input type="date" id="batchDate" class="form-select" style="color:#fff;">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">选择时段</span>
+                    <select id="batchShift" class="form-select">
+                        <option value="">-- 请选择值班时段 --</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">选择分组</span>
+                    <select id="batchGroup" class="form-select">
+                        <option value="">-- 不指定分组 --</option>
+                    </select>
+                </div>
+                <div class="form-row" style="flex-direction:column;align-items:stretch;">
+                    <span class="form-label">人员名单（每行一个姓名）</span>
+                    <textarea id="batchNames" class="search-input" rows="6" placeholder="贪狼&#10;破军&#10;七杀&#10;..." style="min-height:120px;resize:vertical;width:100%;max-width:100%;"></textarea>
+                </div>
+                <div style="margin-top:12px;">
+                    <button onclick="batchAddConfig()" class="search-btn" style="background:linear-gradient(90deg,#0b95c9,#0978a5);">批量添加排班</button>
+                    <span id="batchResult" style="margin-left:12px;font-size:13px;"></span>
+                </div>
+            </div>
+        </div>
+
+    </div>
         <!-- 管理登录提示 -->
         <div id="loginPrompt" style="text-align: center; padding: 20px; background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 10px; margin-bottom: 20px;">
             <p style="color: #ffc107; margin-bottom: 10px;">🔐 管理入口 - 请联系管理员获取访问权限</p>
@@ -432,6 +487,8 @@
             <div class="tab-btn" onclick="switchTab('groups')">👥 分组管理</div>
             <div class="tab-btn" onclick="switchTab('settings')">⚙️ 打卡设置</div>
             <div class="tab-btn" onclick="switchTab('config')">🕐 时段配置</div>
+            <div class="tab-btn" onclick="switchTab('announcement')">📢 公告</div>
+            <div class="tab-btn" onclick="switchTab('batch')">📋 批量排班</div>
         </div>
 
         <div id="rosterTab" class="tab-content active">
@@ -629,22 +686,26 @@
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            if (tab === 'roster') {
-                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
-                document.getElementById('rosterTab').classList.add('active');
-            } else if (tab === 'groups') {
-                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
-                document.getElementById('groupsTab').classList.add('active');
-                loadGroups();
-            } else if (tab === 'settings') {
-                document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
-                document.getElementById('settingsTab').classList.add('active');
-                loadCycleSettings();
-            } else {
-                document.querySelector('.tab-btn:nth-child(4)').classList.add('active');
-                document.getElementById('configTab').classList.add('active');
-                loadShiftConfig();
-            }
+            var tabMap = {
+                'roster': 1,
+                'groups': 2,
+                'settings': 3,
+                'config': 4,
+                'announcement': 5,
+                'batch': 6
+            };
+            
+            var n = tabMap[tab];
+            if (!n) return;
+            
+            document.querySelector('.tab-btn:nth-child(' + n + ')').classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+            
+            if (tab === 'groups') loadGroups();
+            else if (tab === 'settings') loadCycleSettings();
+            else if (tab === 'config') loadShiftConfig();
+            else if (tab === 'announcement') loadAnnouncements();
+            else if (tab === 'batch') { updateBatchSelects(); }
         }
 
         function loadShiftConfig() {
@@ -1531,6 +1592,120 @@
                 return false;
             }
             return true;
+        }
+
+        function loadAnnouncements() {
+            fetch('/api/announcements').then(r => r.json()).then(data => {
+                var list = (data.success ? data.data : []) || [];
+                var tbody = document.getElementById('announcementBody');
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#8c92ac;">暂无公告</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = list.map(function(a) {
+                    return '<tr>' +
+                        '<td style="text-align:left;">' + a.content + '</td>' +
+                        '<td>' + a.created_at + '</td>' +
+                        '<td><button onclick="deleteAnnouncement(' + a.id + ')" style="padding:4px 10px;background:#f44336;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px;">删除</button></td>' +
+                    '</tr>';
+                }).join('');
+            }).catch(function(e) {
+                console.error('Load announcements error:', e);
+            });
+        }
+
+        function addAnnouncement() {
+            var input = document.getElementById('announcementInput');
+            var content = input.value.trim();
+            if (!content) { alert('请输入公告内容'); return; }
+
+            fetch('/api/announcements', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: content })
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    input.value = '';
+                    loadAnnouncements();
+                } else {
+                    alert(data.error || '添加失败');
+                }
+            }).catch(function(e) {
+                alert('网络错误: ' + e.message);
+            });
+        }
+
+        function deleteAnnouncement(id) {
+            if (!confirm('确定要删除这条公告吗？')) return;
+            fetch('/api/announcements?id=' + encodeURIComponent(id), { method: 'DELETE' })
+                .then(r => r.json()).then(data => {
+                    if (data.success) loadAnnouncements();
+                    else alert(data.error || '删除失败');
+                }).catch(function(e) {
+                    alert('网络错误: ' + e.message);
+                });
+        }
+
+        function updateBatchSelects() {
+            var batchShift = document.getElementById('batchShift');
+            var batchGroup = document.getElementById('batchGroup');
+
+            batchShift.innerHTML = '<option value="">-- 请选择值班时段 --</option>';
+            shiftConfig.forEach(function(s) {
+                batchShift.innerHTML += '<option value="' + s.name + '">' + s.name + '</option>';
+            });
+
+            batchGroup.innerHTML = '<option value="">-- 不指定分组 --</option>';
+            allGroups.forEach(function(g) {
+                batchGroup.innerHTML += '<option value="' + g.id + '">' + g.name + '</option>';
+            });
+
+            var today = new Date();
+            var bj = new Date(today.getTime() + 8 * 60 * 60 * 1000);
+            var pad = function(n) { return String(n).padStart(2, '0'); };
+            document.getElementById('batchDate').value = bj.getUTCFullYear() + '-' + pad(bj.getUTCMonth() + 1) + '-' + pad(bj.getUTCDate());
+        }
+
+        function batchAddConfig() {
+            var date = document.getElementById('batchDate').value;
+            var shift = document.getElementById('batchShift').value;
+            var groupId = document.getElementById('batchGroup').value;
+            var namesText = document.getElementById('batchNames').value.trim();
+
+            if (!date) { alert('请选择日期'); return; }
+            if (!shift) { alert('请选择时段'); return; }
+            if (!namesText) { alert('请输入人员名单'); return; }
+
+            var names = namesText.split(/[\n,;，；]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n; });
+
+            if (names.length === 0) { alert('未解析到有效姓名'); return; }
+
+            var result = document.getElementById('batchResult');
+            result.textContent = '添加中...';
+            result.style.color = '#8c92ac';
+
+            fetch('/api/batch-config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    names: names,
+                    duty_date: date,
+                    duty_time: shift,
+                    group_id: groupId || null
+                })
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    result.textContent = '成功添加 ' + data.inserted + ' 人' + (data.skipped > 0 ? '，跳过 ' + data.skipped + ' 人（已存在）' : '');
+                    result.style.color = '#4CAF50';
+                    document.getElementById('batchNames').value = '';
+                } else {
+                    result.textContent = '失败: ' + (data.error || '未知错误');
+                    result.style.color = '#f44336';
+                }
+            }).catch(function(e) {
+                result.textContent = '网络错误: ' + e.message;
+                result.style.color = '#f44336';
+            });
         }
     </script>
 </body>
