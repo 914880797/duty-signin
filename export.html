@@ -204,6 +204,7 @@
             z-index: 31;
         }
         .duty-table td.value-1 { color: #1a3d5c; font-weight: 600; }
+        .duty-table td.makeup { background: #fff3e0; color: #e65100; font-weight: 600; font-size: 11px; }
         .highlight-row td { background: #fff7e6 !important; }
 
         /* Reduced motion */
@@ -409,7 +410,13 @@
             const displayDate = DateUtils.getNaturalDate(r.created_at);
 
             if (!data[gn].records[r.name]) data[gn].records[r.name] = {};
-            data[gn].records[r.name][displayDate] = 1;
+            const isMakeup = r.ip_address === 'makeup';
+            const existing = data[gn].records[r.name][displayDate];
+            if (existing === 1 && isMakeup) {
+                data[gn].records[r.name][displayDate] = 2;
+            } else if (!existing) {
+                data[gn].records[r.name][displayDate] = isMakeup ? 2 : 1;
+            }
 
             if (displayDate > globalMax) globalMax = displayDate;
             if (!data[gn].maxDate || displayDate > data[gn].maxDate) data[gn].maxDate = displayDate;
@@ -457,9 +464,11 @@
             let s = 0;
             html += '<tr data-name="'+name+'" data-group="'+sheetName+'"><td class="name-col">'+name+'</td><td class="group-col">'+sheetName+'</td>';
             cycleDates.forEach(d => {
-                const v = rec[d.fullDate] ? 1 : '';
+                const raw = rec[d.fullDate];
+                const v = raw ? 1 : '';
+                const isMakeup = raw === 2;
                 if (v) s++;
-                html += '<td class="date-cell'+(v?' value-1':'')+'" data-date="'+d.fullDate+'">'+v+'</td>';
+                html += '<td class="date-cell'+(v?' value-1':'')+(isMakeup?' makeup':'')+'" data-date="'+d.fullDate+'">'+(isMakeup ? '补' : v)+'</td>';
             });
             const a = days - s;
             html += '<td class="stats-col-fixed">'+s+'</td><td class="stats-col-fixed">'+s+'</td><td class="stats-col-fixed">'+a+'</td></tr>';
@@ -533,9 +542,10 @@
                     let s = 0;
                     const row = [nm, gn];
                     cycleDates.forEach(d => {
-                        const v = rd[d.fullDate] ? 1 : '';
-                        if (v) s++;
-                        row.push(v);
+                        const raw = rd[d.fullDate];
+                        const isMakeup = raw === 2;
+                        if (raw) s++;
+                        row.push(isMakeup ? '补' : (raw ? 1 : ''));
                     });
                     row.push(s, s, days - s);
                     data.push(row);

@@ -249,6 +249,19 @@
                 <tbody></tbody>
             </table>
         </div>
+        <h2 style="font-size:18px;color:#4CAF50;text-align:center;margin-top:24px;margin-bottom:12px;">已补卡记录</h2>
+        <div class="table-container">
+            <table class="makeup-table" id="makeupDoneTable">
+                <thead><tr>
+                    <th scope="col">日期</th>
+                    <th scope="col">时段</th>
+                    <th scope="col">姓名</th>
+                    <th scope="col">分组</th>
+                    <th scope="col">补卡时间</th>
+                </tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
     <div class="toast" id="toast"></div>
     <script>
@@ -260,6 +273,7 @@
         document.getElementById('btnClear').addEventListener('click', clearFilters);
         document.getElementById('btnMakeupAll').addEventListener('click', makeupAll);
         loadSettings();
+        loadMakeupRecords();
     }
 
     function loadSettings() {
@@ -358,6 +372,7 @@
                 btn.classList.add('done');
                 btn.textContent = '已补';
                 showToast(name + ' ' + dutyDate + ' ' + dutyTime + ' 补卡成功', 'success');
+                loadMakeupRecords();
 
                 missedData = missedData.filter(r => {
                     const rk = r.name + '|' + r.duty_date + '|' + r.duty_time;
@@ -407,6 +422,7 @@
                     showToast('全部 ' + completed + ' 条补卡成功', 'success');
                 }
                 loadMissed();
+                loadMakeupRecords();
                 return;
             }
 
@@ -431,6 +447,36 @@
         }
 
         processNext(0);
+    }
+
+    function loadMakeupRecords() {
+        fetch('/api/records').then(r => r.json()).then(data => {
+            const records = (data.success ? data.data : []) || [];
+            const makeupRecords = Array.isArray(records)
+                ? records.filter(r => r.ip_address === 'makeup')
+                    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+                : [];
+            renderMakeupDoneTable(makeupRecords);
+        }).catch(e => {
+            console.error('Load makeup records error:', e);
+        });
+    }
+
+    function renderMakeupDoneTable(records) {
+        const tbody = document.querySelector('#makeupDoneTable tbody');
+        if (!records || records.length === 0) {
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="5">暂无补卡记录</td></tr>';
+            return;
+        }
+        tbody.innerHTML = records.map(r => {
+            return '<tr>' +
+                '<td>' + r.duty_date + '</td>' +
+                '<td>' + r.duty_time + '</td>' +
+                '<td class="name-cell">' + r.name + '</td>' +
+                '<td>' + (r.group_name || '-') + '</td>' +
+                '<td style="color:#4CAF50">' + r.created_at + '</td>' +
+            '</tr>';
+        }).join('');
     }
 
     function applyFilters() {
