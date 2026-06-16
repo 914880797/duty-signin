@@ -621,13 +621,55 @@
 
         <div id="batchTab" class="tab-content">
             <div class="search-section">
-                <div class="form-title">🧠 智能导入（粘贴完整排班文本）</div>
-                <p style="color:#8c92ac;font-size:12px;margin-bottom:8px;">支持格式：分组名 + 时段 + 人员列表，自动解析</p>
                 <div style="display:flex;gap:16px;flex-wrap:wrap;">
                     <div style="flex:1;min-width:280px;">
-                        <div class="form-row" style="flex-direction:column;align-items:stretch;">
-                            <textarea id="smartImportText" class="search-input" rows="10" placeholder="示例：&#10;电报值班&#10;8点～11点：叶小天，香蕉，超能量，展哥&#10;11点～14点：桐盈，茉莉，轻舞飞扬&#10;&#10;会议室值班&#10;8点～11点：伟，静等花开，神话&#10;11点～14点：白虎，敬霖，景汐" style="min-height:200px;resize:vertical;width:100%;max-width:100%;font-family:monospace;font-size:12px;"></textarea>
+                        <div class="form-title">📋 批量添加排班</div>
+                        <div class="form-row">
+                            <span class="form-label">选择日期</span>
+                            <input type="date" id="batchDate" class="form-select" style="color:#fff;">
                         </div>
+                        <div class="form-row">
+                            <span class="form-label">选择时段</span>
+                            <select id="batchShift" class="form-select">
+                                <option value="">-- 请选择值班时段 --</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <span class="form-label">选择分组</span>
+                            <select id="batchGroup" class="form-select">
+                                <option value="">-- 不指定分组 --</option>
+                            </select>
+                        </div>
+                        <div class="form-row" style="flex-direction:column;align-items:stretch;">
+                            <span class="form-label">人员名单（每行一个姓名）</span>
+                            <textarea id="batchNames" class="search-input" rows="5" placeholder="贪狼&#10;破军&#10;七杀&#10;..." style="min-height:100px;resize:vertical;width:100%;max-width:100%;"></textarea>
+                        </div>
+                        <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
+                            <button onclick="batchAddConfig()" class="search-btn" style="background:linear-gradient(90deg,#0b95c9,#0978a5);">批量添加</button>
+                            <span id="batchResult" style="font-size:13px;"></span>
+                        </div>
+                    </div>
+                    <div style="flex:1;min-width:280px;">
+                        <div class="form-title">🧠 智能导入</div>
+                        <p style="color:#8c92ac;font-size:12px;margin-bottom:8px;">粘贴完整排班文本，自动解析分组/时段/人员</p>
+                        <div class="form-row" style="flex-direction:column;align-items:stretch;">
+                            <textarea id="smartImportText" class="search-input" rows="9" placeholder="电报值班&#10;8点～11点：叶小天，香蕉，超能量&#10;11点～14点：桐盈，茉莉&#10;&#10;会议室值班&#10;8点～9点30：伟，静等花开&#10;9点30～11点：梦涵，予恩" style="min-height:170px;resize:vertical;width:100%;max-width:100%;font-family:monospace;font-size:12px;"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <span class="form-label">选择日期</span>
+                            <input type="date" id="smartImportDate" class="form-select" style="color:#fff;">
+                        </div>
+                        <div style="margin-top:12px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+                            <button onclick="smartImportPreview()" class="search-btn" style="background:linear-gradient(90deg,#ff7a1a,#e65100);">解析预览</button>
+                            <button onclick="smartImportSubmit()" class="search-btn" style="background:linear-gradient(90deg,#4CAF50,#388E3C);">一键导入</button>
+                            <span id="smartImportResult" style="font-size:13px;"></span>
+                        </div>
+                    </div>
+                </div>
+                <div id="smartImportPreview" style="margin-top:12px;max-height:200px;overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px;"></div>
+            </div>
+
+        </div>
                         <div class="form-row">
                             <span class="form-label">选择日期</span>
                             <input type="date" id="smartImportDate" class="form-select" style="color:#fff;">
