@@ -40,28 +40,6 @@
             position: relative;
         }
 
-        .logo {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            color: #fff;
-            word-break: break-word;
-        }
-
-        .logo-icon {
-            font-size: 32px;
-        }
-
-        .subtitle {
-            font-size: 14px;
-            color: #8c92ac;
-            margin-bottom: 20px;
-        }
-
         .admin-link {
             position: absolute;
             top: 16px;
@@ -242,10 +220,7 @@
             .shift-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 10px; }
             .rules-list { font-size: 11px; line-height: 1.5; padding-top: 6px; }
             .info-box { margin-top: 10px; }
-            .subtitle { margin-bottom: 8px; font-size: 12px; }
             .nav-row { margin: 8px 0; }
-            .logo { font-size: 24px; margin-bottom: 6px; }
-            .logo-icon { font-size: 26px; }
             .admin-link { font-size: 11px; padding: 4px 8px; top: 10px; right: 10px; }
             .shift-item.night { grid-column: auto; }
         }
@@ -253,9 +228,6 @@
         @media (min-width: 1024px) {
             body { padding: 40px 80px; }
             .container { max-width: 720px; padding: 40px 48px; }
-            .logo { font-size: 36px; margin-bottom: 12px; }
-            .logo-icon { font-size: 40px; }
-            .subtitle { font-size: 16px; margin-bottom: 12px; }
             .nav-row { margin: 14px 0; }
             .back-btn { padding: 12px 24px; font-size: 15px; }
             .clock-section { padding: 20px; margin-bottom: 20px; }
@@ -275,7 +247,6 @@
 
         @media (max-width: 360px) {
             .container { padding: 24px 16px; border-radius: 16px; }
-            .logo { font-size: 24px; }
             .shift-grid { grid-template-columns: repeat(2, 1fr); }
             .shift-item.night { grid-column: 1 / -1; }
         }
@@ -325,12 +296,6 @@
     <div class="container">
 
         <a href="/admin.html" class="admin-link">⚙️ 管理</a>
-
-        <div class="logo">
-            <span class="logo-icon">📋</span>
-            夜聊值班打卡
-        </div>
-        <div class="subtitle">输入姓名，系统自动匹配值班时段</div>
 
         <div class="nav-row">
             <a href="/query.html" class="back-btn">🔍 排班查询</a>
