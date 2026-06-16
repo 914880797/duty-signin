@@ -434,7 +434,7 @@
                 }
 
                 bar.style.display = 'flex';
-                var joined = list.map(function(a) { return a.content.slice(0, 25); }).join('　　');
+                var joined = list.map(function(a) { return a.content.slice(0, 15); }).join('　　');
                 text.textContent = joined;
                 text.classList.remove('empty');
             }).catch(function() {
