@@ -1,6 +1,6 @@
 export async function onRequestPost({ request, env }) {
   try {
-    const ip = request.headers.get('CF-Connecting-IP') || 'makeup';
+    const ip = 'makeup';
     const json = await request.json();
     const { name, duty_date, duty_time, group_id } = json;
 

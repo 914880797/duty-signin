@@ -116,8 +116,8 @@
             border: 1px solid #dcdfe6;
             overflow-x: auto;
             overflow-y: auto;
-            max-height: 520px;
-            min-height: 200px;
+            max-height: 300px;
+            min-height: auto;
             -webkit-overflow-scrolling: touch;
         }
         .makeup-table { border-collapse: collapse; font-size: clamp(11px, 2.5vw, 13px); width: 100%; }
@@ -226,9 +226,6 @@
                 <div class="stat-item"><span class="stat-label">漏打卡：</span><span class="stat-value" id="missedCount">0</span></div>
                 <div class="stat-item"><span class="stat-label">已补卡：</span><span class="stat-value" id="makeupCount" style="color:#4CAF50">0</span></div>
             </div>
-            <div class="action-bar">
-                <button id="btnMakeupAll" class="btn btn-primary">全部补卡</button>
-            </div>
             <div class="search-row">
                 <input type="text" id="searchInput" class="search-input" placeholder="搜索姓名..." aria-label="搜索姓名">
                 <div class="filter-actions">
@@ -271,7 +268,6 @@
     function init() {
         document.getElementById('btnApply').addEventListener('click', applyFilters);
         document.getElementById('btnClear').addEventListener('click', clearFilters);
-        document.getElementById('btnMakeupAll').addEventListener('click', makeupAll);
         loadSettings();
         loadMakeupRecords();
     }
@@ -389,64 +385,6 @@
             btn.textContent = '补卡';
             showToast('网络错误: ' + e.message, 'error');
         });
-    }
-
-    function makeupAll() {
-        const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
-        let pending = missedData;
-        if (searchVal) {
-            pending = missedData.filter(r => r.name && r.name.toLowerCase().includes(searchVal));
-        }
-
-        if (pending.length === 0) {
-            showToast('没有需要补卡的记录', 'error');
-            return;
-        }
-
-        if (!confirm('确定要补卡全部 ' + pending.length + ' 条漏打卡记录吗？')) return;
-
-        const btn = document.getElementById('btnMakeupAll');
-        btn.disabled = true;
-        btn.textContent = '补卡中...';
-
-        let completed = 0;
-        let failed = 0;
-
-        function processNext(index) {
-            if (index >= pending.length) {
-                btn.disabled = false;
-                btn.textContent = '全部补卡';
-                if (failed > 0) {
-                    showToast('完成: ' + completed + ' 条成功, ' + failed + ' 条失败', 'error');
-                } else {
-                    showToast('全部 ' + completed + ' 条补卡成功', 'success');
-                }
-                loadMissed();
-                loadMakeupRecords();
-                return;
-            }
-
-            const r = pending[index];
-            fetch('/api/makeup-signin', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: r.name,
-                    duty_date: r.duty_date,
-                    duty_time: r.duty_time,
-                    group_id: r.group_id || null
-                })
-            }).then(res => res.json()).then(data => {
-                if (data.success) completed++;
-                else failed++;
-                processNext(index + 1);
-            }).catch(() => {
-                failed++;
-                processNext(index + 1);
-            });
-        }
-
-        processNext(0);
     }
 
     function loadMakeupRecords() {
