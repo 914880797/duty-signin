@@ -413,7 +413,6 @@
         const data = {};
         groups.forEach(g => { data[g.name] = { persons: [], records: {}, maxDate: null }; });
         if (!data['未分组']) data['未分组'] = { persons: [], records: {}, maxDate: null };
-        let globalMax = cycleStartDate;
 
         records.forEach(r => {
             const gn = r.group_name || '未分组';
@@ -431,12 +430,11 @@
                 data[gn].records[r.name][displayDate] = isMakeup ? 2 : 1;
             }
 
-            if (displayDate > globalMax) globalMax = displayDate;
             if (!data[gn].maxDate || displayDate > data[gn].maxDate) data[gn].maxDate = displayDate;
         });
 
         Object.keys(data).forEach(k => data[k].persons.sort());
-        generateCycleDates(cycleStartDate, globalMax);
+        generateCycleDates(cycleStartDate, DateUtils.todayBeijing());
         dataLoaded = true;
         return data;
     }
