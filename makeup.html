@@ -52,6 +52,14 @@
             font-size: 14px;
         }
 
+        .header-section nav {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+        .header-section nav .nav-btn { margin: 0; text-align: center; }
+
         .stats-bar {
             display: flex;
             flex-wrap: wrap;
@@ -214,7 +222,7 @@
     <div class="container">
         <div class="header-section">
             <nav>
-                <a href="/" class="nav-btn">打卡首页</a>
+                <a href="/" class="nav-btn">首页</a>
                 <a href="/admin.html" class="nav-btn">排班管理</a>
                 <a href="/query.html" class="nav-btn">排班查询</a>
                 <a href="/export.html" class="nav-btn">导出预览</a>

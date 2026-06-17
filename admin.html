@@ -236,7 +236,7 @@
         }
         .back-btn:hover { opacity: 0.8; }
 
-        .nav-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+        .nav-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 0; }
 
         .group-item {
             background: rgba(30, 30, 60, 0.5);
@@ -417,7 +417,7 @@
         <div style="margin-bottom: 20px;">
             <a href="/" class="back-btn">🏠 首页</a>
             <a href="/query.html" class="back-btn">🔍 排班查询</a>
-            <a href="/dashboard.html" class="back-btn">📊 数据看板</a>
+                <a href="/dashboard.html" class="back-btn">📊 看板</a>
             <a href="/export.html" class="back-btn">📥 导出预览</a>
             <a href="/makeup.html" class="back-btn">🔄 补卡</a>
         </div>

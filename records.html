@@ -83,6 +83,14 @@
         .back-btn:hover {
             opacity: 0.8;
         }
+
+        .nav-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+        .nav-links .back-btn { margin: 0; text-align: center; }
             opacity: 0.8;
             outline: 2px solid #6c63ff;
             outline-offset: 2px;
@@ -400,11 +408,11 @@
     <div class="container" role="main">
         <div class="page-header">
             <h1>📋 详细打卡记录</h1>
-            <div style="margin-bottom:15px; display:flex; flex-wrap:wrap;">
+            <div class="nav-links" style="margin-bottom:15px;">
                 <a href="/" class="back-btn">🏠 首页</a>
                 <a href="/admin.html" class="back-btn">📅 排班管理</a>
                 <a href="/query.html" class="back-btn">🔍 排班查询</a>
-                <a href="/dashboard.html" class="back-btn">📊 数据看板</a>
+                <a href="/dashboard.html" class="back-btn">📊 看板</a>
                 <a href="/export.html" class="back-btn">📥 导出预览</a>
                 <a href="/makeup.html" class="back-btn">🔄 补卡</a>
             </div>

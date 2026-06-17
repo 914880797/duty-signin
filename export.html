@@ -56,6 +56,14 @@
         }
         .back-btn:hover { opacity: 0.8; }
 
+        .nav-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+        .nav-links .back-btn { margin: 0; text-align: center; }
+
         /* Export buttons */
         .export-buttons {
             display: flex;
@@ -316,11 +324,11 @@
 <body>
     <div class="container">
         <div class="header-section">
-            <div style="margin-bottom:15px;">
-                <a href="/" class="back-btn">🏠 打卡首页</a>
+            <div class="nav-links" style="margin-bottom:15px;">
+                <a href="/" class="back-btn">🏠 首页</a>
                 <a href="/admin.html" class="back-btn">📅 排班管理</a>
                 <a href="/query.html" class="back-btn">🔍 排班查询</a>
-                <a href="/dashboard.html" class="back-btn">📊 数据看板</a>
+                <a href="/dashboard.html" class="back-btn">📊 看板</a>
                 <a href="/records.html" class="back-btn">📋 详细记录</a>
                 <a href="/makeup.html" class="back-btn">🔄 补卡</a>
             </div>
