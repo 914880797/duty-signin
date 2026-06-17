@@ -1760,6 +1760,13 @@
                     result.textContent = '成功添加 ' + data.inserted + ' 人' + (data.skipped > 0 ? '，跳过 ' + data.skipped + ' 人（已存在）' : '');
                     result.style.color = '#4CAF50';
                     document.getElementById('batchNames').value = '';
+                    names.forEach(function(n) {
+                        fetch('/api/bindings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ duty_time: shift, name: n, group_id: groupId || null })
+                        });
+                    });
                 } else {
                     result.textContent = '失败: ' + (data.error || '未知错误');
                     result.style.color = '#f44336';
@@ -1932,6 +1939,11 @@
                     })
                 }).then(r => r.json()).then(function(data) {
                     if (data.success && data.inserted > 0) completed++;
+                    fetch('/api/bindings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ duty_time: item.duty_time, name: item.name, group_id: item.group_id })
+                    });
                     processNext(index + 1);
                 }).catch(function() {
                     processNext(index + 1);
