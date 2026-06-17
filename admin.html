@@ -1728,13 +1728,7 @@
             document.getElementById('smartImportDate').value = dateStr;
         }
 
-        function futureEndDate() {
-        var d = new Date(DateUtils.todayBeijing() + 'T00:00:00Z');
-        d.setUTCDate(d.getUTCDate() + 90);
-        return d.toISOString().split('T')[0];
-    }
-
-    function batchAddConfig() {
+        function batchAddConfig() {
             var date = document.getElementById('batchDate').value;
             var shift = document.getElementById('batchShift').value;
             var groupId = document.getElementById('batchGroup').value;
@@ -1758,7 +1752,7 @@
                 body: JSON.stringify({
                     names: names,
                     start_date: date,
-                    end_date: futureEndDate(),
+                    end_date: DateUtils.todayBeijing(),
                     duty_time: shift,
                     group_id: groupId || null
                 })
@@ -1909,7 +1903,7 @@
 
             var completed = 0, total = 0;
             var pending = 0;
-            var endDate = futureEndDate();
+            var today = DateUtils.todayBeijing();
             smartImportParsed.forEach(function(item) {
                 var names = item.names;
                 total += names.length;
@@ -1920,7 +1914,7 @@
                     body: JSON.stringify({
                         names: names,
                         start_date: date,
-                        end_date: endDate,
+                        end_date: today,
                         duty_time: item.duty_time,
                         group_id: item.group ? findGroupId(item.group) : null
                     })
