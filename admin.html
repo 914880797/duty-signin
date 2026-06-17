@@ -1751,7 +1751,8 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     names: names,
-                    duty_date: date,
+                    start_date: date,
+                    end_date: DateUtils.todayBeijing(),
                     duty_time: shift,
                     group_id: groupId || null
                 })
@@ -1760,13 +1761,6 @@
                     result.textContent = '成功添加 ' + data.inserted + ' 人' + (data.skipped > 0 ? '，跳过 ' + data.skipped + ' 人（已存在）' : '');
                     result.style.color = '#4CAF50';
                     document.getElementById('batchNames').value = '';
-                    names.forEach(function(n) {
-                        fetch('/api/bindings', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ duty_time: shift, name: n, group_id: groupId || null })
-                        });
-                    });
                 } else {
                     result.textContent = '失败: ' + (data.error || '未知错误');
                     result.style.color = '#f44336';
@@ -1908,49 +1902,32 @@
             result.style.color = '#8c92ac';
 
             var completed = 0, total = 0;
-            var allNames = [];
+            var pending = 0;
+            var today = DateUtils.todayBeijing();
             smartImportParsed.forEach(function(item) {
-                item.names.forEach(function(name) {
-                    allNames.push({
-                        name: name,
-                        duty_date: date,
-                        duty_time: item.duty_time,
-                        group_id: item.group ? findGroupId(item.group) : null
-                    });
-                    total++;
-                });
-            });
-
-            function processNext(index) {
-                if (index >= allNames.length) {
-                    result.textContent = '导入完成: 成功 ' + completed + '/' + total;
-                    result.style.color = '#4CAF50';
-                    return;
-                }
-                var item = allNames[index];
+                var names = item.names;
+                total += names.length;
+                pending++;
                 fetch('/api/batch-config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        names: [item.name],
-                        duty_date: item.duty_date,
+                        names: names,
+                        start_date: date,
+                        end_date: today,
                         duty_time: item.duty_time,
-                        group_id: item.group_id
+                        group_id: item.group ? findGroupId(item.group) : null
                     })
-                }).then(r => r.json()).then(function(data) {
-                    if (data.success && data.inserted > 0) completed++;
-                    fetch('/api/bindings', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ duty_time: item.duty_time, name: item.name, group_id: item.group_id })
-                    });
-                    processNext(index + 1);
-                }).catch(function() {
-                    processNext(index + 1);
+                }).then(function(r) { return r.json(); }).then(function(data) {
+                    if (data.success && data.inserted > 0) completed += data.inserted;
+                }).catch(function() {}).finally(function() {
+                    pending--;
+                    if (pending === 0) {
+                        result.textContent = '导入完成: 成功 ' + completed + '/' + total;
+                        result.style.color = '#4CAF50';
+                    }
                 });
-            }
-
-            processNext(0);
+            });
         }
 
         function findGroupId(groupName) {

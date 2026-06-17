@@ -1,15 +1,28 @@
 export async function onRequestPost({ request, env }) {
   try {
-    const { names, duty_date, duty_time, group_id } = await request.json();
+    const body = await request.json();
+    const names = body.names;
+    const duty_time = body.duty_time;
+    const group_id = body.group_id || null;
+    const startDate = body.start_date || body.duty_date;
+    const endDate = body.end_date || body.start_date || body.duty_date;
 
     if (!names || !Array.isArray(names) || names.length === 0) {
       return Response.json({ error: '人员名单不能为空' }, { status: 400 });
     }
-    if (!duty_date) {
+    if (!startDate) {
       return Response.json({ error: '日期不能为空' }, { status: 400 });
     }
     if (!duty_time) {
       return Response.json({ error: '时段不能为空' }, { status: 400 });
+    }
+
+    // Build date range
+    const dates = [];
+    const s = new Date(startDate + 'T00:00:00Z');
+    const e = new Date(endDate + 'T00:00:00Z');
+    for (let d = new Date(s); d <= e; d.setUTCDate(d.getUTCDate() + 1)) {
+      dates.push(d.toISOString().split('T')[0]);
     }
 
     let inserted = 0;
@@ -23,20 +36,25 @@ export async function onRequestPost({ request, env }) {
     for (const name of names) {
       const trimmed = name.trim();
       if (!trimmed) continue;
-      batch.push(stmt.bind(duty_date, duty_time, trimmed, group_id || null));
+      for (const date of dates) {
+        batch.push(stmt.bind(date, duty_time, trimmed, group_id));
+      }
     }
 
     const results = await env.DB.batch(batch);
-    inserted = results.filter(r => r.meta?.changes > 0).length;
-    skipped = results.length - inserted;
+    for (const r of results) {
+      if (r.success) inserted++;
+      else skipped++;
+    }
 
     return Response.json({
       success: true,
       inserted,
       skipped,
-      total: names.length
+      total: names.length * dates.length
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message, stack: error.stack }, { status: 500 });
   }
 }
+
