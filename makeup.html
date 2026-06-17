@@ -302,7 +302,7 @@
     }
 
     function loadMissed() {
-        const url = '/api/makeup-missed?start_date=' + encodeURIComponent(cycleStartDate);
+        const url = '/api/makeup-missed?start_date=' + encodeURIComponent(cycleStartDate) + '&end_date=' + encodeURIComponent(DateUtils.todayBeijing());
         fetch(url).then(r => r.json()).then(data => {
             missedData = (data.success ? data.data : []) || [];
             if (!Array.isArray(missedData)) missedData = [];
