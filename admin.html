@@ -786,9 +786,28 @@
                 alert('至少需要保留一个时段！');
                 return;
             }
-            if (!confirm('确定要删除此时段吗？')) return;
+            if (!confirm('确定要删除此时段吗？\n\n删除时段将同时清除所有该时段的排班记录和绑定。')) return;
+
+            const targetShift = shiftConfig.find(s => s.id === id);
+            const dutyTime = targetShift ? targetShift.name : null;
+
             shiftConfig = shiftConfig.filter(s => s.id !== id);
             renderShiftConfig();
+
+            if (dutyTime) {
+                fetch('/api/cleanup-timeslot', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ duty_time: dutyTime })
+                }).then(r => r.json()).then(data => {
+                    if (data.success) {
+                        showMessage('时段 ' + dutyTime + ' 已删除，共清理 ' +
+                            data.deleted_duty_config + ' 条排班记录和 ' +
+                            data.deleted_duty_bindings + ' 条绑定', 'success');
+                        setTimeout(() => loadRoster(), 500);
+                    }
+                }).catch(e => console.error('Cleanup error:', e));
+            }
         }
 
         function validateAndSaveConfig() {
@@ -830,6 +849,19 @@
             localStorage.setItem('shiftConfig', JSON.stringify(shiftConfig));
             statusEl.innerHTML = `<div class="message success" style="display:block;">✅ 配置保存成功！</div>`;
             updateShiftSelects();
+
+            // 清理不在当前时段配置中的遗留学段记录
+            const validTimes = shiftConfig.map(s => s.name);
+            fetch('/api/validate-timeslots', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ valid_duty_times: validTimes })
+            }).then(r => r.json()).then(data => {
+                if (data.success && (data.deleted_duty_config > 0 || data.deleted_duty_bindings > 0)) {
+                    showMessage('已清理 ' + data.deleted_duty_config + ' 条遗留学段记录和 ' + data.deleted_duty_bindings + ' 条绑定', 'success');
+                }
+            }).catch(e => console.error('Validate timeslots error:', e));
+
             setTimeout(() => statusEl.innerHTML = '', 3000);
             return true;
         }
@@ -1284,15 +1316,18 @@
             
             try {
                 // 1. 先删除旧的特定时段排班（时段 + 姓名）
-                const delResponse = await fetch('/api/config', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        date: today, 
-                        duty_time: oldShift,
-                        name: name 
+                await Promise.all([
+                    fetch('/api/config', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ date: today, duty_time: oldShift, name: name })
+                    }),
+                    fetch('/api/bindings', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ duty_time: oldShift, name: name })
                     })
-                });
+                ]);
                 
                 // 2. 再添加新的时段排班
                 const config = [{ duty_date: today, duty_time: newShift, name: name }];
@@ -1309,6 +1344,11 @@
                 
                 const addResult = await addResponse.json();
                 if (addResponse.ok) {
+                    fetch('/api/bindings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ duty_time: newShift, name: name, group_id: groupId || null })
+                    });
                     showMessage('✅ 修改成功！', 'success');
                     cancelEdit();
                     setTimeout(() => loadRoster(), 500);
