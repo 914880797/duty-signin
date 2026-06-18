@@ -850,6 +850,13 @@
             statusEl.innerHTML = `<div class="message success" style="display:block;">✅ 配置保存成功！</div>`;
             updateShiftSelects();
 
+            // 将有效时段同步到后端 settings 表供其他 API 过滤
+            fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ valid_duty_times: validTimes })
+            }).catch(e => console.error('Save valid_times error:', e));
+
             // 清理不在当前时段配置中的遗留学段记录
             const validTimes = shiftConfig.map(s => s.name);
             fetch('/api/validate-timeslots', {

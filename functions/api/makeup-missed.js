@@ -24,11 +24,14 @@ export async function onRequestGet({ request, env }) {
   if (groupIdFilter) { bindingWhere += ' AND db.group_id = ?'; bindingArgs.push(groupIdFilter); }
 
   try {
-    const [{ results: dcRows }, { results: signinRows }, { results: bindingRows }] = await Promise.all([
+    const [{ results: dcRows }, { results: signinRows }, { results: bindingRows }, validTimesSetting] = await Promise.all([
       env.DB.prepare(`SELECT dc.duty_date, dc.duty_time, dc.name, dc.group_id, sg.name as group_name FROM duty_config dc LEFT JOIN shift_groups sg ON dc.group_id = sg.id WHERE ${dcWhere}`).bind(...dcArgs).all(),
       env.DB.prepare(`SELECT duty_date, duty_time, name FROM signin_records sr WHERE ${signinWhere}`).bind(...signinArgs).all(),
-      env.DB.prepare(`SELECT db.duty_time, db.name, db.group_id, sg.name as group_name FROM duty_bindings db LEFT JOIN shift_groups sg ON db.group_id = sg.id WHERE ${bindingWhere}`).bind(...bindingArgs).all()
+      env.DB.prepare(`SELECT db.duty_time, db.name, db.group_id, sg.name as group_name FROM duty_bindings db LEFT JOIN shift_groups sg ON db.group_id = sg.id WHERE ${bindingWhere}`).bind(...bindingArgs).all(),
+      env.DB.prepare(`SELECT value FROM settings WHERE key = 'valid_duty_times'`).first()
     ]);
+
+    const validDutyTimes = validTimesSetting?.value ? JSON.parse(validTimesSetting.value) : null;
 
     const dateList = generateDateList(startDate, endDate);
     const signinSet = new Set();
@@ -50,6 +53,7 @@ export async function onRequestGet({ request, env }) {
     }
 
     for (const b of bindingRows) {
+      if (validDutyTimes && !validDutyTimes.includes(b.duty_time)) continue;
       for (const d of dateList) {
         const key = `${d}|${b.duty_time}|${b.name}`;
         if (configKeySet.has(key)) continue;

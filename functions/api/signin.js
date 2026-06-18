@@ -43,6 +43,12 @@ export async function onRequestPost({ request, env }) {
       SELECT name, duty_time, group_id FROM duty_bindings WHERE name = ?
     `).bind(trimmedName).all();
 
+    // 获取有效的时段列表（管理员在时段配置中定义的）
+    const validTimesSetting = await env.DB.prepare(`
+      SELECT value FROM settings WHERE key = 'valid_duty_times'
+    `).first();
+    const validDutyTimes = validTimesSetting?.value ? JSON.parse(validTimesSetting.value) : null;
+
     if ((!allConfigs.results || allConfigs.results.length === 0) && (!bindings.results || bindings.results.length === 0)) {
         return Response.json(
             { error: `未参与值班，请联系管理员添加排班` },
@@ -51,7 +57,10 @@ export async function onRequestPost({ request, env }) {
     }
 
     // 将 bindings 转为与 config 同结构的结果，duty_date 使用当天日期
-    const bindingConfigs = (bindings.results || []).map(b => ({
+    // 并且过滤掉不在有效时段列表中的 historical 记录
+    const bindingConfigs = (bindings.results || [])
+      .filter(b => !validDutyTimes || validDutyTimes.includes(b.duty_time))
+      .map(b => ({
       name: b.name,
       duty_time: b.duty_time,
       duty_date: today,

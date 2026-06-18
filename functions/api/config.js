@@ -52,8 +52,20 @@ export async function onRequestGet(context) {
         if (!date) {
             return Response.json({ error: '缺少日期参数' }, { status: 400 });
         }
+
+        // 获取有效的时段列表
+        const validTimesSetting = await env.DB.prepare(`
+          SELECT value FROM settings WHERE key = 'valid_duty_times'
+        `).first();
+        const validDutyTimes = validTimesSetting?.value ? JSON.parse(validTimesSetting.value) : null;
         
-        // 查询当天排班 + 绑定表（永久排班）
+        let bindingWhere = '1=1';
+        const bindingExtraArgs = [];
+        if (validDutyTimes && validDutyTimes.length > 0) {
+            bindingWhere = 'b.duty_time IN (' + validDutyTimes.map(() => '?').join(',') + ')';
+            bindingExtraArgs.push(...validDutyTimes);
+        }
+        
         let sql = `
             SELECT duty_time, name, group_id, group_name FROM (
                 -- 当天的排班（临时）
@@ -66,11 +78,11 @@ export async function onRequestGet(context) {
                 
                 UNION
                 
-                -- 永久绑定（只要不删除就一直有效）
+                -- 永久绑定（仅限有效时段）
                 SELECT b.duty_time, b.name, b.group_id, sg.name as group_name
                 FROM duty_bindings b
                 LEFT JOIN shift_groups sg ON b.group_id = sg.id
-                WHERE 1=1
+                WHERE ${bindingWhere}
                 ${duty_time ? 'AND b.duty_time = ?' : ''}
                 ${group_id ? 'AND b.group_id = ?' : ''}
             )
@@ -80,6 +92,7 @@ export async function onRequestGet(context) {
         const bindings = [date];
         if (duty_time) bindings.push(duty_time);
         if (group_id) bindings.push(parseInt(group_id));
+        bindings.push(...bindingExtraArgs);
         if (duty_time) bindings.push(duty_time);
         if (group_id) bindings.push(parseInt(group_id));
         
@@ -98,35 +111,35 @@ export async function onRequestDelete(context) {
     const { request, env } = context;
     
     try {
-        const data = await request.json();
-        const { date, duty_time, name } = data;
+        const { date, duty_time, name, names } = await request.json();
         
         if (!date) {
             return Response.json({ error: '缺少日期参数' }, { status: 400 });
         }
         
-        if (duty_time && name) {
-            await env.DB.prepare(`
-                DELETE FROM duty_config
-                WHERE duty_date = ? AND duty_time = ? AND name = ?
-            `).bind(date, duty_time, name).run();
-        } 
-        else if (data.names && Array.isArray(data.names) && data.names.length > 0) {
-            const placeholders = data.names.map(() => '?').join(',');
-            await env.DB.prepare(`
-                DELETE FROM duty_config
-                WHERE duty_date = ? AND name IN (${placeholders})
-            `).bind(date, ...data.names).run();
-        } 
-        else {
-            return Response.json({ error: '缺少删除参数' }, { status: 400 });
+        if (names && Array.isArray(names) && names.length > 0) {
+            const placeholders = names.map(() => '?').join(',');
+            const result = await env.DB.prepare(`
+                DELETE FROM duty_config WHERE duty_date = ? AND name IN (${placeholders})
+            `).bind(date, ...names).run();
+            
+            return Response.json({
+                success: true,
+                deleted: result.meta?.changes || 0
+            });
         }
         
-        return Response.json({ 
-            success: true,
-            message: '删除成功'
-        });
+        if (duty_time && name) {
+            await env.DB.prepare(`
+                DELETE FROM duty_config WHERE duty_date = ? AND duty_time = ? AND name = ?
+            `).bind(date, duty_time, name).run();
+            
+            return Response.json({ success: true });
+        }
+        
+        return Response.json({ error: '缺少参数' }, { status: 400 });
     } catch (error) {
+        console.error('删除排班失败:', error);
         return Response.json({ error: '服务器错误' }, { status: 500 });
     }
 }
