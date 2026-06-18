@@ -64,16 +64,16 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 16px;
+            gap: 12px;
             margin-bottom: 16px;
-            padding: 12px 16px;
+            padding: 10px 12px;
             background: #f9f9f9;
             border-radius: 4px;
             border: 1px solid #e0e0e0;
         }
-        .stat-item { text-align: center; }
-        .stat-label { font-size: clamp(11px, 2.5vw, 13px); color: #666; }
-        .stat-value { font-size: clamp(14px, 3vw, 16px); font-weight: 700; color: #e65100; }
+        .stat-item { text-align: center; min-width: 60px; }
+        .stat-label { font-size: clamp(10px, 2.2vw, 12px); color: #999; display: block; }
+        .stat-value { font-size: clamp(16px, 3.5vw, 20px); font-weight: 700; color: #e65100; }
 
         .action-bar {
             display: flex;
@@ -236,8 +236,11 @@
                 <a href="/records.html" class="nav-btn">详细记录</a>
             </nav>
             <div class="stats-bar">
-                <div class="stat-item"><span class="stat-label">漏打卡：</span><span class="stat-value" id="missedCount">0</span></div>
-                <div class="stat-item"><span class="stat-label">已补卡：</span><span class="stat-value" id="makeupCount" style="color:#4CAF50">0</span></div>
+                <div class="stat-item"><span class="stat-label">总计漏打卡</span><span class="stat-value" id="totalMissed">0</span></div>
+                <div class="stat-item"><span class="stat-label">今日漏打卡</span><span class="stat-value" id="todayMissed">0</span></div>
+                <div class="stat-item"><span class="stat-label">今日已补卡</span><span class="stat-value" id="todayMakeup" style="color:#4CAF50">0</span></div>
+                <div class="stat-item"><span class="stat-label">昨日已补卡</span><span class="stat-value" id="yesterdayMakeup" style="color:#4CAF50">0</span></div>
+                <div class="stat-item"><span class="stat-label">累计已补卡</span><span class="stat-value" id="totalMakeup" style="color:#4CAF50">0</span></div>
             </div>
             <div class="search-row">
                 <input type="text" id="searchInput" class="search-input" placeholder="搜索姓名..." aria-label="搜索姓名">
@@ -276,7 +279,7 @@
     <div class="toast" id="toast"></div>
     <script>
 (function() {
-    let missedData = [], cycleStartDate = null, makeupDone = new Set();
+    let missedData = [], cycleStartDate = null, makeupDone = new Set(), allMakeupRecords = [];
 
     function init() {
         document.getElementById('btnApply').addEventListener('click', applyFilters);
@@ -352,13 +355,14 @@
     }
 
     function updateStats() {
-        const searchVal = document.getElementById('searchInput').value.trim().toLowerCase();
-        let visible = missedData;
-        if (searchVal) {
-            visible = missedData.filter(r => r.name && r.name.toLowerCase().includes(searchVal));
-        }
-        document.getElementById('missedCount').textContent = visible.length;
-        document.getElementById('makeupCount').textContent = makeupDone.size;
+        const today = DateUtils.todayBeijing();
+        const yesterday = DateUtils.daysAgoBeijing(1);
+
+        document.getElementById('totalMissed').textContent = missedData.length;
+        document.getElementById('todayMissed').textContent = missedData.filter(r => r.duty_date === today).length;
+        document.getElementById('todayMakeup').textContent = allMakeupRecords.filter(r => r.duty_date === today).length;
+        document.getElementById('yesterdayMakeup').textContent = allMakeupRecords.filter(r => r.duty_date === yesterday).length;
+        document.getElementById('totalMakeup').textContent = allMakeupRecords.length;
     }
 
     function doMakeup(name, dutyDate, dutyTime, groupId, btn) {
@@ -403,11 +407,12 @@
     function loadMakeupRecords() {
         fetch('/api/records').then(r => r.json()).then(data => {
             const records = (data.success ? data.data : []) || [];
-            const makeupRecords = Array.isArray(records)
+            allMakeupRecords = Array.isArray(records)
                 ? records.filter(r => r.ip_address === 'makeup')
                     .sort((a, b) => b.created_at.localeCompare(a.created_at))
                 : [];
-            renderMakeupDoneTable(makeupRecords);
+            renderMakeupDoneTable(allMakeupRecords);
+            updateStats();
         }).catch(e => {
             console.error('Load makeup records error:', e);
         });
