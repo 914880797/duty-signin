@@ -678,6 +678,7 @@
         let allRoster = [];
         let currentSearch = '';
         let shiftConfig = [];
+        let oldShiftNames = {};
         let allGroups = [];
         let allowedPersonsList = [];
 
@@ -735,6 +736,8 @@
 
         function loadShiftConfig() {
             shiftConfig = JSON.parse(localStorage.getItem('shiftConfig')) || defaultShifts;
+            oldShiftNames = {};
+            shiftConfig.forEach(s => { oldShiftNames[s.id] = s.name; });
             renderShiftConfig();
             // 自动同步有效时段到后端，防止未保存导致旧时段残留
             syncValidTimesToBackend();
@@ -870,10 +873,28 @@
             localStorage.setItem('shiftConfig', JSON.stringify(shiftConfig));
             statusEl.innerHTML = `<div class="message success" style="display:block;">✅ 配置保存成功！</div>`;
             updateShiftSelects();
+            // 更新旧名称快照
+            shiftConfig.forEach(s => { oldShiftNames[s.id] = s.name; });
 
             const validTimes = shiftConfig.map(s => s.name);
 
-            // 将有效时段同步到后端 settings 表供其他 API 过滤
+            // 1. 检测重命名的时段，先更新数据库中的记录
+            for (const shift of shiftConfig) {
+                const oldName = oldShiftNames[shift.id];
+                if (oldName && oldName !== shift.name) {
+                    fetch('/api/rename-timeslot', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ old_name: oldName, new_name: shift.name })
+                    }).then(r => r.json()).then(data => {
+                        if (data.success && (data.updated_duty_config > 0 || data.updated_duty_bindings > 0)) {
+                            showMessage('时段 ' + oldName + ' → ' + shift.name + ' 已更新 ' + data.updated_duty_config + ' 条排班和 ' + data.updated_duty_bindings + ' 条绑定', 'success');
+                        }
+                    }).catch(e => console.error('Rename timeslot error:', e));
+                }
+            }
+
+            // 2. 将有效时段同步到后端 settings 表供其他 API 过滤
             fetch('/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
