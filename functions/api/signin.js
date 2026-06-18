@@ -31,26 +31,54 @@ export async function onRequestPost({ request, env }) {
     const tomorrow = new Date(bjTimestamp + (1 * 24 * 60 * 60 * 1000));
     const tomorrowStr = `${tomorrow.getUTCFullYear()}-${pad(tomorrow.getUTCMonth() + 1)}-${pad(tomorrow.getUTCDate())}`;
     
-    // 获取今天、昨天、明天的所有排班
+    // 获取今天、昨天、明天的所有排班（duty_config 显式排班）
     const allConfigs = await env.DB.prepare(`
       SELECT name, duty_time, duty_date, group_id FROM duty_config
       WHERE name = ? AND duty_date IN (?, ?, ?)
       ORDER BY duty_date, duty_time
     `).bind(trimmedName, yesterdayStr, today, tomorrowStr).all();
-    
-    if (!allConfigs.results || allConfigs.results.length === 0) {
+
+    // 补充 duty_bindings 永久基线（无日期，按当天日期注入）
+    const bindings = await env.DB.prepare(`
+      SELECT name, duty_time, group_id FROM duty_bindings WHERE name = ?
+    `).bind(trimmedName).all();
+
+    if ((!allConfigs.results || allConfigs.results.length === 0) && (!bindings.results || bindings.results.length === 0)) {
         return Response.json(
             { error: `未参与值班，请联系管理员添加排班` },
             { status: 403 }
         );
     }
-    
+
+    // 将 bindings 转为与 config 同结构的结果，duty_date 使用当天日期
+    const bindingConfigs = (bindings.results || []).map(b => ({
+      name: b.name,
+      duty_time: b.duty_time,
+      duty_date: today,
+      group_id: b.group_id
+    }));
+
+    // 合并：config 优先（精确日期），bindings 补充（当天日期）
+    const combinedResults = [...(allConfigs.results || [])];
+    for (const bc of bindingConfigs) {
+      const exists = combinedResults.some(r =>
+        r.name === bc.name && r.duty_time === bc.duty_time && r.duty_date === bc.duty_date
+      );
+      if (!exists) combinedResults.push(bc);
+    }
+
+    combinedResults.sort((a, b) => {
+      if (a.duty_date !== b.duty_date) return a.duty_date < b.duty_date ? -1 : 1;
+      if (a.duty_time !== b.duty_time) return a.duty_time < b.duty_time ? 1 : -1;
+      return 0;
+    });
+
     // 找到当前时间所在的值班时段
     let dutyConfig = null;
     let currentTimeInMinutes = parseInt(finalTime.split(':')[0]) * 60 + parseInt(finalTime.split(':')[1]);
     const dayInMinutes = 24 * 60;
     
-    for (const config of allConfigs.results) {
+    for (const config of combinedResults) {
         const range = getDutyTimeRange(config.duty_time);
         if (!range) continue;
         
@@ -88,7 +116,7 @@ export async function onRequestPost({ request, env }) {
     
     // 如果没有找到匹配的时段，用第一个（处理提前打卡）
     if (!dutyConfig) {
-        dutyConfig = allConfigs.results[0];
+        dutyConfig = combinedResults[0];
     }
     
     if (!dutyConfig.duty_time || dutyConfig.duty_time === '未安排') {

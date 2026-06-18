@@ -1179,6 +1179,15 @@
                 });
                 var result = await resp.json();
                 if (resp.ok) {
+                    targets.forEach(function(t) {
+                        if (t.duty_time) {
+                            fetch('/api/bindings', {
+                                method: 'DELETE',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ duty_time: t.duty_time, name: t.name })
+                            });
+                        }
+                    });
                     showMessage('已删除 ' + targets.length + ' 条排班', 'success');
                     setTimeout(function() { loadRoster(); }, 500);
                 } else {
@@ -1469,6 +1478,11 @@
                 
                 const result = await response.json();
                 if (response.ok) {
+                    fetch('/api/bindings', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ duty_time: dutyTime, name: name })
+                    });
                     showMessage('✅ 删除成功', 'success');
                     setTimeout(() => loadRoster(), 500);
                 } else {
@@ -1761,6 +1775,13 @@
                     result.textContent = '成功添加 ' + data.inserted + ' 人' + (data.skipped > 0 ? '，跳过 ' + data.skipped + ' 人（已存在）' : '');
                     result.style.color = '#4CAF50';
                     document.getElementById('batchNames').value = '';
+                    names.forEach(function(n) {
+                        fetch('/api/bindings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ duty_time: shift, name: n, group_id: groupId || null })
+                        });
+                    });
                 } else {
                     result.textContent = '失败: ' + (data.error || '未知错误');
                     result.style.color = '#f44336';
@@ -1920,6 +1941,13 @@
                     })
                 }).then(function(r) { return r.json(); }).then(function(data) {
                     if (data.success && data.inserted > 0) completed += data.inserted;
+                    names.forEach(function(n) {
+                        fetch('/api/bindings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ duty_time: item.duty_time, name: n, group_id: item.group ? findGroupId(item.group) : null })
+                        });
+                    });
                 }).catch(function() {}).finally(function() {
                     pending--;
                     if (pending === 0) {

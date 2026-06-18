@@ -2,52 +2,91 @@ export async function onRequestGet({ request, env }) {
   const { searchParams } = new URL(request.url);
   const startDate = searchParams.get('start_date');
   const endDate = searchParams.get('end_date');
-  const name = searchParams.get('name');
-  const groupId = searchParams.get('group_id');
+  const nameFilter = searchParams.get('name');
+  const groupIdFilter = searchParams.get('group_id');
 
-  let sql = `
-    SELECT dc.duty_date, dc.duty_time, dc.name, dc.group_id, sg.name as group_name
-    FROM duty_config dc
-    LEFT JOIN signin_records sr ON dc.name = sr.name AND dc.duty_date = sr.duty_date AND dc.duty_time = sr.duty_time
-    LEFT JOIN shift_groups sg ON dc.group_id = sg.id
-    WHERE sr.id IS NULL
-      AND dc.duty_time IS NOT NULL
-      AND dc.duty_time != ''
-      AND dc.duty_time != '未安排'
-  `;
-  const args = [];
-
-  if (startDate) {
-    sql += ' AND dc.duty_date >= ?';
-    args.push(startDate);
-  }
-  if (endDate) {
-    sql += ' AND dc.duty_date <= ?';
-    args.push(endDate);
-  }
-  if (name) {
-    sql += ' AND dc.name LIKE ?';
-    args.push('%' + name + '%');
-  }
-  if (groupId) {
-    sql += ' AND dc.group_id = ?';
-    args.push(groupId);
+  if (!startDate || !endDate) {
+    return Response.json({ success: false, error: 'start_date and end_date are required' }, { status: 400 });
   }
 
-  sql += ' ORDER BY dc.duty_date DESC, dc.duty_time, dc.name';
+  let dcWhere = `dc.duty_date >= ? AND dc.duty_date <= ? AND dc.duty_time IS NOT NULL AND dc.duty_time != '' AND dc.duty_time != '未安排'`;
+  const dcArgs = [startDate, endDate];
+  if (nameFilter) { dcWhere += ' AND dc.name LIKE ?'; dcArgs.push('%' + nameFilter + '%'); }
+  if (groupIdFilter) { dcWhere += ' AND dc.group_id = ?'; dcArgs.push(groupIdFilter); }
+
+  let signinWhere = `sr.duty_date >= ? AND sr.duty_date <= ?`;
+  const signinArgs = [startDate, endDate];
+  if (nameFilter) { signinWhere += ' AND sr.name LIKE ?'; signinArgs.push('%' + nameFilter + '%'); }
+
+  let bindingWhere = '1=1';
+  const bindingArgs = [];
+  if (nameFilter) { bindingWhere += ' AND db.name LIKE ?'; bindingArgs.push('%' + nameFilter + '%'); }
+  if (groupIdFilter) { bindingWhere += ' AND db.group_id = ?'; bindingArgs.push(groupIdFilter); }
 
   try {
-    const { results } = await env.DB.prepare(sql).bind(...args).all();
+    const [{ results: dcRows }, { results: signinRows }, { results: bindingRows }] = await Promise.all([
+      env.DB.prepare(`SELECT dc.duty_date, dc.duty_time, dc.name, dc.group_id, sg.name as group_name FROM duty_config dc LEFT JOIN shift_groups sg ON dc.group_id = sg.id WHERE ${dcWhere}`).bind(...dcArgs).all(),
+      env.DB.prepare(`SELECT duty_date, duty_time, name FROM signin_records sr WHERE ${signinWhere}`).bind(...signinArgs).all(),
+      env.DB.prepare(`SELECT db.duty_time, db.name, db.group_id, sg.name as group_name FROM duty_bindings db LEFT JOIN shift_groups sg ON db.group_id = sg.id WHERE ${bindingWhere}`).bind(...bindingArgs).all()
+    ]);
 
-    return Response.json({
-      success: true,
-      data: results || []
+    const dateList = generateDateList(startDate, endDate);
+    const signinSet = new Set();
+    for (const s of signinRows) {
+      signinSet.add(`${s.duty_date}|${s.duty_time}|${s.name}`);
+    }
+
+    const configKeySet = new Set();
+    for (const r of dcRows) {
+      configKeySet.add(`${r.duty_date}|${r.duty_time}|${r.name}`);
+    }
+
+    const results = [];
+
+    for (const r of dcRows) {
+      if (!signinSet.has(`${r.duty_date}|${r.duty_time}|${r.name}`)) {
+        results.push(r);
+      }
+    }
+
+    for (const b of bindingRows) {
+      for (const d of dateList) {
+        const key = `${d}|${b.duty_time}|${b.name}`;
+        if (configKeySet.has(key)) continue;
+        if (signinSet.has(key)) continue;
+        results.push({
+          duty_date: d,
+          duty_time: b.duty_time,
+          name: b.name,
+          group_id: b.group_id,
+          group_name: b.group_name
+        });
+      }
+    }
+
+    results.sort((a, b) => {
+      if (a.duty_date !== b.duty_date) return a.duty_date > b.duty_date ? -1 : 1;
+      if (a.duty_time !== b.duty_time) return a.duty_time > b.duty_time ? 1 : -1;
+      if (a.name !== b.name) return a.name > b.name ? 1 : -1;
+      return 0;
     });
+
+    return Response.json({ success: true, data: results });
   } catch (error) {
-    return Response.json({
-      success: false,
-      error: error.message
-    }, { status: 500 });
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 }
 
+function generateDateList(start, end) {
+  const dates = [];
+  let cur = new Date(start + 'T00:00:00');
+  const endDate = new Date(end + 'T00:00:00');
+  while (cur <= endDate) {
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, '0');
+    const d = String(cur.getDate()).padStart(2, '0');
+    dates.push(`${y}-${m}-${d}`);
+    cur.setDate(cur.getDate() + 1);
+  }
+  return dates;
+}
