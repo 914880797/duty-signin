@@ -736,6 +736,27 @@
         function loadShiftConfig() {
             shiftConfig = JSON.parse(localStorage.getItem('shiftConfig')) || defaultShifts;
             renderShiftConfig();
+            // 自动同步有效时段到后端，防止未保存导致旧时段残留
+            syncValidTimesToBackend();
+        }
+
+        function syncValidTimesToBackend() {
+            const validTimes = shiftConfig.map(s => s.name);
+            fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ valid_duty_times: validTimes })
+            }).then(r => r.json()).then(data => {
+                if (data.success && data.deleted) {
+                    // 后台静默清理完成
+                }
+            }).catch(e => console.error('syncValidTimes error:', e));
+
+            fetch('/api/validate-timeslots', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ valid_duty_times: validTimes })
+            }).catch(e => console.error('validateTimeslots error:', e));
         }
 
         function renderShiftConfig() {
@@ -850,6 +871,8 @@
             statusEl.innerHTML = `<div class="message success" style="display:block;">✅ 配置保存成功！</div>`;
             updateShiftSelects();
 
+            const validTimes = shiftConfig.map(s => s.name);
+
             // 将有效时段同步到后端 settings 表供其他 API 过滤
             fetch('/api/settings', {
                 method: 'PUT',
@@ -858,7 +881,6 @@
             }).catch(e => console.error('Save valid_times error:', e));
 
             // 清理不在当前时段配置中的遗留学段记录
-            const validTimes = shiftConfig.map(s => s.name);
             fetch('/api/validate-timeslots', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
