@@ -293,6 +293,7 @@
         }
     </style>
     <script src="/utils/date-utils.js"></script>
+    <script src="/utils/frontend-utils.js"></script>
 </head>
 <body>
 
@@ -356,23 +357,6 @@
     </div>
 
     <script>
-        var defaultShifts = [
-            { id: 1, name: '04:00-06:00' },
-            { id: 2, name: '06:00-08:00' },
-            { id: 3, name: '08:00-09:30' },
-            { id: 4, name: '09:30-11:00' },
-            { id: 5, name: '11:00-12:30' },
-            { id: 6, name: '12:30-14:00' },
-            { id: 7, name: '14:00-15:30' },
-            { id: 8, name: '15:30-17:00' },
-            { id: 9, name: '17:00-18:30' },
-            { id: 10, name: '18:30-20:00' },
-            { id: 11, name: '20:00-21:30' },
-            { id: 12, name: '21:30-23:00' },
-            { id: 13, name: '23:00-24:00' },
-            { id: 14, name: '24:00-04:00' }
-        ];
-
         function updateClock() {
             var bj = DateUtils.getBeijingNow();
             var h = String(bj.getUTCHours()).padStart(2, '0');
@@ -388,8 +372,28 @@
         updateClock();
 
         function loadShiftConfig() {
-            var shiftConfig = JSON.parse(localStorage.getItem('shiftConfig')) || defaultShifts;
-            renderShiftGrid(shiftConfig);
+            var shiftConfig = JSON.parse(localStorage.getItem('shiftConfig'));
+            if (shiftConfig && shiftConfig.length > 0) {
+                renderShiftGrid(shiftConfig);
+                return;
+            }
+            loadShiftConfigFromSettings();
+        }
+
+        async function loadShiftConfigFromSettings() {
+            try {
+                var res = await fetch('/api/settings');
+                var data = await res.json();
+                var validTimes = data.validDutyTimes || [];
+                if (validTimes.length > 0) {
+                    var shifts = validTimes.map(function(t, i) { return { id: i + 1, name: t }; });
+                    localStorage.setItem('shiftConfig', JSON.stringify(shifts));
+                    renderShiftGrid(shifts);
+                    return;
+                }
+            } catch (e) { console.error('加载时段失败:', e); }
+            var shifts = AppUtils.DEFAULT_SHIFTS.map(function(t, i) { return { id: i + 1, name: t }; });
+            renderShiftGrid(shifts);
         }
 
         function renderShiftGrid(shiftConfig) {
