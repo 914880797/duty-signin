@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数据看板</title>
     <script src="/utils/date-utils.js"></script>
+    <script src="/utils/frontend-utils.js"></script>
     <style>
         * {
             margin: 0;
@@ -612,13 +613,6 @@
 
     </div>
     <script>
-        const defaultShifts = [
-            '04:00-06:00', '06:00-08:00', '08:00-09:30', '09:30-11:00',
-            '11:00-12:30', '12:30-14:00', '14:00-15:30', '15:30-17:00',
-            '17:00-18:30', '18:30-20:00', '20:00-21:30', '21:30-23:00',
-            '23:00-24:00', '24:00-04:00'
-        ];
-
         let allGroups = [];
         let allRecords = [];
         let filteredRecords = [];
@@ -657,45 +651,12 @@
             console.log('Dates initialized:', { startDate: startDateValue, endDate });
         }
 
-        // 加载时段选项
-        async function loadShifts() {
-            const shiftSelect = document.getElementById('shiftSelect');
-            try {
-                const res = await fetch('/api/settings');
-                const settings = await res.json();
-                const validDutyTimes = settings.validDutyTimes || [];
-                if (validDutyTimes.length > 0) {
-                    const options = validDutyTimes.map(t =>
-                        `<option value="${t}">${t}</option>`
-                    ).join('');
-                    shiftSelect.innerHTML = '<option value="">-- 全部时段 --</option>' + options;
-                    return;
-                }
-            } catch (e) {
-                console.error('加载有效时段失败:', e);
-            }
-            const options = defaultShifts.map(shift => 
-                `<option value="${shift}">${shift}</option>`
-            ).join('');
-            shiftSelect.innerHTML = '<option value="">-- 全部时段 --</option>' + options;
+        function loadShifts() {
+            AppUtils.loadShifts(document.getElementById('shiftSelect'));
         }
 
-        // 加载分组
         async function loadGroups() {
-            try {
-                const response = await fetch('/api/groups');
-                const data = await response.json();
-                if (data.success) {
-                    allGroups = data.data || [];
-                    const groupSelect = document.getElementById('groupSelect');
-                    const options = allGroups.map(g => 
-                        `<option value="${g.id}">${g.name}</option>`
-                    ).join('');
-                    groupSelect.innerHTML = '<option value="">-- 全部分组 --</option>' + options;
-                }
-            } catch (error) {
-                console.error('加载分组失败:', error);
-            }
+            allGroups = await AppUtils.loadGroups(document.getElementById('groupSelect'));
         }
 
         // 加载数据
