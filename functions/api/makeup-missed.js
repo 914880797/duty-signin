@@ -1,3 +1,5 @@
+import { todayBeijing, getBeijingNowMinutes, getDutyEndMinutes } from './_shared.js';
+
 export async function onRequestGet({ request, env }) {
   const { searchParams } = new URL(request.url);
   const startDate = searchParams.get('start_date');
@@ -32,7 +34,6 @@ export async function onRequestGet({ request, env }) {
     ]);
 
     const validDutyTimes = validTimesSetting?.value ? JSON.parse(validTimesSetting.value) : null;
-
     const dateList = generateDateList(startDate, endDate);
     const signinSet = new Set();
     for (const s of signinRows) {
@@ -58,13 +59,7 @@ export async function onRequestGet({ request, env }) {
         const key = `${d}|${b.duty_time}|${b.name}`;
         if (configKeySet.has(key)) continue;
         if (signinSet.has(key)) continue;
-        results.push({
-          duty_date: d,
-          duty_time: b.duty_time,
-          name: b.name,
-          group_id: b.group_id,
-          group_name: b.group_name
-        });
+        results.push({ duty_date: d, duty_time: b.duty_time, name: b.name, group_id: b.group_id, group_name: b.group_name });
       }
     }
 
@@ -75,9 +70,8 @@ export async function onRequestGet({ request, env }) {
       return 0;
     });
 
-    // 当天未结束的时段不显示为漏打卡（时段结束时间 > 当前时间）
     const nowBJ = getBeijingNowMinutes();
-    const todayBJ = formatBeijingDate();
+    const todayBJ = todayBeijing();
     const filtered = results.filter(r => {
       if (r.duty_date !== todayBJ) return true;
       const endMin = getDutyEndMinutes(r.duty_time);
@@ -102,27 +96,4 @@ function generateDateList(start, end) {
     cur.setDate(cur.getDate() + 1);
   }
   return dates;
-}
-
-function getBeijingNowMinutes() {
-  const now = new Date();
-  const bj = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-  return bj.getUTCHours() * 60 + bj.getUTCMinutes();
-}
-
-function formatBeijingDate() {
-  const now = new Date();
-  const bj = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-  const pad = n => String(n).padStart(2, '0');
-  return `${bj.getUTCFullYear()}-${pad(bj.getUTCMonth() + 1)}-${pad(bj.getUTCDate())}`;
-}
-
-function getDutyEndMinutes(dutyTime) {
-  if (!dutyTime) return null;
-  const clean = dutyTime.replace(/\s+/g, '');
-  const match = clean.match(/(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
-  if (!match) return null;
-  const endHour = parseInt(match[3]);
-  const endMin = parseInt(match[4]);
-  return endHour * 60 + endMin;
 }
