@@ -658,8 +658,22 @@
         }
 
         // 加载时段选项
-        function loadShifts() {
+        async function loadShifts() {
             const shiftSelect = document.getElementById('shiftSelect');
+            try {
+                const res = await fetch('/api/settings');
+                const settings = await res.json();
+                const validDutyTimes = settings.validDutyTimes || [];
+                if (validDutyTimes.length > 0) {
+                    const options = validDutyTimes.map(t =>
+                        `<option value="${t}">${t}</option>`
+                    ).join('');
+                    shiftSelect.innerHTML = '<option value="">-- 全部时段 --</option>' + options;
+                    return;
+                }
+            } catch (e) {
+                console.error('加载有效时段失败:', e);
+            }
             const options = defaultShifts.map(shift => 
                 `<option value="${shift}">${shift}</option>`
             ).join('');
