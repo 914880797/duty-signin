@@ -75,7 +75,16 @@ export async function onRequestGet({ request, env }) {
       return 0;
     });
 
-    return Response.json({ success: true, data: results });
+    // 当天未到有效时段的排班不显示为漏打卡
+    const nowBJ = getBeijingNowMinutes();
+    const todayBJ = formatBeijingDate();
+    const filtered = results.filter(r => {
+      if (r.duty_date !== todayBJ) return true;
+      const startMin = getDutyStartMinutes(r.duty_time);
+      return startMin !== null && nowBJ >= startMin;
+    });
+
+    return Response.json({ success: true, data: filtered });
   } catch (error) {
     return Response.json({ success: false, error: error.message }, { status: 500 });
   }
@@ -93,4 +102,25 @@ function generateDateList(start, end) {
     cur.setDate(cur.getDate() + 1);
   }
   return dates;
+}
+
+function getBeijingNowMinutes() {
+  const now = new Date();
+  const bj = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  return bj.getUTCHours() * 60 + bj.getUTCMinutes();
+}
+
+function formatBeijingDate() {
+  const now = new Date();
+  const bj = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const pad = n => String(n).padStart(2, '0');
+  return `${bj.getUTCFullYear()}-${pad(bj.getUTCMonth() + 1)}-${pad(bj.getUTCDate())}`;
+}
+
+function getDutyStartMinutes(dutyTime) {
+  if (!dutyTime) return null;
+  const clean = dutyTime.replace(/\s+/g, '');
+  const match = clean.match(/(\d{2}):(\d{2})/);
+  if (!match) return null;
+  return parseInt(match[1]) * 60 + parseInt(match[2]);
 }
