@@ -47,28 +47,18 @@ export async function onRequestGet({ request, env }) {
     const results = [];
 
     for (const r of dcRows) {
-      const startMin = getDutyStartMinutes(r.duty_time);
-      let covered = signinSet.has(`${r.duty_date}|${r.duty_time}|${r.name}`);
-      if (!covered && startMin !== null && startMin >= 0 && startMin < 480) {
-        covered = signinSet.has(`${nextDate(r.duty_date)}|${r.duty_time}|${r.name}`);
-      }
-      if (!covered) {
+      if (!signinSet.has(`${r.duty_date}|${r.duty_time}|${r.name}`)) {
         results.push(r);
       }
     }
 
     for (const b of bindingRows) {
       if (validDutyTimes && !validDutyTimes.includes(b.duty_time)) continue;
-      const startMin = getDutyStartMinutes(b.duty_time);
       for (const d of dateList) {
         const key = `${d}|${b.duty_time}|${b.name}`;
         if (configKeySet.has(key)) continue;
-        let covered = signinSet.has(key);
-        if (!covered && startMin !== null && startMin >= 0 && startMin < 480) {
-          covered = signinSet.has(`${nextDate(d)}|${b.duty_time}|${b.name}`);
-        }
-        if (!covered) {
-          results.push({
+        if (signinSet.has(key)) continue;
+        results.push({
           duty_date: d,
           duty_time: b.duty_time,
           name: b.name,
@@ -85,13 +75,13 @@ export async function onRequestGet({ request, env }) {
       return 0;
     });
 
-    // 当天未到有效时段的排班不显示为漏打卡
+    // 当天未结束的时段不显示为漏打卡（时段结束时间 > 当前时间）
     const nowBJ = getBeijingNowMinutes();
     const todayBJ = formatBeijingDate();
     const filtered = results.filter(r => {
       if (r.duty_date !== todayBJ) return true;
-      const startMin = getDutyStartMinutes(r.duty_time);
-      return startMin !== null && nowBJ >= startMin;
+      const endMin = getDutyEndMinutes(r.duty_time);
+      return endMin !== null && nowBJ >= endMin;
     });
 
     return Response.json({ success: true, data: filtered });
@@ -127,17 +117,12 @@ function formatBeijingDate() {
   return `${bj.getUTCFullYear()}-${pad(bj.getUTCMonth() + 1)}-${pad(bj.getUTCDate())}`;
 }
 
-function getDutyStartMinutes(dutyTime) {
+function getDutyEndMinutes(dutyTime) {
   if (!dutyTime) return null;
   const clean = dutyTime.replace(/\s+/g, '');
-  const match = clean.match(/(\d{2}):(\d{2})/);
+  const match = clean.match(/(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
   if (!match) return null;
-  return parseInt(match[1]) * 60 + parseInt(match[2]);
-}
-
-function nextDate(dateStr) {
-  const d = new Date(dateStr + 'T00:00:00Z');
-  d.setUTCDate(d.getUTCDate() + 1);
-  const pad = n => String(n).padStart(2, '0');
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+  const endHour = parseInt(match[3]);
+  const endMin = parseInt(match[4]);
+  return endHour * 60 + endMin;
 }
