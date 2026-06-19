@@ -37,12 +37,6 @@ export async function onRequestGet({ request, env }) {
     const signinSet = new Set();
     for (const s of signinRows) {
       signinSet.add(`${s.duty_date}|${s.duty_time}|${s.name}`);
-      // 00:00-07:59 时段属于前一天打卡周期，签到应同时覆盖前一天+当天+后一天
-      const startMin = getDutyStartMinutes(s.duty_time);
-      if (startMin !== null && startMin >= 0 && startMin < 480) {
-        signinSet.add(`${nextDate(s.duty_date)}|${s.duty_time}|${s.name}`);
-        signinSet.add(`${prevDate(s.duty_date)}|${s.duty_time}|${s.name}`);
-      }
     }
 
     const configKeySet = new Set();
@@ -53,18 +47,28 @@ export async function onRequestGet({ request, env }) {
     const results = [];
 
     for (const r of dcRows) {
-      if (!signinSet.has(`${r.duty_date}|${r.duty_time}|${r.name}`)) {
+      const startMin = getDutyStartMinutes(r.duty_time);
+      let covered = signinSet.has(`${r.duty_date}|${r.duty_time}|${r.name}`);
+      if (!covered && startMin !== null && startMin >= 0 && startMin < 480) {
+        covered = signinSet.has(`${nextDate(r.duty_date)}|${r.duty_time}|${r.name}`);
+      }
+      if (!covered) {
         results.push(r);
       }
     }
 
     for (const b of bindingRows) {
       if (validDutyTimes && !validDutyTimes.includes(b.duty_time)) continue;
+      const startMin = getDutyStartMinutes(b.duty_time);
       for (const d of dateList) {
         const key = `${d}|${b.duty_time}|${b.name}`;
         if (configKeySet.has(key)) continue;
-        if (signinSet.has(key)) continue;
-        results.push({
+        let covered = signinSet.has(key);
+        if (!covered && startMin !== null && startMin >= 0 && startMin < 480) {
+          covered = signinSet.has(`${nextDate(d)}|${b.duty_time}|${b.name}`);
+        }
+        if (!covered) {
+          results.push({
           duty_date: d,
           duty_time: b.duty_time,
           name: b.name,
@@ -134,13 +138,6 @@ function getDutyStartMinutes(dutyTime) {
 function nextDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00Z');
   d.setUTCDate(d.getUTCDate() + 1);
-  const pad = n => String(n).padStart(2, '0');
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
-}
-
-function prevDate(dateStr) {
-  const d = new Date(dateStr + 'T00:00:00Z');
-  d.setUTCDate(d.getUTCDate() - 1);
   const pad = n => String(n).padStart(2, '0');
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 }

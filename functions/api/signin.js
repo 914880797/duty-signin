@@ -76,9 +76,12 @@ export async function onRequestPost({ request, env }) {
       if (!exists) combinedResults.push(bc);
     }
 
+    const datePriority = { [today]: 0, [tomorrowStr]: 1, [yesterdayStr]: 2 };
     combinedResults.sort((a, b) => {
-      if (a.duty_date !== b.duty_date) return a.duty_date < b.duty_date ? -1 : 1;
-      if (a.duty_time !== b.duty_time) return a.duty_time < b.duty_time ? 1 : -1;
+      const pa = datePriority[a.duty_date] ?? 3;
+      const pb = datePriority[b.duty_date] ?? 3;
+      if (pa !== pb) return pa - pb;
+      if (a.duty_time !== b.duty_time) return a.duty_time < b.duty_time ? -1 : 1;
       return 0;
     });
 
