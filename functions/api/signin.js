@@ -130,6 +130,18 @@ export async function onRequestPost({ request, env }) {
     if (!dutyConfig) {
         dutyConfig = combinedResults[0];
     }
+
+    // 00:00-07:59 时段属于前一天值班周期，签到日期改为前一天
+    {
+      const startMatch = dutyConfig.duty_time?.match(/(\d{2}):(\d{2})/);
+      if (startMatch) {
+        const startMin = parseInt(startMatch[1]) * 60 + parseInt(startMatch[2]);
+        if (startMin >= 0 && startMin < 480) {
+          const prevDay = new Date(bjTimestamp - (1 * 24 * 60 * 60 * 1000));
+          dutyConfig.duty_date = `${prevDay.getUTCFullYear()}-${pad(prevDay.getUTCMonth() + 1)}-${pad(prevDay.getUTCDate())}`;
+        }
+      }
+    }
     
     if (!dutyConfig.duty_time || dutyConfig.duty_time === '未安排') {
       return Response.json(
