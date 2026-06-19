@@ -1,3 +1,5 @@
+import { jsonSuccess, jsonError } from './_shared.js';
+
 export async function onRequestPost({ request, env }) {
   try {
     const body = await request.json();
@@ -8,13 +10,13 @@ export async function onRequestPost({ request, env }) {
     const endDate = body.end_date || body.start_date || body.duty_date;
 
     if (!names || !Array.isArray(names) || names.length === 0) {
-      return Response.json({ error: '人员名单不能为空' }, { status: 400 });
+      return jsonError('人员名单不能为空', 400);
     }
     if (!startDate) {
-      return Response.json({ error: '日期不能为空' }, { status: 400 });
+      return jsonError('日期不能为空', 400);
     }
     if (!duty_time) {
-      return Response.json({ error: '时段不能为空' }, { status: 400 });
+      return jsonError('时段不能为空', 400);
     }
 
     // Build date range
@@ -47,14 +49,12 @@ export async function onRequestPost({ request, env }) {
       else skipped++;
     }
 
-    return Response.json({
-      success: true,
+    return jsonSuccess({
       inserted,
       skipped,
       total: names.length * dates.length
     });
   } catch (error) {
-    return Response.json({ error: error.message, stack: error.stack }, { status: 500 });
+    return jsonError(error.message);
   }
 }
-

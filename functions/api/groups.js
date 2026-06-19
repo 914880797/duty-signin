@@ -1,3 +1,5 @@
+import { jsonSuccess, jsonError } from './_shared.js';
+
 // 获取所有分组
 export async function onRequestGet({ env }) {
   try {
@@ -6,13 +8,12 @@ export async function onRequestGet({ env }) {
       ORDER BY order_index ASC, id ASC
     `).all();
     
-    return Response.json({
-      success: true,
+    return jsonSuccess({
       data: results || [],
       count: results ? results.length : 0
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }
 
@@ -22,7 +23,7 @@ export async function onRequestPost({ request, env }) {
     const { name, order_index = 0 } = await request.json();
     
     if (!name || !name.trim()) {
-      return Response.json({ error: '分组名称不能为空' }, { status: 400 });
+      return jsonError('分组名称不能为空', 400);
     }
     
     const trimmedName = name.trim();
@@ -32,19 +33,16 @@ export async function onRequestPost({ request, env }) {
     `).bind(trimmedName).first();
     
     if (exists) {
-      return Response.json({ error: '分组名称已存在' }, { status: 400 });
+      return jsonError('分组名称已存在', 400);
     }
     
     await env.DB.prepare(`
       INSERT INTO shift_groups (name, order_index) VALUES (?, ?)
     `).bind(trimmedName, order_index).run();
     
-    return Response.json({
-      success: true,
-      message: '分组创建成功'
-    });
+    return jsonSuccess({ message: '分组创建成功' });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }
 
@@ -54,7 +52,7 @@ export async function onRequestPut({ request, env }) {
     const { id, name, order_index } = await request.json();
     
     if (!id) {
-      return Response.json({ error: '缺少分组 ID' }, { status: 400 });
+      return jsonError('缺少分组 ID', 400);
     }
     
     if (name && name.trim()) {
@@ -65,7 +63,7 @@ export async function onRequestPut({ request, env }) {
       `).bind(trimmedName, id).first();
       
       if (exists) {
-        return Response.json({ error: '分组名称已存在' }, { status: 400 });
+        return jsonError('分组名称已存在', 400);
       }
       
       await env.DB.prepare(`
@@ -79,12 +77,9 @@ export async function onRequestPut({ request, env }) {
       `).bind(order_index, id).run();
     }
     
-    return Response.json({
-      success: true,
-      message: '分组更新成功'
-    });
+    return jsonSuccess({ message: '分组更新成功' });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }
 
@@ -94,7 +89,7 @@ export async function onRequestDelete({ request, env }) {
     const { id } = await request.json();
     
     if (!id) {
-      return Response.json({ error: '缺少分组 ID' }, { status: 400 });
+      return jsonError('缺少分组 ID', 400);
     }
     
     const inUse = await env.DB.prepare(`
@@ -102,20 +97,15 @@ export async function onRequestDelete({ request, env }) {
     `).bind(id).first();
     
     if (inUse) {
-      return Response.json({ 
-        error: '该分组下已有排班，无法删除' 
-      }, { status: 400 });
+      return jsonError('该分组下已有排班，无法删除', 400);
     }
     
     await env.DB.prepare(`
       DELETE FROM shift_groups WHERE id = ?
     `).bind(id).run();
     
-    return Response.json({
-      success: true,
-      message: '分组删除成功'
-    });
+    return jsonSuccess({ message: '分组删除成功' });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }

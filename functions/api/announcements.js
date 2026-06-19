@@ -1,3 +1,5 @@
+import { jsonSuccess, jsonError } from './_shared.js';
+
 export async function onRequestGet({ env }) {
   try {
     await ensureTable(env);
@@ -8,9 +10,9 @@ export async function onRequestGet({ env }) {
       ORDER BY created_at DESC
     `).all();
 
-    return Response.json({ success: true, data: results || [] });
+    return jsonSuccess({ data: results || [] });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }
 
@@ -20,16 +22,16 @@ export async function onRequestPost({ request, env }) {
 
     const { content } = await request.json();
     if (!content || !content.trim()) {
-      return Response.json({ error: '公告内容不能为空' }, { status: 400 });
+      return jsonError('公告内容不能为空', 400);
     }
 
     const result = await env.DB.prepare(`
       INSERT INTO announcements (content) VALUES (?)
     `).bind(content.trim()).run();
 
-    return Response.json({ success: true, id: result.meta?.last_row_id });
+    return jsonSuccess({ id: result.meta?.last_row_id });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }
 
@@ -40,16 +42,16 @@ export async function onRequestDelete({ request, env }) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     if (!id) {
-      return Response.json({ error: '缺少公告ID' }, { status: 400 });
+      return jsonError('缺少公告ID', 400);
     }
 
     await env.DB.prepare(`
       UPDATE announcements SET is_active = 0 WHERE id = ?
     `).bind(id).run();
 
-    return Response.json({ success: true });
+    return jsonSuccess({});
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }
 

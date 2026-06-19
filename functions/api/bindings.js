@@ -1,3 +1,5 @@
+import { jsonSuccess, jsonError } from './_shared.js';
+
 // 获取人员时段绑定列表
 export async function onRequestGet({ env }) {
   try {
@@ -8,12 +10,9 @@ export async function onRequestGet({ env }) {
       ORDER BY b.duty_time, b.name
     `).all();
     
-    return Response.json({
-      success: true,
-      data: results || []
-    });
+    return jsonSuccess({ data: results || [] });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }
 
@@ -27,9 +26,9 @@ export async function onRequestPost({ request, env }) {
       VALUES (?, ?, ?)
     `).bind(duty_time, name, group_id || null).run();
     
-    return Response.json({ success: true });
+    return jsonSuccess({});
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }
 
@@ -42,8 +41,8 @@ export async function onRequestDelete({ request, env }) {
       DELETE FROM duty_bindings WHERE duty_time = ? AND name = ?
     `).bind(duty_time, name).run();
     
-    return Response.json({ success: true });
+    return jsonSuccess({});
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }
