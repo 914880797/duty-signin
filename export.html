@@ -424,9 +424,7 @@
             if (!data[gn].records[r.name]) data[gn].records[r.name] = {};
             const isMakeup = r.ip_address === 'makeup';
             const existing = data[gn].records[r.name][displayDate];
-            if (existing === 1 && isMakeup) {
-                data[gn].records[r.name][displayDate] = 2;
-            } else if (!existing) {
+            if (!existing || (existing === 2 && !isMakeup)) {
                 data[gn].records[r.name][displayDate] = isMakeup ? 2 : 1;
             }
 
