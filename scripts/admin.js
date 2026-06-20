@@ -1397,4 +1397,3 @@
             }
             return null;
         }
-    </script>
