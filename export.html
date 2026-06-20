@@ -422,10 +422,14 @@
             const displayDate = DateUtils.getNaturalDate(r.created_at);
 
             if (!data[gn].records[r.name]) data[gn].records[r.name] = {};
+            const cell = data[gn].records[r.name][displayDate];
             const isMakeup = r.record_type === 'makeup' || r.ip_address === 'makeup';
-            const existing = data[gn].records[r.name][displayDate];
-            if (!existing || (existing === 2 && !isMakeup)) {
-                data[gn].records[r.name][displayDate] = isMakeup ? 2 : 1;
+
+            if (!cell) {
+                data[gn].records[r.name][displayDate] = { signin: isMakeup ? 0 : 1, makeup: isMakeup ? 1 : 0 };
+            } else {
+                if (isMakeup) cell.makeup++;
+                else cell.signin++;
             }
 
             if (!data[gn].maxDate || displayDate > data[gn].maxDate) data[gn].maxDate = displayDate;
@@ -473,11 +477,13 @@
             let s = 0;
             html += '<tr data-name="'+name+'" data-group="'+sheetName+'"><td class="name-col">'+name+'</td><td class="group-col">'+sheetName+'</td>';
             cycleDates.forEach(d => {
-                const raw = rec[d.fullDate];
-                const v = raw ? 1 : '';
-                const isMakeup = raw === 2;
+                const cell = rec[d.fullDate];
+                const total = cell ? (cell.signin + cell.makeup) : 0;
+                const v = total > 0 ? 1 : '';
+                const makeupOnly = cell && cell.signin === 0 && cell.makeup > 0;
+                const sv = total > 1 ? '<sup>'+total+'</sup>' : '';
                 if (v) s++;
-                html += '<td class="date-cell'+(v?' value-1':'')+(isMakeup?' makeup':'')+'" data-date="'+d.fullDate+'">'+(isMakeup ? '补' : v)+'</td>';
+                html += '<td class="date-cell'+(v?' value-1':'')+(makeupOnly?' makeup':'')+'" data-date="'+d.fullDate+'">'+(makeupOnly ? '补'+sv : v+sv)+'</td>';
             });
             const a = days - s;
             html += '<td class="stats-col-fixed">'+s+'</td><td class="stats-col-fixed">'+s+'</td><td class="stats-col-fixed">'+a+'</td></tr>';
