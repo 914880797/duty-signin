@@ -213,6 +213,7 @@
         }
         .duty-table td.value-1 { color: #1a3d5c; font-weight: 600; }
         .duty-table td.makeup { background: #fff3e0; color: #e65100; font-weight: 600; font-size: 11px; }
+        .duty-table td.multi-slot { box-shadow: inset 0 0 0 2px #4caf50; }
         .highlight-row td { background: #fff7e6 !important; }
 
         /* Reduced motion */
@@ -483,7 +484,7 @@
                 const makeupOnly = cell && cell.signin === 0 && cell.makeup > 0;
                 const sv = total > 1 ? '<sup>'+total+'</sup>' : '';
                 if (v) s++;
-                html += '<td class="date-cell'+(v?' value-1':'')+(makeupOnly?' makeup':'')+'" data-date="'+d.fullDate+'">'+(makeupOnly ? '补'+sv : v+sv)+'</td>';
+                html += '<td class="date-cell'+(v?' value-1':'')+(makeupOnly?' makeup':'')+(total>1?' multi-slot':'')+'" data-date="'+d.fullDate+'">'+(makeupOnly ? '补'+sv : v+sv)+'</td>';
             });
             const a = days - s;
             html += '<td class="stats-col-fixed">'+s+'</td><td class="stats-col-fixed">'+s+'</td><td class="stats-col-fixed">'+a+'</td></tr>';
