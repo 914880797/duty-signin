@@ -22,7 +22,7 @@ export async function onRequestPost({ request, env }) {
     const created_at = formatBeijingNow();
 
     await env.DB.prepare(
-      `INSERT INTO signin_records (name, duty_date, duty_time, group_id, created_at, record_type) VALUES (?, ?, ?, ?, ?, 'makeup')`
+      `INSERT INTO signin_records (name, duty_date, duty_time, group_id, created_at, ip_address) VALUES (?, ?, ?, ?, ?, 'makeup')`
     ).bind(trimmedName, duty_date, duty_time, group_id || null, created_at).run();
 
     return jsonSuccess({ name: trimmedName, duty_date, duty_time, created_at });
