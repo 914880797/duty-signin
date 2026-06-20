@@ -23,6 +23,7 @@
         ];
 
         window.addEventListener('DOMContentLoaded', function() {
+            runMigrations();
             loadShiftConfig();
             loadRoster();
             loadGroups();
@@ -30,6 +31,16 @@
             updateShiftSelects();
             updateGroupSelects();
         });
+
+        function runMigrations() {
+            fetch('/api/migrate-record-type', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.migrated) console.log('DB迁移: record_type列已添加');
+                    else console.log('DB迁移: record_type列已存在, 跳过');
+                })
+                .catch(e => console.error('DB迁移失败:', e));
+        }
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
