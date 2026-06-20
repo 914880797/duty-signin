@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS signin_records (
   group_id INTEGER,
   created_at TEXT NOT NULL,
   ip_address TEXT,
+  record_type TEXT DEFAULT 'signin',
   FOREIGN KEY (group_id) REFERENCES shift_groups(id),
   UNIQUE(name, duty_date, duty_time)
 );

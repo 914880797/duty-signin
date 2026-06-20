@@ -399,10 +399,20 @@
         function renderShiftGrid(shiftConfig) {
             var grid = document.getElementById('shiftGrid');
             grid.innerHTML = shiftConfig.map(function(shift) {
-                var isNight = shift.id === 14;
+                var isNight = isNightShift(shift.name);
                 return '<div class="shift-item' + (isNight ? ' night' : '') + '">' +
                     (isNight ? '🌙 ' : '') + shift.name + (isNight ? ' (夜班)' : '') + '</div>';
             }).join('');
+        }
+
+        function isNightShift(name) {
+            if (!name) return false;
+            var match = name.match(/(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
+            if (!match) return false;
+            var sh = parseInt(match[1]), sm = parseInt(match[2]), eh = parseInt(match[3]);
+            if (sh === 24) sh = 0;
+            if (eh === 24) eh = 0;
+            return sh * 60 + sm > eh * 60 + parseInt(match[4]);
         }
 
         loadShiftConfig();
