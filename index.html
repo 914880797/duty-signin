@@ -407,12 +407,12 @@
 
         function isNightShift(name) {
             if (!name) return false;
-            var match = name.match(/(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
-            if (!match) return false;
-            var sh = parseInt(match[1]), sm = parseInt(match[2]), eh = parseInt(match[3]);
-            if (sh === 24) sh = 0;
-            if (eh === 24) eh = 0;
-            return sh * 60 + sm > eh * 60 + parseInt(match[4]);
+            var match = name.match(/^24:00-(\d{2}):(\d{2})$/);
+            if (match) {
+                var eh = parseInt(match[1]);
+                return eh >= 0 && eh < 8;
+            }
+            return false;
         }
 
         loadShiftConfig();
