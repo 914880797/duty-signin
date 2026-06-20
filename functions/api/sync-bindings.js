@@ -1,3 +1,5 @@
+import { jsonSuccess, jsonError } from './_shared.js';
+
 export async function onRequestPost({ env }) {
   try {
     await env.DB.prepare(`
@@ -9,8 +11,8 @@ export async function onRequestPost({ env }) {
         AND duty_time != '未安排'
     `).run();
 
-    return Response.json({ success: true, message: 'duty_bindings 已从 duty_config 同步' });
+    return jsonSuccess({ message: 'duty_bindings 已从 duty_config 同步' });
   } catch (error) {
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }

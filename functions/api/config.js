@@ -1,3 +1,5 @@
+import { jsonSuccess, jsonError } from './_shared.js';
+
 export async function onRequestPost(context) {
     const { request, env } = context;
     
@@ -5,17 +7,12 @@ export async function onRequestPost(context) {
         const data = await request.json();
         const { date, config } = data;
         
-        if (!date) {
-            return Response.json({ error: '缺少日期参数' }, { status: 400 });
-        }
-        
-        if (!config || !Array.isArray(config)) {
-            return Response.json({ error: '排班数据格式错误' }, { status: 400 });
-        }
+        if (!date) return jsonError('缺少日期参数', 400);
+        if (!config || !Array.isArray(config)) return jsonError('排班数据格式错误', 400);
         
         for (const item of config) {
             if (!item.duty_date || !item.duty_time || !item.name) {
-                return Response.json({ error: '排班数据不完整' }, { status: 400 });
+                return jsonError('排班数据不完整', 400);
             }
         }
         
@@ -30,13 +27,10 @@ export async function onRequestPost(context) {
         }
         await env.DB.batch(batch);
         
-        return Response.json({ 
-            success: true,
-            message: '排班成功'
-        });
+        return jsonSuccess({ message: '排班成功' });
     } catch (error) {
         console.error('排班失败:', error);
-        return Response.json({ error: '服务器错误' }, { status: 500 });
+        return jsonError('服务器错误');
     }
 }
 
@@ -49,9 +43,7 @@ export async function onRequestGet(context) {
         const duty_time = url.searchParams.get('duty_time');
         const group_id = url.searchParams.get('group_id');
         
-        if (!date) {
-            return Response.json({ error: '缺少日期参数' }, { status: 400 });
-        }
+        if (!date) return jsonError('缺少日期参数', 400);
 
         // 获取有效的时段列表
         const validTimesSetting = await env.DB.prepare(`
@@ -98,12 +90,9 @@ export async function onRequestGet(context) {
         
         const { results } = await env.DB.prepare(sql).bind(...bindings).all();
         
-        return Response.json({ 
-            success: true,
-            data: results || []
-        });
+        return jsonSuccess({ data: results || [] });
     } catch (error) {
-        return Response.json({ error: '服务器错误' }, { status: 500 });
+        return jsonError('服务器错误');
     }
 }
 
@@ -113,9 +102,7 @@ export async function onRequestDelete(context) {
     try {
         const { date, duty_time, name, names } = await request.json();
         
-        if (!date) {
-            return Response.json({ error: '缺少日期参数' }, { status: 400 });
-        }
+        if (!date) return jsonError('缺少日期参数', 400);
         
         if (names && Array.isArray(names) && names.length > 0) {
             const placeholders = names.map(() => '?').join(',');
@@ -123,10 +110,7 @@ export async function onRequestDelete(context) {
                 DELETE FROM duty_config WHERE duty_date = ? AND name IN (${placeholders})
             `).bind(date, ...names).run();
             
-            return Response.json({
-                success: true,
-                deleted: result.meta?.changes || 0
-            });
+            return jsonSuccess({ deleted: result.meta?.changes || 0 });
         }
         
         if (duty_time && name) {
@@ -134,12 +118,12 @@ export async function onRequestDelete(context) {
                 DELETE FROM duty_config WHERE duty_date = ? AND duty_time = ? AND name = ?
             `).bind(date, duty_time, name).run();
             
-            return Response.json({ success: true });
+            return jsonSuccess();
         }
         
-        return Response.json({ error: '缺少参数' }, { status: 400 });
+        return jsonError('缺少参数', 400);
     } catch (error) {
         console.error('删除排班失败:', error);
-        return Response.json({ error: '服务器错误' }, { status: 500 });
+        return jsonError('服务器错误');
     }
 }

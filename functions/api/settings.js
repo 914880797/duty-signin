@@ -1,8 +1,5 @@
-import { jsonError } from '../_shared.js';
+import { jsonSuccess, jsonError } from '../_shared.js';
 
-// import { hashPassword } from '../_shared.js';
-
-// 获取打卡周期设置
 export async function onRequestGet({ env }) {
   try {
     const config = await env.DB.prepare(
@@ -15,8 +12,7 @@ export async function onRequestGet({ env }) {
       `SELECT COUNT(*) as total FROM signin_records`
     ).first();
 
-    return Response.json({
-      success: true,
+    return jsonSuccess({
       cycleStartDate: config?.value || null,
       validDutyTimes: validTimes?.value ? JSON.parse(validTimes.value) : null,
       totalRecords: count?.total || 0
@@ -27,7 +23,6 @@ export async function onRequestGet({ env }) {
   }
 }
 
-// 保存打卡周期设置
 export async function onRequestPut({ request, env }) {
   try {
     const data = await request.json();
@@ -44,7 +39,7 @@ export async function onRequestPut({ request, env }) {
       ).bind(JSON.stringify(valid_duty_times)).run();
     }
 
-    return Response.json({ success: true });
+    return jsonSuccess();
   } catch (error) {
     console.error('Put settings error:', error);
     return jsonError(error.message);

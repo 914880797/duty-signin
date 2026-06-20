@@ -1,9 +1,11 @@
+import { jsonSuccess, jsonError } from './_shared.js';
+
 export async function onRequestPost({ request, env }) {
   try {
     const { valid_duty_times } = await request.json();
 
     if (!Array.isArray(valid_duty_times) || valid_duty_times.length === 0) {
-      return Response.json({ success: false, error: 'valid_duty_times array is required' }, { status: 400 });
+      return jsonError('valid_duty_times array is required', 400);
     }
 
     const placeholders = valid_duty_times.map(() => '?').join(',');
@@ -17,12 +19,11 @@ export async function onRequestPost({ request, env }) {
       DELETE FROM duty_bindings WHERE duty_time NOT IN (${placeholders})
     `).bind(...valid_duty_times).run();
 
-    return Response.json({
-      success: true,
+    return jsonSuccess({
       deleted_duty_config: dcResult.meta?.changes || 0,
       deleted_duty_bindings: dbResult.meta?.changes || 0
     });
   } catch (error) {
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }

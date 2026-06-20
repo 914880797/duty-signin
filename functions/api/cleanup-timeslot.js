@@ -1,9 +1,11 @@
+import { jsonSuccess, jsonError } from './_shared.js';
+
 export async function onRequestDelete({ request, env }) {
   try {
     const { duty_time } = await request.json();
 
     if (!duty_time) {
-      return Response.json({ success: false, error: 'duty_time is required' }, { status: 400 });
+      return jsonError('duty_time is required', 400);
     }
 
     const results = await env.DB.batch([
@@ -14,12 +16,11 @@ export async function onRequestDelete({ request, env }) {
     const dcDeleted = results[0]?.meta?.changes || 0;
     const dbDeleted = results[1]?.meta?.changes || 0;
 
-    return Response.json({
-      success: true,
+    return jsonSuccess({
       deleted_duty_config: dcDeleted,
       deleted_duty_bindings: dbDeleted
     });
   } catch (error) {
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }

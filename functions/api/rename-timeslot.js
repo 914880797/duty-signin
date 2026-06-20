@@ -1,9 +1,11 @@
+import { jsonSuccess, jsonError } from './_shared.js';
+
 export async function onRequestPost({ request, env }) {
   try {
     const { old_name, new_name } = await request.json();
 
     if (!old_name || !new_name || old_name === new_name) {
-      return Response.json({ success: false, error: 'old_name and new_name are required and must differ' }, { status: 400 });
+      return jsonError('old_name and new_name are required and must differ', 400);
     }
 
     const results = await env.DB.batch([
@@ -14,12 +16,11 @@ export async function onRequestPost({ request, env }) {
     const dcUpdated = results[0]?.meta?.changes || 0;
     const dbUpdated = results[1]?.meta?.changes || 0;
 
-    return Response.json({
-      success: true,
+    return jsonSuccess({
       updated_duty_config: dcUpdated,
       updated_duty_bindings: dbUpdated
     });
   } catch (error) {
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return jsonError(error.message);
   }
 }
