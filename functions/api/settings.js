@@ -1,4 +1,4 @@
-import { jsonSuccess, jsonError } from '../_shared.js';
+import { jsonSuccess, jsonError } from './_shared.js';
 
 export async function onRequestGet({ env }) {
   try {
