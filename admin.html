@@ -7,364 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f0f1a">
     <title>排班管理</title>
-    <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #0f0f1a;
-            color: #e0e0e0;
-            min-height: 100dvh;
-            padding: 12px;
-            overflow-x: hidden;
-            -webkit-text-size-adjust: 100%;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            padding: 16px 12px 24px;
-            border: 1px solid #2a2a40;
-        }
-
-        h1 { color: #fff; margin-bottom: 16px; font-size: clamp(20px, 5vw, 28px); word-break: break-word; }
-
-        .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; border-bottom: 2px solid #2a2a40; padding-bottom: 8px; }
-        .tab-btn {
-            padding: 10px 14px; min-height: 44px;
-            background: rgba(108, 99, 255, 0.1);
-            border: 1px solid rgba(108, 99, 255, 0.3);
-            border-radius: 8px 8px 0 0;
-            color: #8c92ac; cursor: pointer; transition: all 0.2s;
-            font-size: 13px; line-height: 1; white-space: nowrap;
-        }
-        .tab-btn.active { background: rgba(108, 99, 255, 0.2); border-color: #6c63ff; color: #fff; }
-        .tab-btn:focus-visible { outline: 2px solid #6c63ff; outline-offset: 2px; }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        .search-section {
-            background: rgba(108, 99, 255, 0.1);
-            border: 1px solid rgba(108, 99, 255, 0.3);
-            border-radius: 10px; padding: 14px 12px; margin-bottom: 16px;
-        }
-        .search-box { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
-        .search-input {
-            width: 100%; padding: 12px 14px; min-height: 44px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1.5px solid #3a3a50; border-radius: 8px;
-            color: #fff; font-size: 16px; outline: none;
-            -webkit-appearance: none; appearance: none;
-        }
-        .search-input:focus { border-color: #6c63ff; }
-        .search-btn {
-            padding: 12px 20px; min-height: 44px;
-            background: linear-gradient(90deg, #6c63ff, #4a41d4);
-            border: none; border-radius: 8px; color: #fff;
-            font-size: 14px; cursor: pointer; touch-action: manipulation;
-            transition: all 0.2s;
-        }
-        .search-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .search-btn:active { transform: translateY(0); }
-        .search-btn.searching {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-
-        .warning-box {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            border-radius: 8px; padding: 12px; margin-bottom: 16px; color: #ffc107;
-            font-size: 13px; line-height: 1.5; word-break: break-word;
-        }
-
-        .table-wrapper { 
-            overflow-x: auto; 
-            overflow-y: auto; 
-            max-height: 400px; 
-            -webkit-overflow-scrolling: touch; 
-            margin-bottom: 16px; 
-        }
-        .shift-config-table { width: 100%; min-width: 400px; border-collapse: collapse; background: rgba(30, 30, 60, 0.5); border-radius: 10px; overflow: hidden; }
-        .shift-config-table th {
-            background: rgba(108, 99, 255, 0.2); color: #6c63ff;
-            padding: 12px 10px; text-align: left; font-weight: 600; font-size: 13px; white-space: nowrap;
-        }
-        .shift-config-table td { padding: 10px; border-top: 1px solid #2a2a40; }
-        .time-input {
-            width: 100px; padding: 8px; min-height: 40px;
-            background: rgba(0, 0, 0, 0.3); border: 1.5px solid #3a3a50;
-            border-radius: 6px; color: #fff; font-size: 14px;
-            -webkit-appearance: none; appearance: none;
-        }
-
-        .config-actions { display: flex; gap: 8px; margin-top: 12px; }
-        .add-shift-btn {
-            flex: 1; padding: 12px; min-height: 44px;
-            background: linear-gradient(90deg, #4caf50, #45a049);
-            border: none; border-radius: 8px; color: #fff;
-            font-size: 14px; font-weight: 600; cursor: pointer; touch-action: manipulation;
-        }
-
-        .delete-shift-btn {
-            padding: 8px 10px; min-height: 40px;
-            background: rgba(255, 107, 107, 0.2); color: #ff6b6b;
-            border: 1px solid #ff6b6b; border-radius: 6px;
-            cursor: pointer; font-size: 12px; touch-action: manipulation;
-        }
-
-        .save-config-btn {
-            width: 100%; padding: 14px; min-height: 48px;
-            background: linear-gradient(90deg, #ffc107, #ffca28);
-            border: none; border-radius: 10px; color: #1a1a2e;
-            font-size: 16px; font-weight: 600; cursor: pointer; touch-action: manipulation;
-        }
-
-        .assign-form {
-            background: rgba(76, 175, 80, 0.1);
-            border: 1px solid rgba(76, 175, 80, 0.3);
-            border-radius: 10px; padding: 16px 12px; margin-bottom: 16px;
-        }
-        .form-title { color: #4caf50; font-size: 16px; font-weight: 600; margin-bottom: 14px; }
-        .form-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-        .form-label { color: #b0b0c0; font-size: 14px; }
-        .form-select, .form-input {
-            width: 100%; padding: 12px 14px; min-height: 44px;
-            background: rgba(0, 0, 0, 0.3); border: 1.5px solid #3a3a50;
-            border-radius: 8px; color: #fff; font-size: 16px;
-            -webkit-appearance: none; appearance: none;
-        }
-        .assign-btn {
-            width: 100%; padding: 14px; min-height: 48px;
-            background: linear-gradient(90deg, #4caf50, #45a049);
-            border: none; border-radius: 10px; color: #fff;
-            font-size: 16px; font-weight: 600; cursor: pointer; touch-action: manipulation;
-        }
-
-        .info-box {
-            background: rgba(108, 99, 255, 0.1);
-            border: 1px solid rgba(108, 99, 255, 0.3);
-            border-radius: 10px; padding: 14px 12px; margin-bottom: 16px;
-        }
-
-        .edit-form {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            border-radius: 10px; padding: 16px 12px; margin-bottom: 16px; display: none;
-        }
-        .edit-form.active { display: block; }
-        .edit-title { color: #ffc107; font-size: 16px; font-weight: 600; margin-bottom: 14px; }
-        .edit-btn {
-            width: 100%; padding: 14px; min-height: 48px;
-            background: linear-gradient(90deg, #ffc107, #ffca28);
-            border: none; border-radius: 10px; color: #1a1a2e;
-            font-size: 16px; font-weight: 600; cursor: pointer; touch-action: manipulation;
-        }
-        .cancel-btn {
-            width: 100%; padding: 14px; min-height: 48px;
-            background: rgba(158, 158, 158, 0.2); border: 1px solid #9e9e9e;
-            border-radius: 10px; color: #9e9e9e; font-size: 16px;
-            cursor: pointer; margin-top: 10px; touch-action: manipulation;
-        }
-
-        .roster-list {
-            background: rgba(30, 30, 60, 0.5);
-            border-radius: 10px; border: 1px solid #2a2a40;
-            max-height: 400px; overflow-y: auto; margin-bottom: 16px;
-            -webkit-overflow-scrolling: touch;
-        }
-        .roster-list::-webkit-scrollbar { width: 8px; }
-        .roster-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
-        .roster-list::-webkit-scrollbar-thumb { background: rgba(108, 99, 255, 0.4); border-radius: 10px; }
-        .roster-item {
-            display: flex; flex-direction: column;
-            padding: 14px 16px; border-bottom: 1px solid #2a2a40;
-        }
-        .roster-item:last-child { border-bottom: none; }
-        .roster-item:hover { background: rgba(108, 99, 255, 0.1); }
-        .roster-info { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .roster-time {
-            color: #6c63ff; font-weight: 600; font-size: 14px;
-            padding: 5px 10px; background: rgba(108, 99, 255, 0.2);
-            border-radius: 5px; white-space: nowrap;
-            min-width: 100px;
-        }
-        .roster-name { color: #e0e0e0; font-size: 15px; flex: 1; }
-        .roster-group {
-            background: rgba(108, 99, 255, 0.1); color: #6c63ff;
-            padding: 4px 10px; border-radius: 5px; font-size: 12px;
-        }
-        .roster-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .action-btn {
-            padding: 8px 16px;
-            border: none; border-radius: 6px; font-size: 13px;
-            cursor: pointer; touch-action: manipulation;
-            white-space: nowrap;
-        }
-        .edit-time-btn { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
-        .delete-btn { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; border: 1px solid #ff6b6b; }
-        .delete-btn:hover { background: rgba(255, 107, 107, 0.35); }
-
-        .roster-empty { padding: 30px 16px; text-align: center; color: #8c92ac; }
-
-        .message {
-            background: rgba(108, 99, 255, 0.1);
-            border: 1px solid rgba(108, 99, 255, 0.3);
-            padding: 12px; border-radius: 8px; margin-bottom: 16px; display: none;
-            font-size: 13px; word-break: break-word;
-        }
-        .message.success { background: rgba(76, 175, 80, 0.2); color: #81c784; border-color: #4caf50; }
-        .message.error { background: rgba(255, 107, 107, 0.2); color: #ff8a80; border-color: #ff6b6b; }
-
-        .loading { text-align: center; color: #8c92ac; padding: 16px; }
-
-        .back-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
-            color: #e0e0e0;
-            text-decoration: none;
-            border-radius: 8px;
-            margin: 5px;
-            font-size: 14px;
-            min-height: auto;
-        }
-        .back-btn:hover { opacity: 0.8; }
-
-        .nav-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 0; }
-
-        .group-item {
-            background: rgba(30, 30, 60, 0.5);
-            border: 1px solid #2a2a40; border-radius: 8px;
-            padding: 12px; margin-bottom: 8px;
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 8px; flex-wrap: wrap;
-        }
-        .group-name { color: #e0e0e0; font-size: 14px; font-weight: 500; word-break: break-word; flex: 1; }
-        .group-actions { display: flex; gap: 6px; flex-shrink: 0; }
-
-        .admin-info {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 14px; background: rgba(108, 99, 255, 0.1);
-            border: 1px solid rgba(108, 99, 255, 0.3);
-            border-radius: 8px; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
-        }
-        .admin-info span { color: #6c63ff; font-size: 14px; word-break: break-word; }
-        .logout-btn {
-            padding: 8px 14px; min-height: 40px;
-            background: rgba(255, 107, 107, 0.2); color: #ff6b6b;
-            border: 1px solid #ff6b6b; border-radius: 6px;
-            cursor: pointer; font-size: 13px; touch-action: manipulation;
-        }
-
-        #rosterTab {
-            display: flex;
-            flex-direction: column;
-        }
-
-        #rosterTab .search-section { flex-shrink: 0; margin-bottom: 12px; }
-        #rosterTab .assign-form { flex-shrink: 0; margin-bottom: 12px; }
-        #rosterTab .edit-form { flex-shrink: 0; margin-bottom: 12px; }
-        #rosterTab .roster-list {
-            overflow-y: auto;
-            max-height: 50vh;
-            min-height: 100px;
-            margin-bottom: 0;
-        }
-
-        @media (min-width: 600px) {
-            body { padding: 20px; }
-            .container { padding: 24px 20px 32px; border-radius: 16px; }
-            h1 { margin-bottom: 24px; }
-            .tabs { gap: 10px; margin-bottom: 20px; padding-bottom: 10px; }
-            .tab-btn { padding: 10px 18px; font-size: 14px; }
-            .search-section { padding: 16px; margin-bottom: 20px; }
-            .search-box { flex-direction: row; }
-            .form-row { flex-direction: row; align-items: center; }
-            .form-label { min-width: 80px; }
-            .roster-list { max-height: 500px; flex: 0 1 auto; min-height: 100px; overflow-y: auto; }
-            .roster-item { flex-direction: row; padding: 12px 16px; align-items: center; justify-content: space-between; }
-            .roster-info { flex-wrap: wrap; margin-bottom: 0; }
-            .roster-actions { flex-shrink: 0; gap: 8px; }
-            .assign-form { padding: 20px; margin-bottom: 20px; }
-            .info-box { padding: 16px; margin-bottom: 20px; }
-            .edit-form { padding: 20px; }
-            .nav-row { margin: 16px 0; }
-        }
-
-        @media (min-width: 1024px) {
-            body {
-                min-height: 100dvh;
-                overflow-x: hidden;
-                display: flex;
-                align-items: flex-start;
-                padding: 20px 40px;
-            }
-
-            .container {
-                width: 100%;
-                max-width: 1400px;
-                padding: 30px 36px 40px;
-                display: flex;
-                flex-direction: column;
-                overflow: visible;
-            }
-
-            h1 { margin-bottom: 8px; font-size: 1.4rem; }
-            .nav-row { display: flex; justify-content: center; gap: 8px; margin: 8px 0 !important; }
-            .tabs { flex-shrink: 0; margin-bottom: 8px; gap: 8px; }
-
-            .tab-content { display: none !important; }
-            .tab-content.active {
-                display: flex !important;
-                flex-direction: column;
-                flex: 1;
-                min-height: 0;
-                overflow-y: auto;
-                padding-bottom: 20px;
-            }
-
-            .search-section { flex-shrink: 0; }
-            .assign-form { flex-shrink: 0; }
-            .edit-form { flex-shrink: 0; }
-            .info-box { flex-shrink: 0; }
-            #rosterTab .roster-list { overflow-y: auto; max-height: 170px; flex: none; min-height: 100px; }
-            .shift-config-table { min-width: auto; }
-
-            #configTab.active { flex-direction: column; }
-            #configTab.active .warning-box { flex-shrink: 0; }
-            #configTab.active .table-wrapper { flex: 1; min-height: 0; max-height: 420px; overflow-y: auto; margin-bottom: 16px; }
-            #configTab.active .config-actions { flex-shrink: 0; margin-top: 8px; margin-bottom: 8px; }
-            #configTab.active .save-config-btn { flex-shrink: 0; margin-bottom: 0; }
-            #configTab.active #configStatus { flex-shrink: 0; margin-top: 0 !important; }
-
-            #groupsTab.active { flex-direction: column; padding-bottom: 20px; }
-            #groupsTab.active .assign-form { flex-shrink: 0; }
-            #groupsTab.active .roster-list { overflow-y: auto; max-height: 340px; flex: none; min-height: 100px; margin-bottom: 20px; }
-
-            #settingsTab.active { padding-bottom: 20px; }
-            #settingsTab.active .assign-form { flex-shrink: 0; }
-            #settingsTab.active .info-box { flex-shrink: 0; margin-bottom: 20px; }
-
-            #rosterTab.active { padding-bottom: 20px; }
-        }
-
-        @media (max-width: 360px) {
-            .container { padding: 12px 10px 20px; border-radius: 10px; }
-            h1 { font-size: 18px; }
-            .tab-btn { padding: 8px 10px; font-size: 12px; }
-            .form-select, .form-input { font-size: 14px; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { transition-duration: 0.01ms !important; }
-        }
-    </style>
+    <link rel="stylesheet" href="/styles/admin.css">
     <script src="/utils/date-utils.js"></script>
 </head>
 <body>
@@ -372,34 +15,28 @@
         <!-- 未登录遮罩层 (包含输入框) -->
         <div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter:blur(25px); z-index:999; display:flex; align-items:center; justify-content:center;">
             <div style="background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 20px; padding: 40px; border: 1px solid #2a2a40; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
-                <div style="font-size:48px; margin-bottom: 10px;">🔐</div>
+                <div style="font-size:48px; margin-bottom: 10px;">&#x1f510;</div>
                 <h2 style="color:#fff; font-size:24px; margin-bottom:30px; text-align:center;">管理员登录</h2>
-                
                 <input type="text" id="overlayUsername" placeholder="请输入管理员账号" style="width:100%; padding:12px; margin-bottom:15px; border-radius: 8px; border: 1px solid #4a4a4a; background: #2a2a40; color: #fff; font-size: 14px; box-sizing: border-box;">
-                
                 <input type="password" id="overlayPassword" placeholder="请输入密码" style="width:100%; padding:12px; margin-bottom:20px; border-radius: 8px; border: 1px solid #4a4a4a; background: #2a2a40; color: #fff; font-size: 14px; box-sizing: border-box;">
-                
                 <button onclick="handleOverlayLogin()" class="assign-btn" style="width:100%; padding: 12px; font-size: 16px; border-radius: 8px; cursor: pointer; margin-bottom: 10px;">立即登录</button>
-                
                 <div id="overlayMessage" style="margin-top: 10px; color: #ff6b6b; font-size: 13px; min-height: 20px; text-align: center;"></div>
-
                 <div style="margin-top: 20px; text-align: center;">
-                    <a href="/" class="back-btn" style="color: #b0b0c0; text-decoration: none; font-size: 13px;">🏠 返回首页</a>
+                    <a href="/" class="back-btn" style="color: #b0b0c0; text-decoration: none; font-size: 13px;">&#x1f3e0; 返回首页</a>
                 </div>
         </div>
-
     </div>
 
         <!-- 管理登录提示 -->
         <div id="loginPrompt" style="text-align: center; padding: 20px; background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 10px; margin-bottom: 20px;">
-            <p style="color: #ffc107; margin-bottom: 10px;">🔐 管理入口 - 请联系管理员获取访问权限</p>
+            <p style="color: #ffc107; margin-bottom: 10px;">&#x1f510; 管理入口 - 请联系管理员获取访问权限</p>
             <button onclick="showLoginModal()" class="assign-btn" style="width: auto; padding: 10px 30px;">管理员登录</button>
         </div>
 
         <!-- 管理登录弹窗 (默认隐藏) -->
         <div id="loginModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000;">
             <div style="background: linear-gradient(145deg, #1a1a2e, #16213e); border-radius: 20px; padding: 40px; border: 1px solid #2a2a40; width: 100%; max-width: 400px;">
-                <h2 style="color: #fff; margin-bottom: 30px; text-align: center;">🔐 管理登录</h2>
+                <h2 style="color: #fff; margin-bottom: 30px; text-align: center;">&#x1f510; 管理登录</h2>
                 <div style="margin-bottom: 20px;">
                     <label style="color: #b0b0c0; font-size: 14px; display: block; margin-bottom: 8px;">管理员账号</label>
                     <input type="text" id="adminUsername" class="form-input" placeholder="请输入管理员账号">
@@ -408,18 +45,18 @@
                     <label style="color: #b0b0c0; font-size: 14px; display: block; margin-bottom: 8px;">密码</label>
                     <input type="password" id="adminPassword" class="form-input" placeholder="请输入密码">
                 </div>
-                <button onclick="handleLogin()" class="assign-btn" style="width: 100%;">🔑 登录</button>
+                <button onclick="handleLogin()" class="assign-btn" style="width: 100%;">&#x1f511; 登录</button>
                 <div id="loginMessage" style="margin-top: 15px; text-align: center; color: #ff6b6b;"></div>
             </div>
         </div>
 
-        <h1>📅 值班排班管理</h1>
+        <h1>&#x1f4c5; 值班排班管理</h1>
         <div style="margin-bottom: 20px;">
-            <a href="/" class="back-btn">🏠 首页</a>
-            <a href="/query.html" class="back-btn">🔍 排班查询</a>
-                <a href="/dashboard.html" class="back-btn">📊 看板</a>
-            <a href="/export.html" class="back-btn">📥 导出预览</a>
-            <a href="/makeup.html" class="back-btn">🔄 补卡</a>
+            <a href="/" class="back-btn">&#x1f3e0; 首页</a>
+            <a href="/query.html" class="back-btn">&#x1f50d; 排班查询</a>
+                <a href="/dashboard.html" class="back-btn">&#x1f4ca; 看板</a>
+            <a href="/export.html" class="back-btn">&#x1f4e5; 导出预览</a>
+            <a href="/makeup.html" class="back-btn">&#x1f504; 补卡</a>
         </div>
         <div id="adminInfo" style="text-align: right; margin-bottom: 20px; display: none;">
             <span style="color: #8c92ac; font-size: 14px;">管理员：<span id="adminName"></span></span>
@@ -429,12 +66,12 @@
         <div id="message" class="message"></div>
 
         <div class="tabs">
-            <div class="tab-btn active" onclick="switchTab('roster')">📋 排班管理</div>
-            <div class="tab-btn" onclick="switchTab('groups')">👥 分组管理</div>
-            <div class="tab-btn" onclick="switchTab('settings')">⚙️ 打卡设置</div>
-            <div class="tab-btn" onclick="switchTab('config')">🕐 时段配置</div>
-            <div class="tab-btn" onclick="switchTab('announcement')">📢 公告</div>
-            <div class="tab-btn" onclick="switchTab('batch')">📋 批量排班</div>
+            <div class="tab-btn active" onclick="switchTab('roster')">&#x1f4cb; 排班管理</div>
+            <div class="tab-btn" onclick="switchTab('groups')">&#x1f465; 分组管理</div>
+            <div class="tab-btn" onclick="switchTab('settings')">&#x2699;&#xfe0f; 打卡设置</div>
+            <div class="tab-btn" onclick="switchTab('config')">&#x1f550; 时段配置</div>
+            <div class="tab-btn" onclick="switchTab('announcement')">&#x1f4e2; 公告</div>
+            <div class="tab-btn" onclick="switchTab('batch')">&#x1f4cb; 批量排班</div>
         </div>
 
         <div id="rosterTab" class="tab-content active">
@@ -448,58 +85,49 @@
             </div>
 
             <div class="assign-form">
-                <div class="form-title">➕ 新增排班</div>
-                
+                <div class="form-title">&#x2795; 新增排班</div>
                 <div class="form-row">
                     <span class="form-label">选择时段</span>
                     <select id="shiftSelect" class="form-select">
                         <option value="">-- 请选择值班时段 --</option>
                     </select>
                 </div>
-
                 <div class="form-row">
                     <span class="form-label">昵称</span>
                     <input type="text" id="nameInput" class="form-input" placeholder="请输入值班人员昵称">
                 </div>
-
                 <div class="form-row">
                     <span class="form-label">分组</span>
                     <select id="groupSelect" class="form-select">
                         <option value="">-- 请选择分组（可选） --</option>
                     </select>
                 </div>
-
-                <button onclick="assignShift()" class="assign-btn">✅ 安排值班</button>
+                <button onclick="assignShift()" class="assign-btn">&#x2705; 安排值班</button>
             </div>
 
             <div id="editForm" class="edit-form">
-                <div class="edit-title">✏️ 修改时段</div>
-                
+                <div class="edit-title">&#x270f;&#xfe0f; 修改时段</div>
                 <div class="form-row">
                     <span class="form-label">当前时段</span>
                     <input type="text" id="editOldShift" class="form-input" readonly style="opacity: 0.6;">
                 </div>
-
                 <div class="form-row">
                     <span class="form-label">人员</span>
                     <input type="text" id="editName" class="form-input" readonly style="opacity: 0.6;">
                 </div>
-
                 <div class="form-row">
                     <span class="form-label">新时段</span>
                     <select id="editNewShift" class="form-select">
                         <option value="">-- 请选择新时段 --</option>
                     </select>
                 </div>
-
                 <div class="form-row">
                     <span class="form-label">分组</span>
                     <select id="editGroupSelect" class="form-select">
                         <option value="">-- 请选择分组（可选） --</option>
                     </select>
                 </div>
-
-                <button onclick="saveEditShift()" class="edit-btn">💾 保存修改</button>
+                <button onclick="saveEditShift()" class="edit-btn">&#x1f4be; 保存修改</button>
                 <button onclick="cancelEdit()" class="cancel-btn">取消</button>
             </div>
 
@@ -511,16 +139,13 @@
         <!-- 分组管理标签页 -->
         <div id="groupsTab" class="tab-content">
             <div class="assign-form">
-                <div class="form-title">➕ 新增分组</div>
-                
+                <div class="form-title">&#x2795; 新增分组</div>
                 <div class="form-row">
                     <span class="form-label">分组名称</span>
                     <input type="text" id="groupNameInput" class="form-input" placeholder="请输入分组名称（如：会议室、电报）">
                 </div>
-
-                <button onclick="addNewGroup()" class="assign-btn">✅ 创建分组</button>
+                <button onclick="addNewGroup()" class="assign-btn">&#x2705; 创建分组</button>
             </div>
-
             <div class="roster-list" id="groupsList">
                 <div class="loading">加载中...</div>
             </div>
@@ -529,27 +154,23 @@
         <!-- 打卡设置标签页 -->
         <div id="settingsTab" class="tab-content">
             <div class="assign-form">
-                <div class="form-title">📅 打卡周期设置</div>
-                
+                <div class="form-title">&#x1f4c5; 打卡周期设置</div>
                 <div class="form-row">
                     <span class="form-label">打卡起始日期</span>
                     <input type="date" id="cycleStartDate" class="form-input">
                 </div>
-
                 <div style="background: rgba(108, 99, 255, 0.1); border: 1px solid rgba(108, 99, 255, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                     <p style="color: #8c92ac; font-size: 14px; margin-bottom: 10px;">
-                        ℹ️ 说明：设置新的打卡起始日期后，系统会清空所有历史打卡记录，从新的起始日期重新开始一轮打卡。
+                        设置新的打卡起始日期后，系统会清空所有历史打卡记录，从新的起始日期重新开始一轮打卡。
                     </p>
                     <p style="color: #ff6b6b; font-size: 14px; font-weight: bold;">
-                        ⚠️ 警告：此操作不可恢复，请谨慎操作！
+                        警告：此操作不可恢复，请谨慎操作！
                     </p>
                 </div>
-
-                <button onclick="saveCycleSettings()" class="assign-btn">💾 保存打卡设置</button>
+                <button onclick="saveCycleSettings()" class="assign-btn">&#x1f4be; 保存打卡设置</button>
             </div>
-
             <div class="info-box" style="background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 10px; padding: 20px; margin-top: 20px;">
-                <div style="color: #4caf50; font-size: 18px; font-weight: bold; margin-bottom: 15px;">📊 当前打卡信息</div>
+                <div style="color: #4caf50; font-size: 18px; font-weight: bold; margin-bottom: 15px;">&#x1f4ca; 当前打卡信息</div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                     <div style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
                         <div style="color: #8c92ac; font-size: 12px; margin-bottom: 5px;">当前打卡周期起始日</div>
@@ -569,9 +190,8 @@
 
         <div id="configTab" class="tab-content">
             <div class="warning-box">
-                ⚠️ 注意：修改时段配置会影响所有排班。时段之间不能有重叠。
+                注意：修改时段配置会影响所有排班。时段之间不能有重叠。
             </div>
-
             <div class="table-wrapper">
             <table class="shift-config-table">
                 <thead>
@@ -586,25 +206,23 @@
                 <tbody id="shiftConfigBody"></tbody>
             </table>
             </div>
-
             <div class="config-actions">
-                <button onclick="addNewShift()" class="add-shift-btn">➕ 添加新时段</button>
+                <button onclick="addNewShift()" class="add-shift-btn">&#x2795; 添加新时段</button>
             </div>
-
-            <button onclick="validateAndSaveConfig()" class="save-config-btn">💾 保存时段配置</button>
+            <button onclick="validateAndSaveConfig()" class="save-config-btn">&#x1f4be; 保存时段配置</button>
             <div id="configStatus" style="margin-top: 15px;"></div>
         </div>
 
         <div id="announcementTab" class="tab-content">
             <div class="search-section" style="margin-bottom:16px;">
-                <div class="form-title">📢 添加公告</div>
+                <div class="form-title">&#x1f4e2; 添加公告</div>
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                     <input type="text" id="announcementInput" class="search-input" placeholder="输入公告内容..." style="flex:1;min-width:200px;">
                     <button onclick="addAnnouncement()" class="search-btn" style="background:linear-gradient(90deg,#4CAF50,#388E3C);">添加</button>
                 </div>
             </div>
             <div class="search-section">
-                <div class="form-title">📌 公告列表</div>
+                <div class="form-title">&#x1f4cc; 公告列表</div>
                 <table class="shift-table">
                     <thead>
                         <tr>
@@ -624,7 +242,7 @@
             <div class="search-section">
                 <div style="display:flex;gap:16px;flex-wrap:wrap;">
                     <div style="flex:1;min-width:280px;">
-                        <div class="form-title">📋 批量添加排班</div>
+                        <div class="form-title">&#x1f4cb; 批量添加排班</div>
                         <div class="form-row">
                             <span class="form-label">选择日期</span>
                             <input type="date" id="batchDate" class="form-select" style="color:#fff;">
@@ -651,7 +269,7 @@
                         </div>
                     </div>
                     <div style="flex:1;min-width:280px;">
-                        <div class="form-title">🧠 智能导入</div>
+                        <div class="form-title">&#x1f9e0; 智能导入</div>
                         <p style="color:#8c92ac;font-size:12px;margin-bottom:8px;">粘贴完整排班文本，自动解析分组/时段/人员</p>
                         <div class="form-row" style="flex-direction:column;align-items:stretch;">
                             <textarea id="smartImportText" class="search-input" rows="9" placeholder="电报值班&#10;8点～11点：叶小天，香蕉，超能量&#10;11点～14点：桐盈，茉莉&#10;&#10;会议室值班&#10;8点～9点30：伟，静等花开&#10;9点30～11点：梦涵，予恩" style="min-height:170px;resize:vertical;width:100%;max-width:100%;font-family:monospace;font-size:12px;"></textarea>
@@ -669,1400 +287,9 @@
                 </div>
                 <div id="smartImportPreview" style="margin-top:12px;max-height:200px;overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px;"></div>
             </div>
-
         </div>
-
     </div>
 
-    <script>
-        let allRoster = [];
-        let currentSearch = '';
-        let shiftConfig = [];
-        let oldShiftNames = {};
-        let allGroups = [];
-        let allowedPersonsList = [];
-
-        const defaultShifts = [
-            { id: 1, name: '04:00-06:00', startTime: '04:00', endTime: '06:00' },
-            { id: 2, name: '06:00-08:00', startTime: '06:00', endTime: '08:00' },
-            { id: 3, name: '08:00-09:30', startTime: '08:00', endTime: '09:30' },
-            { id: 4, name: '09:30-11:00', startTime: '09:30', endTime: '11:00' },
-            { id: 5, name: '11:00-12:30', startTime: '11:00', endTime: '12:30' },
-            { id: 6, name: '12:30-14:00', startTime: '12:30', endTime: '14:00' },
-            { id: 7, name: '14:00-15:30', startTime: '14:00', endTime: '15:30' },
-            { id: 8, name: '15:30-17:00', startTime: '15:30', endTime: '17:00' },
-            { id: 9, name: '17:00-18:30', startTime: '17:00', endTime: '18:30' },
-            { id: 10, name: '18:30-20:00', startTime: '18:30', endTime: '20:00' },
-            { id: 11, name: '20:00-21:30', startTime: '20:00', endTime: '21:30' },
-            { id: 12, name: '21:30-23:00', startTime: '21:30', endTime: '23:00' },
-            { id: 13, name: '23:00-24:00', startTime: '23:00', endTime: '24:00' },
-            { id: 14, name: '24:00-04:00', startTime: '24:00', endTime: '04:00' }
-        ];
-
-        window.addEventListener('DOMContentLoaded', function() {
-            loadShiftConfig();
-            loadRoster();
-            loadGroups();
-            loadCycleSettings();
-            updateShiftSelects();
-            updateGroupSelects();
-        });
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            var tabMap = {
-                'roster': 1,
-                'groups': 2,
-                'settings': 3,
-                'config': 4,
-                'announcement': 5,
-                'batch': 6
-            };
-            
-            var n = tabMap[tab];
-            if (!n) return;
-            
-            document.querySelector('.tab-btn:nth-child(' + n + ')').classList.add('active');
-            document.getElementById(tab + 'Tab').classList.add('active');
-            
-            if (tab === 'groups') loadGroups();
-            else if (tab === 'settings') loadCycleSettings();
-            else if (tab === 'config') loadShiftConfig();
-            else if (tab === 'announcement') loadAnnouncements();
-            else if (tab === 'batch') { updateBatchSelects(); }
-        }
-
-        function loadShiftConfig() {
-            shiftConfig = JSON.parse(localStorage.getItem('shiftConfig')) || defaultShifts;
-            oldShiftNames = {};
-            shiftConfig.forEach(s => { oldShiftNames[s.id] = s.name; });
-            renderShiftConfig();
-            // 自动同步有效时段到后端，防止未保存导致旧时段残留
-            syncValidTimesToBackend();
-        }
-
-        function syncValidTimesToBackend() {
-            const validTimes = shiftConfig.map(s => s.name);
-            fetch('/api/settings', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ valid_duty_times: validTimes })
-            }).then(r => r.json()).then(data => {
-                if (data.success && data.deleted) {
-                    // 后台静默清理完成
-                }
-            }).catch(e => console.error('syncValidTimes error:', e));
-
-            fetch('/api/validate-timeslots', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ valid_duty_times: validTimes })
-            }).catch(e => console.error('validateTimeslots error:', e));
-        }
-
-        function renderShiftConfig() {
-            const tbody = document.getElementById('shiftConfigBody');
-            tbody.innerHTML = shiftConfig.map((shift, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td><input type="text" class="form-input" value="${shift.name}" onchange="updateShiftName(${shift.id}, this.value)" style="padding: 8px;"></td>
-                    <td><input type="time" class="time-input" value="${shift.startTime === '24:00' ? '00:00' : shift.startTime}" onchange="updateShiftTime(${shift.id}, 'start', this.value)"></td>
-                    <td><input type="time" class="time-input" value="${shift.endTime === '24:00' ? '00:00' : shift.endTime}" onchange="updateShiftTime(${shift.id}, 'end', this.value)"></td>
-                    <td><button onclick="deleteShiftConfig(${shift.id})" class="delete-shift-btn">🗑️ 删除</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function updateShiftName(id, value) {
-            const shift = shiftConfig.find(s => s.id === id);
-            if (shift) shift.name = value;
-        }
-
-        function updateShiftTime(id, type, value) {
-            const shift = shiftConfig.find(s => s.id === id);
-            if (shift) {
-                if (type === 'start') shift.startTime = value;
-                else shift.endTime = value === '00:00' ? '24:00' : value;
-            }
-        }
-
-        function addNewShift() {
-            const newId = Math.max(...shiftConfig.map(s => s.id)) + 1;
-            shiftConfig.push({
-                id: newId,
-                name: '新时段',
-                startTime: '00:00',
-                endTime: '01:00'
-            });
-            renderShiftConfig();
-            setTimeout(() => {
-                const wrapper = document.querySelector('#configTab .table-wrapper');
-                if (wrapper) {
-                    wrapper.scrollTo({ top: wrapper.scrollHeight, behavior: 'smooth' });
-                }
-            }, 100);
-        }
-
-        function deleteShiftConfig(id) {
-            if (shiftConfig.length <= 1) {
-                alert('至少需要保留一个时段！');
-                return;
-            }
-            if (!confirm('确定要删除此时段吗？\n\n删除时段将同时清除所有该时段的排班记录和绑定。')) return;
-
-            const targetShift = shiftConfig.find(s => s.id === id);
-            const dutyTime = targetShift ? targetShift.name : null;
-
-            shiftConfig = shiftConfig.filter(s => s.id !== id);
-            renderShiftConfig();
-
-            if (dutyTime) {
-                fetch('/api/cleanup-timeslot', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ duty_time: dutyTime })
-                }).then(r => r.json()).then(data => {
-                    if (data.success) {
-                        showMessage('时段 ' + dutyTime + ' 已删除，共清理 ' +
-                            data.deleted_duty_config + ' 条排班记录和 ' +
-                            data.deleted_duty_bindings + ' 条绑定', 'success');
-                        setTimeout(() => loadRoster(), 500);
-                    }
-                }).catch(e => console.error('Cleanup error:', e));
-            }
-        }
-
-        function validateAndSaveConfig() {
-            if (!checkAdminAuth()) return false;
-            
-            const errors = [];
-            
-            for (let i = 0; i < shiftConfig.length; i++) {
-                const shift = shiftConfig[i];
-                const startMins = timeToMinutes(shift.startTime);
-                let endMins = timeToMinutes(shift.endTime === '24:00' ? '00:00' : shift.endTime);
-                
-                if (shift.endTime === '24:00' || endMins < startMins) endMins += 24 * 60;
-                
-                if (startMins >= endMins && !shift.name.includes('24:00')) {
-                    errors.push(`第 ${i + 1} 个时段：开始时间不能大于等于结束时间`);
-                }
-                
-                for (let j = 0; j < shiftConfig.length; j++) {
-                    if (i === j) continue;
-                    const other = shiftConfig[j];
-                    const otherStart = timeToMinutes(other.startTime);
-                    let otherEnd = timeToMinutes(other.endTime === '24:00' ? '00:00' : other.endTime);
-                    if (other.endTime === '24:00' || otherEnd < otherStart) otherEnd += 24 * 60;
-                    
-                    if (startMins < otherEnd && endMins > otherStart) {
-                        errors.push(`第 ${i + 1} 个时段与第 ${j + 1} 个时段有重叠`);
-                    }
-                }
-            }
-            
-            const statusEl = document.getElementById('configStatus');
-            
-            if (errors.length > 0) {
-                statusEl.innerHTML = `<div class="message error" style="display:block;">❌ 验证失败：<br>${errors.join('<br>')}</div>`;
-                return false;
-            }
-            
-            localStorage.setItem('shiftConfig', JSON.stringify(shiftConfig));
-            statusEl.innerHTML = `<div class="message success" style="display:block;">✅ 配置保存成功！</div>`;
-            updateShiftSelects();
-            // 更新旧名称快照
-            shiftConfig.forEach(s => { oldShiftNames[s.id] = s.name; });
-
-            const validTimes = shiftConfig.map(s => s.name);
-
-            // 1. 检测重命名的时段，先更新数据库中的记录
-            for (const shift of shiftConfig) {
-                const oldName = oldShiftNames[shift.id];
-                if (oldName && oldName !== shift.name) {
-                    fetch('/api/rename-timeslot', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ old_name: oldName, new_name: shift.name })
-                    }).then(r => r.json()).then(data => {
-                        if (data.success && (data.updated_duty_config > 0 || data.updated_duty_bindings > 0)) {
-                            showMessage('时段 ' + oldName + ' → ' + shift.name + ' 已更新 ' + data.updated_duty_config + ' 条排班和 ' + data.updated_duty_bindings + ' 条绑定', 'success');
-                        }
-                    }).catch(e => console.error('Rename timeslot error:', e));
-                }
-            }
-
-            // 2. 将有效时段同步到后端 settings 表供其他 API 过滤
-            fetch('/api/settings', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ valid_duty_times: validTimes })
-            }).catch(e => console.error('Save valid_times error:', e));
-
-            // 清理不在当前时段配置中的遗留学段记录
-            fetch('/api/validate-timeslots', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ valid_duty_times: validTimes })
-            }).then(r => r.json()).then(data => {
-                if (data.success && (data.deleted_duty_config > 0 || data.deleted_duty_bindings > 0)) {
-                    showMessage('已清理 ' + data.deleted_duty_config + ' 条遗留学段记录和 ' + data.deleted_duty_bindings + ' 条绑定', 'success');
-                }
-            }).catch(e => console.error('Validate timeslots error:', e));
-
-            setTimeout(() => statusEl.innerHTML = '', 3000);
-            return true;
-        }
-
-        function timeToMinutes(timeStr) {
-            const [hours, mins] = timeStr.split(':').map(Number);
-            return hours * 60 + mins;
-        }
-
-        function updateShiftSelects() {
-            const shiftSelect = document.getElementById('shiftSelect');
-            const editNewShift = document.getElementById('editNewShift');
-            const options = shiftConfig.map(shift => `<option value="${shift.name}">${shift.name}</option>`).join('');
-            shiftSelect.innerHTML = '<option value="">-- 请选择值班时段 --</option>' + options;
-            editNewShift.innerHTML = '<option value="">-- 请选择新时段 --</option>' + options;
-        }
-
-        // 加载分组列表
-        async function loadGroups() {
-            const groupsList = document.getElementById('groupsList');
-            groupsList.innerHTML = '<div class="loading">加载中...</div>';
-            
-            try {
-                const response = await fetch('/api/groups');
-                const result = await response.json();
-                
-                if (response.ok && result.success) {
-                    allGroups = result.data || [];
-                    renderGroups(allGroups);
-                    updateGroupSelects();
-                } else {
-                    groupsList.innerHTML = '<div class="roster-empty">加载失败：' + (result.error || '未知错误') + '</div>';
-                }
-            } catch (error) {
-                console.error('加载分组失败:', error);
-                groupsList.innerHTML = '<div class="roster-empty">❌ 网络请求失败</div>';
-            }
-        }
-
-        // 渲染分组列表
-        function renderGroups(groups) {
-            const groupsList = document.getElementById('groupsList');
-            
-            if (groups.length === 0) {
-                groupsList.innerHTML = '<div class="roster-empty">暂无分组</div>';
-                return;
-            }
-            
-            groupsList.innerHTML = groups.map(group => `
-                <div class="roster-item" id="group-${group.id}">
-                    <div class="roster-info">
-                        <span class="roster-time" style="min-width: 30px;">#${group.order_index || '-'}</span>
-                        <input type="text" value="${group.name}" 
-                            onchange="renameGroup(${group.id}, this.value)"
-                            style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid #3a3a50; border-radius: 5px; padding: 8px 12px; color: #e0e0e0;">
-                    </div>
-                    <div class="roster-actions">
-                        <button onclick="moveGroupUp(${group.id})" class="action-btn" style="background: rgba(108, 99, 255, 0.2); color: #6c63ff; border: 1px solid #6c63ff;">⬆️</button>
-                        <button onclick="moveGroupDown(${group.id})" class="action-btn" style="background: rgba(108, 99, 255, 0.2); color: #6c63ff; border: 1px solid #6c63ff;">⬇️</button>
-                        <button onclick="deleteGroup(${group.id})" class="action-btn delete-btn">🗑️ 删除</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // 更新分组选择框
-        function updateGroupSelects() {
-            const groupSelect = document.getElementById('groupSelect');
-            const editGroupSelect = document.getElementById('editGroupSelect');
-            const options = allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-            groupSelect.innerHTML = '<option value="">-- 请选择分组（可选） --</option>' + options;
-            editGroupSelect.innerHTML = '<option value="">-- 请选择分组（可选） --</option>' + options;
-        }
-
-        // 创建新分组
-        async function addNewGroup() {
-            const name = document.getElementById('groupNameInput').value.trim();
-            
-            if (!name) {
-                showMessage('⚠️ 请输入分组名称', 'error');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/groups', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: name, order_index: allGroups.length + 1 })
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showMessage('✅ 分组创建成功！', 'success');
-                    document.getElementById('groupNameInput').value = '';
-                    loadGroups();
-                } else {
-                    showMessage('❌ 创建失败：' + result.error, 'error');
-                }
-            } catch (error) {
-                console.error('创建分组失败:', error);
-                showMessage('❌ 网络请求失败', 'error');
-            }
-        }
-
-        // 重命名分组
-        async function renameGroup(id, newName) {
-            if (!newName || !newName.trim()) {
-                showMessage('⚠️ 分组名称不能为空', 'error');
-                loadGroups(); // 恢复原名称
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/groups', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id, name: newName.trim() })
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    // 更新本地数据
-                    const group = allGroups.find(g => g.id === id);
-                    if (group) group.name = newName.trim();
-                } else {
-                    showMessage('❌ 重命名失败：' + result.error, 'error');
-                    loadGroups();
-                }
-            } catch (error) {
-                console.error('重命名分组失败:', error);
-                loadGroups();
-            }
-        }
-
-        // 上移分组
-        async function moveGroupUp(id) {
-            const group = allGroups.find(g => g.id === id);
-            if (!group) return;
-            
-            const index = allGroups.findIndex(g => g.id === id);
-            if (index === 0) {
-                showMessage('⚠️ 已经是第一个分组', 'error');
-                return;
-            }
-            
-            const prevGroup = allGroups[index - 1];
-            const tempOrder = group.order_index;
-            
-            try {
-                await fetch('/api/groups', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id, order_index: prevGroup.order_index })
-                });
-                
-                await fetch('/api/groups', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: prevGroup.id, order_index: tempOrder })
-                });
-                
-                loadGroups();
-            } catch (error) {
-                console.error('移动分组失败:', error);
-            }
-        }
-
-        // 下移分组
-        async function moveGroupDown(id) {
-            const group = allGroups.find(g => g.id === id);
-            if (!group) return;
-            
-            const index = allGroups.findIndex(g => g.id === id);
-            if (index === allGroups.length - 1) {
-                showMessage('⚠️ 已经是最后一个分组', 'error');
-                return;
-            }
-            
-            const nextGroup = allGroups[index + 1];
-            const tempOrder = group.order_index;
-            
-            try {
-                await fetch('/api/groups', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id, order_index: nextGroup.order_index })
-                });
-                
-                await fetch('/api/groups', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: nextGroup.id, order_index: tempOrder })
-                });
-                
-                loadGroups();
-            } catch (error) {
-                console.error('移动分组失败:', error);
-            }
-        }
-
-        // 删除分组
-        async function deleteGroup(id) {
-            if (!confirm('确定要删除该分组吗？')) return;
-            
-            try {
-                const response = await fetch('/api/groups', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id })
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showMessage('✅ 分组删除成功！', 'success');
-                    loadGroups();
-                } else {
-                    showMessage('❌ 删除失败：' + result.error, 'error');
-                }
-            } catch (error) {
-                console.error('删除分组失败:', error);
-                showMessage('❌ 网络请求失败', 'error');
-            }
-        }
-
-        async function loadRoster() {
-            const rosterList = document.getElementById('rosterList');
-            rosterList.innerHTML = '<div class="loading">加载中...</div>';
-            const today = DateUtils.todayBeijing();
-            
-            try {
-                const personsRes = await fetch('/api/persons');
-                const personsData = await personsRes.json();
-                if (personsData.success) {
-                    allowedPersonsList = personsData.data || [];
-                }
-                
-                const response = await fetch('/api/bindings');
-                const result = await response.json();
-                if (response.ok && result.success) {
-                    allRoster = result.data || [];
-                    allRoster.sort((a, b) => {
-                        const aIdx = shiftConfig.findIndex(s => s.name === a.duty_time);
-                        const bIdx = shiftConfig.findIndex(s => s.name === b.duty_time);
-                        return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
-                    });
-                    displayRoster(allRoster);
-                } else {
-                    showMessage('加载失败：' + (result.error || '未知错误'), 'error');
-                }
-            } catch (error) {
-                console.error('加载排班失败:', error);
-                showMessage('网络请求失败', 'error');
-            }
-        }
-
-        function displayRoster(data) {
-            const rosterList = document.getElementById('rosterList');
-            
-            if (data.length === 0) {
-                rosterList.innerHTML = '<div class="roster-empty">' + (currentSearch ? '未找到匹配的排班' : '今日暂无排班（可在下方添加）') + '</div>';
-            } else {
-                data.sort((a, b) => {
-                    const aIdx = shiftConfig.findIndex(s => s.name === a.duty_time);
-                    const bIdx = shiftConfig.findIndex(s => s.name === b.duty_time);
-                    return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
-                });
-                
-                rosterList.innerHTML = data.map(item => {
-                    const safeTime = String(item.duty_time || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    const safeName = String(item.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    const safeGroupName = String(item.group_name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    const groupIdVal = item.group_id || 'null';
-                    const groupHtml = item.group_name ? '<span class="roster-group">' + safeGroupName + '</span>' : '';
-                    return '<div class="roster-item">' +
-                        '<div class="roster-info">' +
-                            '<span class="roster-time">' + safeTime + '</span>' +
-                            '<span class="roster-name">' + safeName + '</span>' +
-                            groupHtml +
-                        '</div>' +
-                        '<div class="roster-actions">' +
-                            '<button onclick="showEditForm(\'' + safeTime + '\', \'' + safeName + '\', ' + groupIdVal + ')" class="action-btn edit-time-btn">\u270F\uFE0F 修改时段</button>' +
-                            '<button onclick="deleteShift(\'' + safeTime + '\', \'' + safeName + '\')" class="action-btn delete-btn">\ud83d\uddd1\ufe0f 删除</button>' +
-                        '</div>' +
-                    '</div>';
-                }).join('');
-            }
-        }
-
-        function searchRoster() {
-            const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
-            const searchBtn = document.querySelector('.search-box .search-btn');
-            
-            if (!keyword) {
-                displayRoster(allRoster);
-                currentSearch = '';
-                showMessage('已显示全部排班', 'success');
-                return;
-            }
-            
-            searchBtn.classList.add('searching');
-            
-            currentSearch = keyword;
-            const filtered = allRoster.filter(item => item.name.toLowerCase().includes(keyword));
-            
-            setTimeout(() => {
-                displayRoster(filtered);
-                searchBtn.classList.remove('searching');
-                
-                if (filtered.length === 0) {
-                    showMessage('未找到匹配 "' + keyword + '" 的排班', 'error');
-                } else {
-                    showMessage('找到 ' + filtered.length + ' 条匹配结果', 'success');
-                }
-            }, 100);
-        }
-
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            currentSearch = '';
-            displayRoster(allRoster);
-        }
-
-        async function batchDeleteConfig() {
-            if (!checkAdminAuth()) return;
-            var keyword = document.getElementById('searchInput').value.trim().toLowerCase();
-            var targets = keyword
-                ? allRoster.filter(function(item) { return item.name.toLowerCase().includes(keyword); })
-                : allRoster;
-            if (targets.length === 0) {
-                showMessage('没有可删除的排班', 'error');
-                return;
-            }
-            var names = targets.map(function(item) { return item.name; });
-            var confirmMsg = '确定要删除以下 ' + targets.length + ' 人的排班吗？\n\n' +
-                names.slice(0, 20).join('、') + (names.length > 20 ? '...等共 ' + names.length + ' 人' : '') + '\n\n此操作不可撤销！';
-            if (!confirm(confirmMsg)) return;
-
-            var today = DateUtils.todayBeijing();
-            try {
-                var resp = await fetch('/api/config', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date: today, names: names })
-                });
-                var result = await resp.json();
-                if (resp.ok) {
-                    targets.forEach(function(t) {
-                        if (t.duty_time) {
-                            fetch('/api/bindings', {
-                                method: 'DELETE',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ duty_time: t.duty_time, name: t.name })
-                            });
-                        }
-                    });
-                    showMessage('已删除 ' + targets.length + ' 条排班', 'success');
-                    setTimeout(function() { loadRoster(); }, 500);
-                } else {
-                    showMessage('删除失败：' + result.error, 'error');
-                }
-            } catch (e) {
-                console.error('批量删除失败:', e);
-                showMessage('网络请求失败', 'error');
-            }
-        }
-
-        async function assignShift() {
-            if (!checkAdminAuth()) return;
-            
-            const shift = document.getElementById('shiftSelect').value.trim();
-            const name = document.getElementById('nameInput').value.trim();
-            const groupId = document.getElementById('groupSelect').value || null;
-            
-            if (!shift) { showMessage('⚠️ 请选择值班时段', 'error'); return; }
-            if (!name) { showMessage('⚠️ 请输入昵称', 'error'); return; }
-            
-            const today = DateUtils.todayBeijing();
-            
-            try {
-                // 1. 添加到当天排班
-                const config = [{ duty_date: today, duty_time: shift, name: name }];
-                if (groupId) config[0].group_id = parseInt(groupId);
-                
-                const configRes = await fetch('/api/config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ date: today, config: config })
-                });
-                
-                // 2. 同时添加到绑定表（永久有效）
-                await fetch('/api/bindings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ duty_time: shift, name: name, group_id: groupId })
-                }).catch(e => console.warn('添加到绑定表失败:', e));
-                
-                const result = await configRes.json();
-                if (configRes.ok) {
-                    // 添加到人员白名单
-                    await fetch('/api/persons', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: name })
-                    }).catch(e => console.warn('添加到人员名单失败:', e));
-                    
-                    showMessage('✅ 安排成功！', 'success');
-                    document.getElementById('shiftSelect').value = '';
-                    document.getElementById('nameInput').value = '';
-                    document.getElementById('groupSelect').value = '';
-                    setTimeout(() => loadRoster(), 1000);
-                } else {
-                    showMessage('❌ 安排失败：' + result.error, 'error');
-                }
-            } catch (error) {
-                console.error('安排值班失败:', error);
-                showMessage('❌ 网络请求失败', 'error');
-            }
-        }
-
-        function showEditForm(oldShift, name, currentGroupId) {
-            document.getElementById('editOldShift').value = oldShift;
-            document.getElementById('editName').value = name;
-            document.getElementById('editNewShift').value = '';
-            if (currentGroupId) {
-                document.getElementById('editGroupSelect').value = currentGroupId;
-            } else {
-                document.getElementById('editGroupSelect').value = '';
-            }
-            document.getElementById('editForm').classList.add('active');
-            document.getElementById('editForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        function cancelEdit() {
-            document.getElementById('editForm').classList.remove('active');
-        }
-
-        async function saveEditShift() {
-            if (!checkAdminAuth()) return;
-            
-            const oldShift = document.getElementById('editOldShift').value;
-            const name = document.getElementById('editName').value;
-            const newShift = document.getElementById('editNewShift').value;
-            const groupId = document.getElementById('editGroupSelect').value || null;
-            
-            if (!newShift) { showMessage('⚠️ 请选择新时段', 'error'); return; }
-            if (newShift === oldShift) { showMessage('⚠️ 新时段与原时段相同', 'error'); return; }
-            
-            const today = DateUtils.todayBeijing();
-            
-            try {
-                // 1. 先删除旧的特定时段排班（时段 + 姓名）
-                await Promise.all([
-                    fetch('/api/config', {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ date: today, duty_time: oldShift, name: name })
-                    }),
-                    fetch('/api/bindings', {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ duty_time: oldShift, name: name })
-                    })
-                ]);
-                
-                // 2. 再添加新的时段排班
-                const config = [{ duty_date: today, duty_time: newShift, name: name }];
-                if (groupId) config[0].group_id = parseInt(groupId);
-                
-                const addResponse = await fetch('/api/config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        date: today, 
-                        config: config 
-                    })
-                });
-                
-                const addResult = await addResponse.json();
-                if (addResponse.ok) {
-                    fetch('/api/bindings', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ duty_time: newShift, name: name, group_id: groupId || null })
-                    });
-                    showMessage('✅ 修改成功！', 'success');
-                    cancelEdit();
-                    setTimeout(() => loadRoster(), 500);
-                } else {
-                    showMessage('❌ 修改失败：' + addResult.error, 'error');
-                }
-            } catch (error) {
-                console.error('修改时段失败:', error);
-                showMessage('❌ 网络请求失败', 'error');
-            }
-        }
-
-        // 加载打卡周期设置
-        async function loadCycleSettings() {
-            let cycleStart = null;
-            let settingsData = null;
-            
-            // 优先尝试从后端获取最新设置（只调用一次）
-            try {
-                const res = await fetch('/api/settings');
-                settingsData = await res.json();
-                console.log('从后端获取设置:', settingsData);
-                if (settingsData.success && settingsData.cycleStartDate) {
-                    cycleStart = settingsData.cycleStartDate;
-                }
-            } catch (e) {
-                console.error('Failed to load settings', e);
-            }
-
-            // 如果后端没有，则读取 localStorage
-            if (!cycleStart) {
-                cycleStart = localStorage.getItem('cycleStartDate');
-            }
-            
-            // 显示数据
-            if (cycleStart) {
-                localStorage.setItem('cycleStartDate', cycleStart);
-                document.getElementById('cycleStartDate').value = cycleStart;
-                document.getElementById('currentCycleStart').innerText = cycleStart;
-            } else {
-                const today = DateUtils.todayBeijing();
-                document.getElementById('cycleStartDate').value = today;
-                document.getElementById('currentCycleStart').innerText = today;
-            }
-            
-            // 加载统计信息（复用 settingsData，避免重复请求）
-            loadCycleStats(cycleStart, settingsData);
-        }
-
-        // 加载周期统计
-        async function loadCycleStats(cycleStart, cachedSettingsData = null) {
-            try {
-                // 使用缓存的设置数据，避免重复请求
-                const data = cachedSettingsData || (await fetch('/api/settings').then(res => res.json()));
-                
-                console.log('统计 API 返回数据:', data);
-                
-                if (data.success) {
-                    document.getElementById('totalRecords').innerText = data.totalRecords || 0;
-                    
-                    // 计算已打卡天数 - 需要获取详细记录
-                    if (cycleStart) {
-                        const recordsUrl = `/api/records?start_date=${cycleStart}`;
-                        const recordsResponse = await fetch(recordsUrl);
-                        const recordsData = await recordsResponse.json();
-                        
-                        console.log('打卡记录数据:', recordsData);
-                        
-                        // 统一处理 {success: true, data: [...]} 格式
-                        const records = recordsData.success ? (recordsData.data || []) : [];
-                        
-                        if (records.length > 0) {
-                            const uniqueDates = new Set(records.map(r => r.duty_date));
-                            document.getElementById('checkedDays').innerText = uniqueDates.size;
-                        } else {
-                            document.getElementById('checkedDays').innerText = 0;
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('加载统计失败:', error);
-            }
-        }
-
-        // 保存打卡周期设置
-        async function saveCycleSettings() {
-            if (!checkAdminAuth()) return;
-            
-            const newStartDate = document.getElementById('cycleStartDate').value;
-            const oldStartDate = localStorage.getItem('cycleStartDate');
-            
-            if (!newStartDate) {
-                showMessage('⚠️ 请选择起始日期', 'error');
-                return;
-            }
-            
-            // 如果日期没有变化，提示用户
-            if (newStartDate === oldStartDate) {
-                showMessage('⚠️ 起始日期没有变化', 'error');
-                return;
-            }
-            
-            // 确认是否要清空记录
-            const confirmed = confirm(
-                `⚠️ 警告：保存新的打卡设置后，将清空所有历史打卡记录！\n\n` +
-                `当前起始日期：${oldStartDate || '未设置'}\n` +
-                `新的起始日期：${newStartDate}\n\n` +
-                `确定要继续吗？`
-            );
-            
-            if (!confirmed) return;
-            
-            try {
-                // 1. 清空所有打卡记录
-                const clearResponse = await fetch('/api/admin/clear-records', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + (localStorage.getItem('adminToken') || '')
-                    }
-                });
-                
-                const clearResult = await clearResponse.json();
-                
-                if (!clearResponse.ok) {
-                    throw new Error(clearResult.error || '清空记录失败');
-                }
-                
-                // 2. 保存新的周期起始日期到数据库和 localStorage
-                const saveRes = await fetch('/api/settings', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cycleStartDate: newStartDate })
-                });
-                const saveResult = await saveRes.json();
-                console.log('保存 settings 结果:', saveResult, 'status:', saveRes.status);
-                
-                if (!saveRes.ok) {
-                    throw new Error(saveResult.error || '保存 settings 失败');
-                }
-                
-                localStorage.setItem('cycleStartDate', newStartDate);
-                document.getElementById('currentCycleStart').innerText = newStartDate;
-                
-                showMessage('✅ 打卡设置已保存，历史记录已清空！', 'success');
-                
-                // 刷新统计信息
-                loadCycleStats();
-            } catch (error) {
-                console.error('保存设置失败:', error);
-                showMessage('❌ 保存失败：' + error.message, 'error');
-            }
-        }
-
-        async function deleteShift(dutyTime, name) {
-            if (!checkAdminAuth()) return;
-            if (!confirm(`确定要删除 ${dutyTime} ${name} 的排班吗？`)) return;
-            const today = DateUtils.todayBeijing();
-            
-            try {
-                const response = await fetch('/api/config', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        date: today, 
-                        duty_time: dutyTime,
-                        name: name 
-                    })
-                });
-                
-                const result = await response.json();
-                if (response.ok) {
-                    fetch('/api/bindings', {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ duty_time: dutyTime, name: name })
-                    });
-                    showMessage('✅ 删除成功', 'success');
-                    setTimeout(() => loadRoster(), 500);
-                } else {
-                    showMessage('❌ 删除失败：' + result.error, 'error');
-                }
-            } catch (error) {
-                console.error('删除排班失败:', error);
-                showMessage('❌ 网络请求失败', 'error');
-            }
-        }
-
-        function showMessage(text, type) {
-            const msgEl = document.getElementById('message');
-            if (msgEl) {
-                msgEl.innerText = text;
-                msgEl.className = 'message ' + type;
-                msgEl.style.display = 'block';
-                setTimeout(() => msgEl.style.display = 'none', 3000);
-            }
-        }
-
-        // 管理登录功能 - 使用 localStorage 存储登录状态
-        // 遮罩层登录处理
-        function handleOverlayLogin() {
-            const username = document.getElementById('overlayUsername').value.trim();
-            const password = document.getElementById('overlayPassword').value.trim();
-            const msgEl = document.getElementById('overlayMessage');
-
-            if (!username || !password) {
-                msgEl.innerText = '⚠️ 请输入账号和密码';
-                msgEl.style.color = '#ff6b6b';
-                return;
-            }
-
-            msgEl.innerText = '正在登录...';
-            msgEl.style.color = '#b0b0c0';
-
-            const apiUrl = window.location.origin + '/api/admin/login';
-            fetch(apiUrl, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                credentials: 'same-origin',
-                body: JSON.stringify({username: username, password: password})
-            })
-            .then(res => {
-                console.log('API 响应状态:', res.status);
-                return res.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    msgEl.innerText = '✅ 登录成功';
-                    msgEl.style.color = '#4CAF50';
-                    localStorage.setItem('isAdminLoggedIn', 'true');
-                    localStorage.setItem('adminUsername', username);
-                    localStorage.setItem('adminToken', data.token || '');
-                    console.log('登录成功，准备进入后台并加载数据');
-
-                    setTimeout(() => {
-                        const overlay = document.getElementById('loginOverlay');
-                        const prompt = document.getElementById('loginPrompt');
-                        if (overlay) overlay.style.setProperty('display', 'none', 'important');
-                        if (prompt) prompt.style.setProperty('display', 'none', 'important');
-                        
-                        const adminInfo = document.getElementById('adminInfo');
-                        if (adminInfo) adminInfo.style.display = 'block';
-                        
-                        const adminName = document.getElementById('adminName');
-                        if (adminName) adminName.innerText = username;
-
-                        // 关键修复：登录后显式加载所有数据
-                        if (typeof loadCycleSettings === 'function') loadCycleSettings();
-                        if (typeof loadRoster === 'function') loadRoster();
-                        
-                        console.log('已调用数据加载函数');
-                    }, 500);
-                } else {
-                    msgEl.innerText = '❌ ' + (data.error || '登录失败');
-                    msgEl.style.color = '#ff6b6b';
-                }
-            })
-            .catch(err => {
-                msgEl.innerText = '❌ 网络请求失败';
-                msgEl.style.color = '#ff6b6b';
-                console.error('Login fetch error:', err);
-            });
-        }
-
-        // 管理登录功能
-        function showLoginModal() {
-            document.getElementById('loginModal').style.display = 'flex';
-            document.getElementById('loginMessage').innerText = '';
-            document.getElementById('adminUsername').value = '';
-            document.getElementById('adminPassword').value = '';
-            // 保持遮罩层显示
-            document.getElementById('loginOverlay').style.display = 'flex';
-        }
-
-        // 原有的登录逻辑（备用）
-        function handleLogin() {
-            const username = document.getElementById('adminUsername').value.trim();
-            const password = document.getElementById('adminPassword').value.trim();
-            const msgEl = document.getElementById('loginMessage');
-            
-            // 调用后端 API 进行认证
-            fetch('/api/admin/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    // 存储管理员信息到 localStorage (页面会话有效)
-                    localStorage.setItem('isAdminLoggedIn', 'true');
-                    localStorage.setItem('adminUsername', username);
-                    localStorage.setItem('adminToken', data.token || '');
-                    
-                    // 隐藏登录弹窗和遮罩
-                    document.getElementById('loginModal').style.display = 'none';
-                    document.getElementById('loginOverlay').style.display = 'none';
-                    // 隐藏登录提示区域
-                    document.getElementById('loginPrompt').style.display = 'none';
-                    // 显示管理员信息
-                    document.getElementById('adminInfo').style.display = 'block';
-                    document.getElementById('adminName').innerText = username;
-                    
-                    // 刷新页面数据
-                    loadRoster();
-                } else {
-                    msgEl.innerText = '❌ ' + (data.error || '登录失败');
-                }
-            })
-            .catch(error => {
-                console.error('登录请求失败:', error);
-                msgEl.innerText = '❌ 网络请求失败';
-            });
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('isAdminLoggedIn');
-            localStorage.removeItem('adminUsername');
-            localStorage.removeItem('adminToken');
-            location.reload();
-        }
-
-        // 页面加载时检查登录状态
-        window.addEventListener('DOMContentLoaded', function() {
-            const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
-            if (isLoggedIn === 'true') {
-                const username = localStorage.getItem('adminUsername');
-                // 隐藏登录弹窗和遮罩
-                const loginModal = document.getElementById('loginModal');
-                const loginOverlay = document.getElementById('loginOverlay');
-                const loginPrompt = document.getElementById('loginPrompt');
-                const adminInfo = document.getElementById('adminInfo');
-                const adminName = document.getElementById('adminName');
-                
-                if (loginModal) loginModal.style.setProperty('display', 'none', 'important');
-                if (loginOverlay) loginOverlay.style.setProperty('display', 'none', 'important');
-                if (loginPrompt) loginPrompt.style.setProperty('display', 'none', 'important');
-                if (adminInfo) adminInfo.style.setProperty('display', 'block', 'important');
-                if (adminName) adminName.innerText = username || '管理员';
-                
-                console.log('✅ 管理员已登录:', username);
-            }
-        });
-
-        // 支持回车登录
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const loginModal = document.getElementById('loginModal');
-                if (loginModal && loginModal.style.display !== 'none') {
-                    handleLogin();
-                }
-            }
-        });
-
-        // 检查登录状态的辅助函数
-        function checkAdminAuth() {
-            const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
-            if (isLoggedIn !== 'true') {
-                alert('请先登录管理员账号');
-                showLoginModal();
-                return false;
-            }
-            return true;
-        }
-
-        function loadAnnouncements() {
-            fetch('/api/announcements').then(r => r.json()).then(data => {
-                var list = (data.success ? data.data : []) || [];
-                var tbody = document.getElementById('announcementBody');
-                if (list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#8c92ac;">暂无公告</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = list.map(function(a) {
-                    return '<tr>' +
-                        '<td style="text-align:left;">' + a.content + '</td>' +
-                        '<td>' + a.created_at + '</td>' +
-                        '<td><button onclick="deleteAnnouncement(' + a.id + ')" style="padding:4px 10px;background:#f44336;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px;">删除</button></td>' +
-                    '</tr>';
-                }).join('');
-            }).catch(function(e) {
-                console.error('Load announcements error:', e);
-            });
-        }
-
-        function addAnnouncement() {
-            var input = document.getElementById('announcementInput');
-            var content = input.value.trim();
-            if (!content) { alert('请输入公告内容'); return; }
-
-            fetch('/api/announcements', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: content })
-            }).then(r => r.json()).then(data => {
-                if (data.success) {
-                    input.value = '';
-                    loadAnnouncements();
-                } else {
-                    alert(data.error || '添加失败');
-                }
-            }).catch(function(e) {
-                alert('网络错误: ' + e.message);
-            });
-        }
-
-        function deleteAnnouncement(id) {
-            if (!confirm('确定要删除这条公告吗？')) return;
-            fetch('/api/announcements?id=' + encodeURIComponent(id), { method: 'DELETE' })
-                .then(r => r.json()).then(data => {
-                    if (data.success) loadAnnouncements();
-                    else alert(data.error || '删除失败');
-                }).catch(function(e) {
-                    alert('网络错误: ' + e.message);
-                });
-        }
-
-        function updateBatchSelects() {
-            var batchShift = document.getElementById('batchShift');
-            var batchGroup = document.getElementById('batchGroup');
-
-            batchShift.innerHTML = '<option value="">-- 请选择值班时段 --</option>';
-            shiftConfig.forEach(function(s) {
-                batchShift.innerHTML += '<option value="' + s.name + '">' + s.name + '</option>';
-            });
-
-            batchGroup.innerHTML = '<option value="">-- 不指定分组 --</option>';
-            allGroups.forEach(function(g) {
-                batchGroup.innerHTML += '<option value="' + g.id + '">' + g.name + '</option>';
-            });
-
-            var today = new Date();
-            var bj = new Date(today.getTime() + 8 * 60 * 60 * 1000);
-            var pad = function(n) { return String(n).padStart(2, '0'); };
-            var dateStr = bj.getUTCFullYear() + '-' + pad(bj.getUTCMonth() + 1) + '-' + pad(bj.getUTCDate());
-            document.getElementById('batchDate').value = dateStr;
-            document.getElementById('smartImportDate').value = dateStr;
-        }
-
-        function batchAddConfig() {
-            var date = document.getElementById('batchDate').value;
-            var shift = document.getElementById('batchShift').value;
-            var groupId = document.getElementById('batchGroup').value;
-            var namesText = document.getElementById('batchNames').value.trim();
-
-            if (!date) { alert('请选择日期'); return; }
-            if (!shift) { alert('请选择时段'); return; }
-            if (!namesText) { alert('请输入人员名单'); return; }
-
-            var names = namesText.split(/[\n,;，；]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n; });
-
-            if (names.length === 0) { alert('未解析到有效姓名'); return; }
-
-            var result = document.getElementById('batchResult');
-            result.textContent = '添加中...';
-            result.style.color = '#8c92ac';
-
-            fetch('/api/batch-config', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    names: names,
-                    start_date: date,
-                    end_date: DateUtils.todayBeijing(),
-                    duty_time: shift,
-                    group_id: groupId || null
-                })
-            }).then(r => r.json()).then(data => {
-                if (data.success) {
-                    result.textContent = '成功添加 ' + data.inserted + ' 人' + (data.skipped > 0 ? '，跳过 ' + data.skipped + ' 人（已存在）' : '');
-                    result.style.color = '#4CAF50';
-                    document.getElementById('batchNames').value = '';
-                    names.forEach(function(n) {
-                        fetch('/api/bindings', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ duty_time: shift, name: n, group_id: groupId || null })
-                        });
-                    });
-                } else {
-                    result.textContent = '失败: ' + (data.error || '未知错误');
-                    result.style.color = '#f44336';
-                }
-            }).catch(function(e) {
-                result.textContent = '网络错误: ' + e.message;
-                result.style.color = '#f44336';
-            });
-        }
-
-        var smartImportParsed = [];
-
-        function parseChineseTime(startStr, endStr) {
-            function parseOne(p) {
-                p = p.replace(/\s+/g, '');
-                var hm = p.match(/^(\d+):(\d+)$/);
-                if (hm) {
-                    var h = parseInt(hm[1]), m = parseInt(hm[2]);
-                    if (h === 24) h = 0;
-                    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
-                }
-                var cm = p.match(/^(\d+)点(\d+)?$/);
-                if (cm) {
-                    var h2 = parseInt(cm[1]), m2 = cm[2] ? parseInt(cm[2]) : 0;
-                    if (h2 === 24) h2 = 0;
-                    return String(h2).padStart(2, '0') + ':' + String(m2).padStart(2, '0');
-                }
-                return null;
-            }
-            var s = parseOne(startStr), e = parseOne(endStr);
-            return s && e ? s + '-' + e : null;
-        }
-
-        function smartImportPreview() {
-            var text = document.getElementById('smartImportText').value;
-            var dateEl = document.getElementById('smartImportDate');
-            var today = new Date();
-            var bj = new Date(today.getTime() + 8 * 60 * 60 * 1000);
-            var pad = function(n) { return String(n).padStart(2, '0'); };
-            if (!dateEl.value) {
-                dateEl.value = bj.getUTCFullYear() + '-' + pad(bj.getUTCMonth() + 1) + '-' + pad(bj.getUTCDate());
-            }
-
-            smartImportParsed = parseSmartImport(text);
-            var preview = document.getElementById('smartImportPreview');
-            var result = document.getElementById('smartImportResult');
-
-            if (smartImportParsed.length === 0) {
-                preview.innerHTML = '<p style="color:#ff6b6b;text-align:center;">未解析到有效排班数据，请检查格式</p>';
-                result.textContent = '';
-                return;
-            }
-
-            var html = '<table class="shift-table" style="font-size:12px;"><thead><tr><th>分组</th><th>时段</th><th>人员</th></tr></thead><tbody>';
-            smartImportParsed.forEach(function(item) {
-                html += '<tr><td>' + (item.group || '-') + '</td><td>' + item.duty_time + '</td><td style="text-align:left;">' + item.names.join('、') + '</td></tr>';
-            });
-            html += '</tbody></table>';
-            preview.innerHTML = html;
-            result.textContent = '解析到 ' + smartImportParsed.length + ' 个排班条目';
-            result.style.color = '#4CAF50';
-        }
-
-        function parseSmartImport(text) {
-            var lines = text.split('\n');
-            var currentGroup = null;
-            var currentSlot = null;
-            var results = [];
-            for (var i = 0; i < lines.length; i++) {
-                var line = lines[i].trim();
-                if (!line) continue;
-
-                // Skip numbered list headers
-                if (/^\d+[、.．]/.test(line)) continue;
-
-                // Group name detection: "会议室值班" or "会议室值班："
-                if (/(值班|分组)\s*[：:]?\s*$/.test(line)) {
-                    currentGroup = line.replace(/[：:]/g, '').replace(/\s+/g, '').replace(/值班$/, '').replace(/分组$/, '').trim();
-                    currentSlot = null;
-                    continue;
-                }
-
-                // Skip header lines like "六、23点～24点查缺补漏"，but extract time from them
-                if (/^[一二三四五六七八九十]+[、.．]/.test(line)) {
-                    var inner = line.match(/(\d+点(?:\s*\d+)?)\s*[～~到\-]\s*(\d+点(?:\s*\d+)?|\d+:\d+)/);
-                    if (inner) {
-                        var dt = parseChineseTime(inner[1], inner[2]);
-                        if (dt) currentSlot = dt;
-                    }
-                    continue;
-                }
-
-                // Try time slot pattern: "8点～9点30" or "8点～9点30：张三，李四" or "18点 30～20点"
-                var tm = line.match(/^(\d+点(?:\s*\d+)?)\s*[～~到\-]\s*(\d+点(?:\s*\d+)?|\d+:\d+)([：:]\s*(.*))?$/);
-                if (tm) {
-                    var startStr = tm[1], endStr = tm[2];
-                    var namesAfter = tm[4] ? tm[4].trim() : '';
-                    var dutyTime = parseChineseTime(startStr, endStr);
-                    if (dutyTime) {
-                        if (namesAfter && /[,，、]/.test(namesAfter)) {
-                            var namesArr = namesAfter.split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n && !/^\d/.test(n); });
-                            if (namesArr.length > 0) {
-                                results.push({ group: currentGroup, duty_time: dutyTime, names: namesArr });
-                            }
-                            currentSlot = dutyTime;
-                        } else {
-                            currentSlot = dutyTime;
-                        }
-                    }
-                    continue;
-                }
-
-                // Comma line with names
-                if (/[,，、]/.test(line) && currentGroup) {
-                    var cleanLine = line.replace(/^[^,，、]+[：:]/g, '').replace(/^\d+[、.．]\s*/, '').replace(/查缺补漏.*$/, '');
-                    var namesOnly = cleanLine.split(/[,，、]+/).map(function(n) { return n.trim(); }).filter(function(n) { return n && !/^\d/.test(n) && !/[：:]/.test(n) && n.length > 0 && !/^[\u4e00-\u9fa5]{1,2}[:：]/.test(n); });
-                    if (namesOnly.length > 0 && currentSlot) {
-                        results.push({ group: currentGroup, duty_time: currentSlot, names: namesOnly });
-                    }
-                }
-            }
-
-            return results;
-        }
-
-        function smartImportSubmit() {
-            if (smartImportParsed.length === 0) {
-                smartImportPreview();
-                if (smartImportParsed.length === 0) return;
-            }
-
-            var date = document.getElementById('smartImportDate').value;
-            if (!date) { alert('请选择日期'); return; }
-
-            if (!confirm('确定要导入 ' + smartImportParsed.length + ' 个排班条目到 ' + date + ' 吗？')) return;
-
-            var result = document.getElementById('smartImportResult');
-            result.textContent = '导入中...';
-            result.style.color = '#8c92ac';
-
-            var completed = 0, total = 0;
-            var pending = 0;
-            var today = DateUtils.todayBeijing();
-            smartImportParsed.forEach(function(item) {
-                var names = item.names;
-                total += names.length;
-                pending++;
-                fetch('/api/batch-config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        names: names,
-                        start_date: date,
-                        end_date: today,
-                        duty_time: item.duty_time,
-                        group_id: item.group ? findGroupId(item.group) : null
-                    })
-                }).then(function(r) { return r.json(); }).then(function(data) {
-                    if (data.success && data.inserted > 0) completed += data.inserted;
-                    names.forEach(function(n) {
-                        fetch('/api/bindings', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ duty_time: item.duty_time, name: n, group_id: item.group ? findGroupId(item.group) : null })
-                        });
-                    });
-                }).catch(function() {}).finally(function() {
-                    pending--;
-                    if (pending === 0) {
-                        result.textContent = '导入完成: 成功 ' + completed + '/' + total;
-                        result.style.color = '#4CAF50';
-                    }
-                });
-            });
-        }
-
-        function findGroupId(groupName) {
-            if (!groupName) return null;
-            for (var i = 0; i < allGroups.length; i++) {
-                if (allGroups[i].name === groupName || allGroups[i].name.indexOf(groupName) !== -1 || groupName.indexOf(allGroups[i].name) !== -1) {
-                    return allGroups[i].id;
-                }
-            }
-            return null;
-        }
-    </script>
+    <script src="/scripts/admin.js"></script>
 </body>
 </html>
