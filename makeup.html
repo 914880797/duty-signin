@@ -408,7 +408,7 @@
         fetch('/api/records').then(r => r.json()).then(data => {
             const records = (data.success ? data.data : []) || [];
             allMakeupRecords = Array.isArray(records)
-                ? records.filter(r => r.ip_address === 'makeup')
+                ? records.filter(r => r.record_type === 'makeup' || r.ip_address === 'makeup')
                     .sort((a, b) => b.created_at.localeCompare(a.created_at))
                 : [];
             renderMakeupDoneTable(allMakeupRecords);

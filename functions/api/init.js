@@ -42,6 +42,7 @@ export async function onRequestGet({ env }) {
           group_id INTEGER,
           created_at TEXT NOT NULL,
           ip_address TEXT,
+          record_type TEXT DEFAULT 'signin',
           FOREIGN KEY (group_id) REFERENCES shift_groups(id)
         )
       `),
