@@ -497,8 +497,8 @@
         window.addEventListener('DOMContentLoaded', async () => {
             const today = DateUtils.todayBeijing();
 
-            // 获取设置的打卡起始日期
             let startDate = today;
+            let validTimes = null;
             try {
                 const settingsResp = await fetch('/api/settings');
                 const settings = await settingsResp.json();
@@ -507,6 +507,9 @@
                 } else {
                     startDate = DateUtils.daysAgoBeijing(30);
                 }
+                if (settings.validDutyTimes && settings.validDutyTimes.length > 0) {
+                    validTimes = settings.validDutyTimes;
+                }
             } catch (error) {
                 console.error('加载设置失败:', error);
             }
@@ -514,18 +517,22 @@
             document.getElementById('endDate').value = today;
             document.getElementById('startDate').value = startDate;
 
-            loadTimeSlots();
+            loadTimeSlots(validTimes);
             loadGroups();
             loadData();
         });
 
         // 加载时段列表
-        async function loadTimeSlots() {
+        async function loadTimeSlots(cachedTimes) {
             try {
-                const response = await fetch('/api/time-slots');
-                const responseData = await response.json();
-
-                const slots = responseData.success ? (responseData.data || []) : [];
+                let slots;
+                if (cachedTimes && cachedTimes.length > 0) {
+                    slots = cachedTimes.map(t => ({ time_slot: t }));
+                } else {
+                    const response = await fetch('/api/time-slots');
+                    const responseData = await response.json();
+                    slots = responseData.success ? (responseData.data || []) : [];
+                }
 
                 const select = document.getElementById('timeSlotSelect');
                 slots.forEach(slot => {
