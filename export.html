@@ -400,7 +400,6 @@
         }).then(([recData, grpData]) => {
             const records = recData.success ? (recData.data || []) : (Array.isArray(recData) ? recData : []);
             groups = grpData.data || grpData || [];
-            console.log('Records:', records.length, 'Groups:', groups);
             allData = processDataByGroup(records);
             renderSheetTabs();
             if (groups.length > 0) { currentSheet = groups[0].name; renderTable(currentSheet); }
@@ -462,7 +461,6 @@
     function renderTable(sheetName) {
         const table = document.getElementById('dutyTable');
         const data = allData[sheetName] || { persons: [], records: {} };
-        console.log('Rendering table for', sheetName, 'persons:', data.persons.length);
         if (data.persons.length === 0) {
             table.innerHTML = '<tr><td colspan="40" class="empty">暂无数据</td></tr>';
             updateGlobalStats();

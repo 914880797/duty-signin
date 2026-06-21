@@ -754,7 +754,6 @@
             try {
                 const res = await fetch('/api/settings');
                 settingsData = await res.json();
-                console.log('从后端获取设置:', settingsData);
                 if (settingsData.success && settingsData.cycleStartDate) {
                     cycleStart = settingsData.cycleStartDate;
                 }
@@ -788,20 +787,14 @@
                 // 使用缓存的设置数据，避免重复请求
                 const data = cachedSettingsData || (await fetch('/api/settings').then(res => res.json()));
                 
-                console.log('统计 API 返回数据:', data);
-                
                 if (data.success) {
                     document.getElementById('totalRecords').innerText = data.totalRecords || 0;
                     
-                    // 计算已打卡天数 - 需要获取详细记录
                     if (cycleStart) {
                         const recordsUrl = `/api/records?start_date=${cycleStart}`;
                         const recordsResponse = await fetch(recordsUrl);
                         const recordsData = await recordsResponse.json();
                         
-                        console.log('打卡记录数据:', recordsData);
-                        
-                        // 统一处理 {success: true, data: [...]} 格式
                         const records = recordsData.success ? (recordsData.data || []) : [];
                         
                         if (records.length > 0) {
@@ -868,8 +861,7 @@
                     body: JSON.stringify({ cycleStartDate: newStartDate })
                 });
                 const saveResult = await saveRes.json();
-                console.log('保存 settings 结果:', saveResult, 'status:', saveRes.status);
-                
+
                 if (!saveRes.ok) {
                     throw new Error(saveResult.error || '保存 settings 失败');
                 }
@@ -955,17 +947,15 @@
                 body: JSON.stringify({username: username, password: password})
             })
             .then(res => {
-                console.log('API 响应状态:', res.status);
                 return res.json();
             })
             .then(data => {
                 if (data.success) {
-                    msgEl.innerText = '✅ 登录成功';
+                    msgEl.innerText = '登录成功';
                     msgEl.style.color = '#4CAF50';
                     localStorage.setItem('isAdminLoggedIn', 'true');
                     localStorage.setItem('adminUsername', username);
                     localStorage.setItem('adminToken', data.token || '');
-                    console.log('登录成功，准备进入后台并加载数据');
 
                     setTimeout(() => {
                         const overlay = document.getElementById('loginOverlay');
@@ -982,8 +972,6 @@
                         // 关键修复：登录后显式加载所有数据
                         if (typeof loadCycleSettings === 'function') loadCycleSettings();
                         if (typeof loadRoster === 'function') loadRoster();
-                        
-                        console.log('已调用数据加载函数');
                     }, 500);
                 } else {
                     msgEl.innerText = '❌ ' + (data.error || '登录失败');
@@ -1072,8 +1060,6 @@
                 if (loginPrompt) loginPrompt.style.setProperty('display', 'none', 'important');
                 if (adminInfo) adminInfo.style.setProperty('display', 'block', 'important');
                 if (adminName) adminName.innerText = username || '管理员';
-                
-                console.log('✅ 管理员已登录:', username);
             }
         });
 

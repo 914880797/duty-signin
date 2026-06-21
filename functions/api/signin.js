@@ -127,15 +127,6 @@ export async function onRequestPost({ request, env }) {
     // 时间验证
     const dutyRange = getDutyTimeRange(dutyConfig.duty_time);
 
-    console.log('打卡验证:', {
-        name: trimmedName,
-        duty_time: dutyConfig.duty_time,
-        duty_date: dutyConfig.duty_date,
-        current_time: finalTime,
-        currentTimeInMinutes: currentTimeInMinutes,
-        dutyRange: dutyRange
-    });
-
     if (dutyRange) {
       if (dutyRange.isOvernight && currentTimeInMinutes <= dutyRange.endTime) {
         currentTimeInMinutes += DAY_MINUTES;
@@ -144,8 +135,6 @@ export async function onRequestPost({ request, env }) {
       }
 
       const isValid = currentTimeInMinutes >= dutyRange.startTime && currentTimeInMinutes <= dutyRange.endTime;
-
-      console.log('验证结果:', { isValid, startTime: dutyRange.startTime, endTime: dutyRange.endTime, currentTimeInMinutes });
 
       if (!isValid) {
         return Response.json({

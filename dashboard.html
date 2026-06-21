@@ -633,12 +633,9 @@
             try {
                 const res = await fetch('/api/settings');
                 const settings = await res.json();
-                console.log('Settings:', settings);
                 if (settings && settings.cycleStartDate) {
-                    console.log('Using cycleStartDate:', settings.cycleStartDate);
                     startDateValue = settings.cycleStartDate;
                 } else {
-                    console.log('No cycleStartDate, using last 7 days');
                     startDateValue = DateUtils.daysAgoBeijing(7);
                 }
             } catch (e) {
@@ -648,7 +645,6 @@
             
             document.getElementById('endDate').value = endDate;
             document.getElementById('startDate').value = startDateValue;
-            console.log('Dates initialized:', { startDate: startDateValue, endDate });
         }
 
         function loadShifts() {
@@ -661,54 +657,36 @@
 
         // 加载数据
         async function loadData() {
-            console.log('=== 开始加载数据 ===');
-            
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
             const shift = document.getElementById('shiftSelect').value;
             const groupId = document.getElementById('groupSelect').value;
             const nameSearch = document.getElementById('nameSearch').value.trim();
 
-            console.log('筛选条件:', { startDate, endDate, shift, groupId, nameSearch });
-
-            // 获取打卡记录
             let url = '/api/records';
             const params = new URLSearchParams();
             if (startDate) params.append('start_date', startDate);
             if (endDate) params.append('end_date', endDate);
             if (shift) params.append('duty_time', shift);
-            
             url += '?' + params.toString();
-
-            console.log('请求 URL:', url);
 
             try {
                 const response = await fetch(url);
-                console.log('响应状态:', response.status);
-                
                 if (!response.ok) {
                     throw new Error('HTTP ' + response.status);
                 }
                 const responseData = await response.json();
-                console.log('API 返回数据:', responseData);
-                
-                // 统一处理 {success: true, data: [...]} 格式
+
                 allRecords = responseData.success ? (responseData.data || []) : [];
-                console.log('数据条数:', allRecords.length);
-                
-                // 筛选数据
+
                 filteredRecords = allRecords.filter(record => {
                     if (groupId && record.group_id != groupId) return false;
                     if (nameSearch && !record.name.toLowerCase().includes(nameSearch.toLowerCase())) return false;
                     return true;
                 });
 
-                console.log('筛选后数据:', filteredRecords);
-
                 renderStats();
                 renderCharts();
-                
-                console.log('=== 数据加载完成 ===');
             } catch (error) {
                 console.error('加载数据失败:', error);
                 alert('加载数据失败：' + error.message);
@@ -784,22 +762,10 @@
         // 按分组分布图表
         function renderGroupChart() {
             const groupCounts = {};
-            console.log('=== 分组图表调试 ===');
-            console.log('原始数据条数:', filteredRecords.length);
-            
-            filteredRecords.forEach((r, index) => {
-                console.log(`记录${index}:`, {
-                    name: r.name,
-                    group_id: r.group_id,
-                    group_name: r.group_name,
-                    duty_time: r.duty_time
-                });
-                
+            filteredRecords.forEach((r) => {
                 const groupName = r.group_name || '未分组';
                 groupCounts[groupName] = (groupCounts[groupName] || 0) + 1;
             });
-            
-            console.log('分组统计结果:', groupCounts);
 
             const maxCount = Math.max(...Object.values(groupCounts), 1);
             const chartEl = document.getElementById('groupChart');
