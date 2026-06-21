@@ -168,8 +168,8 @@ export async function onRequestPost({ request, env }) {
     }
 
     await env.DB.prepare(`
-      INSERT INTO signin_records (name, duty_date, duty_time, group_id, created_at, ip_address)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO signin_records (name, duty_date, duty_time, group_id, created_at, ip_address, record_type)
+      VALUES (?, ?, ?, ?, ?, ?, 'signin')
     `).bind(trimmedName, dutyConfig.duty_date, dutyConfig.duty_time, dutyConfig.group_id || null, created_at, ip).run();
 
     return Response.json({
