@@ -167,10 +167,21 @@ export async function onRequestPost({ request, env }) {
       return Response.json({ error: `今天已经打过卡了，每个时段每天只能打卡一次` }, { status: 400 });
     }
 
-    await env.DB.prepare(`
-      INSERT INTO signin_records (name, duty_date, duty_time, group_id, created_at, ip_address, record_type)
-      VALUES (?, ?, ?, ?, ?, ?, 'signin')
-    `).bind(trimmedName, dutyConfig.duty_date, dutyConfig.duty_time, dutyConfig.group_id || null, created_at, ip).run();
+    try {
+      await env.DB.prepare(`
+        INSERT INTO signin_records (name, duty_date, duty_time, group_id, created_at, ip_address, record_type)
+        VALUES (?, ?, ?, ?, ?, ?, 'signin')
+      `).bind(trimmedName, dutyConfig.duty_date, dutyConfig.duty_time, dutyConfig.group_id || null, created_at, ip).run();
+    } catch (e) {
+      if (e.message.includes('no column named record_type') || e.message.includes('no column: record_type')) {
+        await env.DB.prepare(`
+          INSERT INTO signin_records (name, duty_date, duty_time, group_id, created_at, ip_address)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).bind(trimmedName, dutyConfig.duty_date, dutyConfig.duty_time, dutyConfig.group_id || null, created_at, ip).run();
+      } else {
+        throw e;
+      }
+    }
 
     return Response.json({
       success: true,
