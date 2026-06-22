@@ -87,7 +87,17 @@ function jsonSuccess(data, status = 200) {
 }
 
 function jsonError(message, status = 500) {
+  reportError(status, message);
   return Response.json({ success: false, error: message }, { status });
+}
+
+function reportError(status, message, context = {}) {
+  console.error(JSON.stringify({
+    timestamp: formatBeijingNow(),
+    status,
+    message,
+    ...context
+  }));
 }
 
 export {
@@ -104,7 +114,5 @@ export {
   verifyAdmin,
   jsonSuccess,
   jsonError,
-  TZ_OFFSET,
-  DAY_MINUTES,
-  SALT
+  reportError,
 };

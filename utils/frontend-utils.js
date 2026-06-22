@@ -9,8 +9,19 @@
     '23:00-24:00', '24:00-04:00'
   ];
 
+  function parseShiftName(name) {
+    const parts = name.split('-');
+    return { startTime: parts[0], endTime: parts[1] };
+  }
+
+  const DEFAULT_SHIFT_OBJECTS = DEFAULT_SHIFTS.map(function(name, idx) {
+    const times = parseShiftName(name);
+    return { id: idx + 1, name: name, startTime: times.startTime, endTime: times.endTime };
+  });
+
   window.AppUtils = {
     DEFAULT_SHIFTS: DEFAULT_SHIFTS,
+    DEFAULT_SHIFT_OBJECTS: DEFAULT_SHIFT_OBJECTS,
 
     apiFetch: async function(path, options = {}) {
       const res = await fetch(path, options);

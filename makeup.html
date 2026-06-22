@@ -8,9 +8,10 @@
     <meta http-equiv="Expires" content="0">
     <title>补卡</title>
     <script src="/utils/date-utils.js"></script>
+    <link rel="stylesheet" href="/styles/shared.css">
+    <script>window.SENTRY_DSN=window.SENTRY_DSN||'';window.SENTRY_ENV=window.SENTRY_ENV||'production';</script>
+    <script src="/utils/sentry.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
         body {
             font-family: "Microsoft YaHei", sans-serif;
             background: #fff;
@@ -20,11 +21,6 @@
             padding-right: calc(12px + env(safe-area-inset-right));
             padding-top: calc(12px + env(safe-area-inset-top));
             padding-bottom: calc(12px + env(safe-area-inset-bottom));
-            min-height: 100dvh;
-            overflow-x: hidden;
-            word-break: break-word;
-            overflow-wrap: break-word;
-            -webkit-tap-highlight-color: transparent;
         }
         .container { max-width: 100%; margin: 0 auto; }
         .header-section { text-align: center; margin-bottom: 16px; }
@@ -42,16 +38,6 @@
             gap: 8px;
             margin-bottom: 15px;
         }
-        .nav-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
-            color: #e0e0e0;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
         .header-section nav {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -187,14 +173,6 @@
         .toast.show { opacity: 1; }
         .toast.success { background: #4CAF50; }
         .toast.error { background: #f44336; }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
 
         @media (min-width: 600px) {
             body { padding: 20px; padding-left: calc(20px + env(safe-area-inset-left)); padding-right: calc(20px + env(safe-area-inset-right)); }

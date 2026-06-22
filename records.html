@@ -5,33 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>详细打卡记录</title>
     <script src="/utils/date-utils.js"></script>
+    <link rel="stylesheet" href="/styles/shared.css">
+    <script>window.SENTRY_DSN=window.SENTRY_DSN||'';window.SENTRY_ENV=window.SENTRY_ENV||'production';</script>
+    <script src="/utils/sentry.js"></script>
     <style>
-        *, *::before, *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
-        }
-
         body {
             font-family: 'Microsoft YaHei', Arial, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100dvh;
             padding: 12px;
             padding-top: calc(12px + env(safe-area-inset-top));
             padding-right: calc(12px + env(safe-area-inset-right));
             padding-bottom: calc(12px + env(safe-area-inset-bottom));
             padding-left: calc(12px + env(safe-area-inset-left));
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
             font-size: clamp(14px, 2.5vw, 16px);
             line-height: 1.5;
-            word-break: break-word;
-            overflow-wrap: break-word;
         }
 
         .container {
@@ -59,7 +46,6 @@
             margin-bottom: 20px;
         }
 
-        /* 导航按钮区域 */
         nav.back-nav {
             display: flex;
             flex-direction: column;
@@ -68,81 +54,16 @@
             width: 100%;
         }
 
-        .back-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #4a4a4a, #2a2a2a);
-            color: #e0e0e0;
-            text-decoration: none;
-            border-radius: 8px;
-            margin: 5px;
-            font-size: 14px;
-            transition: opacity 0.2s ease;
-        }
-
-        .back-btn:hover {
-            opacity: 0.8;
-        }
-
-        .nav-links {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            margin-bottom: 15px;
-        }
-        .nav-links .back-btn { margin: 0; text-align: center; }
-            opacity: 0.8;
-            outline: 2px solid #6c63ff;
-            outline-offset: 2px;
-        }
-
-        /* 筛选区域 */
         .filter-section {
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid #2a2a40;
-        }
-
-        .filter-row {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 12px;
         }
 
         .filter-group {
-            flex: 1;
-            min-width: 0;
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: 6px;
-        }
-
-        .filter-group label {
-            color: #8c92ac;
-            font-size: clamp(12px, 2vw, 14px);
-        }
-
-        .filter-group input,
-        .filter-group select {
-            width: 100%;
-            padding: clamp(8px, 2vw, 10px) 12px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid #3a3a50;
-            border-radius: 8px;
-            color: #fff;
-            font-size: clamp(12px, 2.5vw, 14px);
-            -webkit-appearance: none;
-            min-height: 44px;
-        }
-
-        .filter-group input:focus,
-        .filter-group select:focus {
-            outline: none;
-            border-color: #6c63ff;
         }
 
         .action-bar {
@@ -152,29 +73,14 @@
             margin-top: 15px;
         }
 
-        /* 通用按钮样式 */
         .btn {
             padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .btn:focus-visible {
             outline: 2px solid #fff;
             outline-offset: 2px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(90deg, #6c63ff, #5a52d5);
-            color: white;
         }
 
         .btn-primary:hover {
@@ -192,27 +98,11 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        .btn-export {
-            background: linear-gradient(90deg, #4caf50, #45a049);
-            color: white;
-        }
-
         .btn-export:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
         }
 
-        .btn-back {
-            background: rgba(108, 99, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(108, 99, 255, 0.5);
-        }
-
-        .btn-back:hover {
-            background: rgba(108, 99, 255, 0.4);
-        }
-
-        /* 数据表格 */
         .table-wrapper {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -227,29 +117,15 @@
             padding: 16px;
         }
 
-        table {
-            width: 100%;
-            min-width: 500px;
-            border-collapse: collapse;
-        }
-
         th {
             background: rgba(108, 99, 255, 0.2);
             color: #6c63ff;
-            padding: 10px 12px;
             text-align: left;
-            font-weight: bold;
             font-size: clamp(12px, 2.5vw, 14px);
-            white-space: nowrap;
-            position: sticky;
-            top: 0;
-            z-index: 1;
         }
 
         td {
-            padding: 8px 12px;
             color: #e0e0e0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-size: clamp(12px, 2.5vw, 14px);
         }
 
@@ -268,9 +144,7 @@
         }
 
         .empty {
-            text-align: center;
             padding: 40px 16px;
-            color: #8c92ac;
         }
 
         .empty-icon {
@@ -278,17 +152,7 @@
             margin-bottom: 16px;
         }
 
-        /* ====== 平板端: 600px+ ====== */
         @media (min-width: 600px) {
-            body {
-                padding: 16px;
-            }
-
-            .container {
-                border-radius: 16px;
-                padding: 20px;
-            }
-
             nav.back-nav {
                 flex-direction: row;
                 flex-wrap: wrap;
@@ -297,15 +161,6 @@
 
             .filter-section {
                 padding: 18px;
-            }
-
-            .filter-row {
-                flex-direction: row;
-                flex-wrap: wrap;
-            }
-
-            .filter-group {
-                min-width: 160px;
             }
 
             .action-bar {
@@ -323,38 +178,20 @@
             }
         }
 
-        /* ====== 桌面端: 1024px+ ====== */
         @media (min-width: 1024px) {
             body {
-                min-height: 100dvh;
-                overflow-x: hidden;
-                display: flex;
-                align-items: flex-start;
                 padding: 20px 40px;
             }
 
             .container {
                 border-radius: 20px;
                 padding: 24px 32px 60px;
-                width: 100%;
-                max-width: 1400px;
-                display: flex;
-                flex-direction: column;
-                overflow: visible;
             }
 
             h1 {
                 margin-bottom: 12px;
                 font-size: 1.5rem;
             }
-
-            .nav-links {
-                display: flex;
-                justify-content: center;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-            .nav-links .back-btn { margin: 5px; }
 
             .page-header {
                 flex-direction: row;
@@ -371,8 +208,6 @@
             }
 
             .filter-row {
-                flex-direction: row;
-                flex-wrap: wrap;
                 gap: 16px;
             }
 
@@ -398,16 +233,6 @@
             .table-wrapper {
                 height: 100%;
                 overflow-y: auto;
-            }
-        }
-
-        /* ====== 减少动画偏好 ====== */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
             }
         }
     </style>

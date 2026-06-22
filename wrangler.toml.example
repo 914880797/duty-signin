@@ -1,0 +1,18 @@
+# Cloudflare Wrangler 配置模板
+# 复制此文件为 wrangler.toml 并填入实际值
+# wrangler.toml 已被 .gitignore 排除，请勿提交含密钥的配置
+
+name = "yldk"
+main = "functions/[[path]].js"
+compatibility_date = "2025-01-01"
+
+# D1 数据库绑定
+# 部署前请先在 Cloudflare Dashboard 创建 D1 数据库，将 database_id 和 database_name 填入下方
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "yldk-db"
+# database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# 可选：环境变量
+# [vars]
+# SENTRY_DSN = "https://xxxxxxxxxxxxxxxx@sentry.io/xxxxxxx"
