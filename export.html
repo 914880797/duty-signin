@@ -8,6 +8,7 @@
     <meta http-equiv="Expires" content="0">
     <title>导出预览</title>
     <script src="/utils/date-utils.js"></script>
+    <script src="/utils/frontend-utils.js"></script>
     <script src="/xlsx.full.min.js?v=202606121234"></script>
     <link rel="stylesheet" href="/styles/shared.css">
     <script>window.SENTRY_DSN=window.SENTRY_DSN||'';window.SENTRY_ENV=window.SENTRY_ENV||'production';</script>
@@ -296,17 +297,16 @@
     function init() {
         document.getElementById('btnApply').addEventListener('click', applyFilters);
         document.getElementById('btnClear').addEventListener('click', clearFilters);
-        loadSettings();
-    }
-
-    function loadSettings() {
-        fetch('/api/settings').then(r => r.json()).then(data => {
-            cycleStartDate = data.cycleStartDate || DateUtils.formatBeijingDate();
-            loadData();
-        }).catch(() => {
-            cycleStartDate = DateUtils.formatBeijingDate();
-            loadData();
-        });
+        AppUtils.loadSettings(
+            function(data) {
+                cycleStartDate = data.cycleStartDate || DateUtils.formatBeijingDate();
+                loadData();
+            },
+            function() {
+                cycleStartDate = DateUtils.formatBeijingDate();
+                loadData();
+            }
+        );
     }
 
     function generateCycleDates(start, end) {

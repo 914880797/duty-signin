@@ -66,6 +66,15 @@
         selectElement.innerHTML = '<option value="">' + selectAllLabel + '</option>';
         return [];
       }
+    },
+
+    loadSettings: async function(onSuccess, onError) {
+      try {
+        const data = await this.apiFetch('/api/settings');
+        if (onSuccess) onSuccess(data);
+      } catch (e) {
+        if (onError) onError(e);
+      }
     }
   };
 })();

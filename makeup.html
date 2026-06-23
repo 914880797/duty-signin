@@ -8,6 +8,7 @@
     <meta http-equiv="Expires" content="0">
     <title>补卡</title>
     <script src="/utils/date-utils.js"></script>
+    <script src="/utils/frontend-utils.js"></script>
     <link rel="stylesheet" href="/styles/shared.css">
     <script>window.SENTRY_DSN=window.SENTRY_DSN||'';window.SENTRY_ENV=window.SENTRY_ENV||'production';</script>
     <script src="/utils/sentry.js"></script>
@@ -262,18 +263,17 @@
     function init() {
         document.getElementById('btnApply').addEventListener('click', applyFilters);
         document.getElementById('btnClear').addEventListener('click', clearFilters);
-        loadSettings();
+        AppUtils.loadSettings(
+            function(data) {
+                cycleStartDate = data.cycleStartDate || DateUtils.formatBeijingDate();
+                loadMissed();
+            },
+            function() {
+                cycleStartDate = DateUtils.formatBeijingDate();
+                loadMissed();
+            }
+        );
         loadMakeupRecords();
-    }
-
-    function loadSettings() {
-        fetch('/api/settings').then(r => r.json()).then(data => {
-            cycleStartDate = data.cycleStartDate || DateUtils.formatBeijingDate();
-            loadMissed();
-        }).catch(() => {
-            cycleStartDate = DateUtils.formatBeijingDate();
-            loadMissed();
-        });
     }
 
     function formatDate(dateStr) {
