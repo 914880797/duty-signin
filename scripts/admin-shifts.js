@@ -9,7 +9,7 @@
 
         function syncValidTimesToBackend() {
             const validTimes = shiftConfig.map(s => s.name);
-            fetch('/api/settings', {
+            adminFetch('/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ valid_duty_times: validTimes })
@@ -19,7 +19,7 @@
                 }
             }).catch(e => console.error('syncValidTimes error:', e));
 
-            fetch('/api/validate-timeslots', {
+            adminFetch('/api/validate-timeslots', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ valid_duty_times: validTimes })
@@ -83,7 +83,7 @@
             renderShiftConfig();
 
             if (dutyTime) {
-                fetch('/api/cleanup-timeslot', {
+                adminFetch('/api/cleanup-timeslot', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ duty_time: dutyTime })
@@ -146,7 +146,7 @@
             for (const shift of shiftConfig) {
                 const oldName = oldShiftNames[shift.id];
                 if (oldName && oldName !== shift.name) {
-                    fetch('/api/rename-timeslot', {
+                    adminFetch('/api/rename-timeslot', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ old_name: oldName, new_name: shift.name })
@@ -159,14 +159,14 @@
             }
 
             // 2. 将有效时段同步到后端 settings 表供其他 API 过滤
-            fetch('/api/settings', {
+            adminFetch('/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ valid_duty_times: validTimes })
             }).catch(e => console.error('Save valid_times error:', e));
 
             // 清理不在当前时段配置中的遗留学段记录
-            fetch('/api/validate-timeslots', {
+            adminFetch('/api/validate-timeslots', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ valid_duty_times: validTimes })

@@ -4,13 +4,13 @@
             const today = DateUtils.todayBeijing();
             
             try {
-                const personsRes = await fetch('/api/persons');
+                const personsRes = await adminFetch('/api/persons');
                 const personsData = await personsRes.json();
                 if (personsData.success) {
                     allowedPersonsList = personsData.data || [];
                 }
                 
-                const response = await fetch('/api/bindings');
+                const response = await adminFetch('/api/bindings');
                 const result = await response.json();
                 if (response.ok && result.success) {
                     allRoster = result.data || [];
@@ -115,7 +115,7 @@
 
             var today = DateUtils.todayBeijing();
             try {
-                var resp = await fetch('/api/config', {
+                var resp = await adminFetch('/api/config', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ date: today, names: names })
@@ -124,7 +124,7 @@
                 if (resp.ok) {
                     targets.forEach(function(t) {
                         if (t.duty_time) {
-                            fetch('/api/bindings', {
+                            adminFetch('/api/bindings', {
                                 method: 'DELETE',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ duty_time: t.duty_time, name: t.name })
@@ -159,14 +159,14 @@
                 const config = [{ duty_date: today, duty_time: shift, name: name }];
                 if (groupId) config[0].group_id = parseInt(groupId);
                 
-                const configRes = await fetch('/api/config', {
+                const configRes = await adminFetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ date: today, config: config })
                 });
                 
                 // 2. 同时添加到绑定表（永久有效）
-                await fetch('/api/bindings', {
+                await adminFetch('/api/bindings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ duty_time: shift, name: name, group_id: groupId })
@@ -175,7 +175,7 @@
                 const result = await configRes.json();
                 if (configRes.ok) {
                     // 添加到人员白名单
-                    await fetch('/api/persons', {
+                    await adminFetch('/api/persons', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ name: name })
@@ -228,12 +228,12 @@
             try {
                 // 1. 先删除旧的特定时段排班（时段 + 姓名）
                 await Promise.all([
-                    fetch('/api/config', {
+                    adminFetch('/api/config', {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ date: today, duty_time: oldShift, name: name })
                     }),
-                    fetch('/api/bindings', {
+                    adminFetch('/api/bindings', {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ duty_time: oldShift, name: name })
@@ -244,7 +244,7 @@
                 const config = [{ duty_date: today, duty_time: newShift, name: name }];
                 if (groupId) config[0].group_id = parseInt(groupId);
                 
-                const addResponse = await fetch('/api/config', {
+                const addResponse = await adminFetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -255,7 +255,7 @@
                 
                 const addResult = await addResponse.json();
                 if (addResponse.ok) {
-                    fetch('/api/bindings', {
+                    adminFetch('/api/bindings', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ duty_time: newShift, name: name, group_id: groupId || null })

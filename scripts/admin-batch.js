@@ -1,5 +1,5 @@
         function loadAnnouncements() {
-            fetch('/api/announcements').then(r => r.json()).then(data => {
+            adminFetch('/api/announcements').then(r => r.json()).then(data => {
                 var list = (data.success ? data.data : []) || [];
                 var tbody = document.getElementById('announcementBody');
                 if (list.length === 0) {
@@ -23,7 +23,7 @@
             var content = input.value.trim();
             if (!content) { alert('请输入公告内容'); return; }
 
-            fetch('/api/announcements', {
+            adminFetch('/api/announcements', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: content })
@@ -41,7 +41,7 @@
 
         function deleteAnnouncement(id) {
             if (!confirm('确定要删除这条公告吗？')) return;
-            fetch('/api/announcements?id=' + encodeURIComponent(id), { method: 'DELETE' })
+            adminFetch('/api/announcements?id=' + encodeURIComponent(id), { method: 'DELETE' })
                 .then(r => r.json()).then(data => {
                     if (data.success) loadAnnouncements();
                     else alert(data.error || '删除失败');
@@ -90,7 +90,7 @@
             result.textContent = '添加中...';
             result.style.color = '#8c92ac';
 
-            fetch('/api/batch-config', {
+            adminFetch('/api/batch-config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -106,7 +106,7 @@
                     result.style.color = '#4CAF50';
                     document.getElementById('batchNames').value = '';
                     names.forEach(function(n) {
-                        fetch('/api/bindings', {
+                        adminFetch('/api/bindings', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ duty_time: shift, name: n, group_id: groupId || null })
@@ -259,7 +259,7 @@
                 var names = item.names;
                 total += names.length;
                 pending++;
-                fetch('/api/batch-config', {
+                adminFetch('/api/batch-config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -272,7 +272,7 @@
                 }).then(function(r) { return r.json(); }).then(function(data) {
                     if (data.success && data.inserted > 0) completed += data.inserted;
                     names.forEach(function(n) {
-                        fetch('/api/bindings', {
+                        adminFetch('/api/bindings', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ duty_time: item.duty_time, name: n, group_id: item.group ? findGroupId(item.group) : null })

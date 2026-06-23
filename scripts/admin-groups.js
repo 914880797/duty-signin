@@ -4,7 +4,7 @@
             groupsList.innerHTML = '<div class="loading">加载中...</div>';
             
             try {
-                const response = await fetch('/api/groups');
+                const response = await adminFetch('/api/groups');
                 const result = await response.json();
                 
                 if (response.ok && result.success) {
@@ -65,7 +65,7 @@
             }
             
             try {
-                const response = await fetch('/api/groups', {
+                const response = await adminFetch('/api/groups', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: name, order_index: allGroups.length + 1 })
@@ -95,7 +95,7 @@
             }
             
             try {
-                const response = await fetch('/api/groups', {
+                const response = await adminFetch('/api/groups', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: id, name: newName.trim() })
@@ -132,13 +132,13 @@
             const tempOrder = group.order_index;
             
             try {
-                await fetch('/api/groups', {
+                await adminFetch('/api/groups', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: id, order_index: prevGroup.order_index })
                 });
                 
-                await fetch('/api/groups', {
+                await adminFetch('/api/groups', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: prevGroup.id, order_index: tempOrder })
@@ -165,13 +165,13 @@
             const tempOrder = group.order_index;
             
             try {
-                await fetch('/api/groups', {
+                await adminFetch('/api/groups', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: id, order_index: nextGroup.order_index })
                 });
                 
-                await fetch('/api/groups', {
+                await adminFetch('/api/groups', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: nextGroup.id, order_index: tempOrder })
@@ -188,7 +188,7 @@
             if (!confirm('确定要删除该分组吗？')) return;
             
             try {
-                const response = await fetch('/api/groups', {
+                const response = await adminFetch('/api/groups', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: id })

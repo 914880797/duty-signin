@@ -16,7 +16,7 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 function runMigrations() {
-    fetch('/api/migrate-record-type', { method: 'POST' })
+    adminFetch('/api/migrate-record-type', { method: 'POST' })
         .then(r => r.json())
         .then(data => {
             if (data.migrated) console.log('DB迁移: record_type列已添加');
@@ -64,4 +64,11 @@ function showMessage(text, type) {
         msgEl.style.display = 'block';
         setTimeout(() => msgEl.style.display = 'none', 3000);
     }
+}
+
+function adminFetch(url, options) {
+    options = options || {};
+    options.headers = options.headers || {};
+    options.headers['Authorization'] = 'Bearer ' + (localStorage.getItem('adminToken') || '');
+    return adminFetch(url, options);
 }
