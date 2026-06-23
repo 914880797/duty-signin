@@ -150,12 +150,27 @@
         });
 
         // 检查登录状态的辅助函数
-        function checkAdminAuth() {
+        async function checkAdminAuth() {
             const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
-            if (isLoggedIn !== 'true') {
+            const token = localStorage.getItem('token');
+            if (isLoggedIn !== 'true' || !token) {
                 alert('请先登录管理员账号');
                 showLoginModal();
                 return false;
             }
-            return true;
+
+            try {
+                const res = await adminFetch('/api/admin/check-config');
+                const data = await res.json();
+                if (!data.success) {
+                    alert('登录已过期，请重新登录');
+                    localStorage.removeItem('isAdminLoggedIn');
+                    localStorage.removeItem('token');
+                    showLoginModal();
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                return true;
+            }
         }
