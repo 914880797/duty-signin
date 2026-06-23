@@ -86,9 +86,9 @@ function jsonSuccess(data, status = 200) {
   return Response.json({ success: true, ...data }, { status });
 }
 
-function jsonError(message, status = 500) {
-  reportError(status, message);
-  return Response.json({ success: false, error: message }, { status });
+function jsonError(message, status = 500, context = {}) {
+  reportError(status, message, context);
+  return Response.json({ success: false, error: message, ...context }, { status });
 }
 
 function reportError(status, message, context = {}) {

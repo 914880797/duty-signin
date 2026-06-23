@@ -1,4 +1,4 @@
-import { pad, todayBeijing, formatBeijingNow, getDutyTimeRange, DAY_MINUTES } from './_shared.js';
+import { pad, todayBeijing, formatBeijingNow, getDutyTimeRange, DAY_MINUTES, jsonSuccess, jsonError } from './_shared.js';
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -17,7 +17,7 @@ export async function onRequestPost({ request, env }) {
     const finalTime = clientTime || currentTime;
 
     if (!name || !name.trim()) {
-      return Response.json({ error: '姓名不能为空' }, { status: 400 });
+      return jsonError('姓名不能为空', 400);
     }
 
     const trimmedName = name.trim();
@@ -43,7 +43,7 @@ export async function onRequestPost({ request, env }) {
     const validDutyTimes = validTimesSetting?.value ? JSON.parse(validTimesSetting.value) : null;
 
     if ((!allConfigs.results || allConfigs.results.length === 0) && (!bindings.results || bindings.results.length === 0)) {
-        return Response.json({ error: `未参与值班，请联系管理员添加排班` }, { status: 403 });
+        return jsonError('未参与值班，请联系管理员添加排班', 403);
     }
 
     const bindingConfigs = (bindings.results || [])
@@ -121,7 +121,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     if (!dutyConfig.duty_time || dutyConfig.duty_time === '未安排') {
-      return Response.json({ error: `未参与值班，请联系管理员添加排班` }, { status: 403 });
+      return jsonError('未参与值班，请联系管理员添加排班', 403);
     }
 
     // 时间验证
@@ -137,11 +137,10 @@ export async function onRequestPost({ request, env }) {
       const isValid = currentTimeInMinutes >= dutyRange.startTime && currentTimeInMinutes <= dutyRange.endTime;
 
       if (!isValid) {
-        return Response.json({
-          error: `你的值班时间是 ${dutyConfig.duty_time}，请在值班时间内打卡`,
+        return jsonError(`你的值班时间是 ${dutyConfig.duty_time}，请在值班时间内打卡`, 400, {
           duty_time: dutyConfig.duty_time,
           current_time: finalTime
-        }, { status: 400 });
+        });
       }
     }
 
@@ -153,7 +152,7 @@ export async function onRequestPost({ request, env }) {
     `).bind(trimmedName, dutyConfig.duty_date, dutyConfig.duty_time).first();
 
     if (recentCheck) {
-      return Response.json({ error: `今天已经打过卡了，每个时段每天只能打卡一次` }, { status: 400 });
+      return jsonError('今天已经打过卡了，每个时段每天只能打卡一次', 400);
     }
 
     try {
@@ -172,14 +171,13 @@ export async function onRequestPost({ request, env }) {
       }
     }
 
-    return Response.json({
-      success: true,
+    return jsonSuccess({
       date: dutyConfig.duty_date,
       time: created_at,
       duty_time: dutyConfig.duty_time
     });
   } catch (e) {
     console.error('Signin error:', e);
-    return Response.json({ error: e.message }, { status: 500 });
+    return jsonError(e.message, 500);
   }
 }

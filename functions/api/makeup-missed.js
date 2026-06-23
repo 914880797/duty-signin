@@ -1,4 +1,4 @@
-import { todayBeijing, getBeijingNowMinutes, getDutyEndMinutes } from './_shared.js';
+import { todayBeijing, getBeijingNowMinutes, getDutyEndMinutes, jsonSuccess, jsonError } from './_shared.js';
 
 export async function onRequestGet({ request, env }) {
   const { searchParams } = new URL(request.url);
@@ -8,7 +8,7 @@ export async function onRequestGet({ request, env }) {
   const groupIdFilter = searchParams.get('group_id');
 
   if (!startDate || !endDate) {
-    return Response.json({ success: false, error: 'start_date and end_date are required' }, { status: 400 });
+    return jsonError('start_date and end_date are required', 400);
   }
 
   let dcWhere = `dc.duty_date >= ? AND dc.duty_date <= ? AND dc.duty_time IS NOT NULL AND dc.duty_time != '' AND dc.duty_time != '未安排'`;
@@ -78,9 +78,9 @@ export async function onRequestGet({ request, env }) {
       return endMin !== null && nowBJ >= endMin;
     });
 
-    return Response.json({ success: true, data: filtered });
+    return jsonSuccess({ data: filtered });
   } catch (error) {
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return jsonError(error.message, 500);
   }
 }
 
