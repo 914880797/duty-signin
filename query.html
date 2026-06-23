@@ -445,7 +445,7 @@
                 const data = await response.json();
 
                 if (!response.ok || !data.success) {
-                    resultEl.innerHTML = '<div class="empty">查询失败：' + (data.error || '未知错误') + '</div>';
+                    resultEl.innerHTML = '<div class="empty">查询失败：' + AppUtils.escapeHtml(data.error || '未知错误') + '</div>';
                     return;
                 }
 
@@ -527,12 +527,12 @@
             
             const groupName = data.length > 0 ? (data[0].group_name || '未分组') : '';
             
-            let html = `<div class="group-header">${groupName} (${data.length}人)</div>`;
+            let html = `<div class="group-header">${AppUtils.escapeHtml(groupName)} (${data.length}人)</div>`;
             html += '<div class="flat-list">';
             html += data.map(item => `
                 <div class="result-item">
-                    <span class="result-time">${item.duty_time}</span>
-                    <span class="result-name">${item.name}</span>
+                    <span class="result-time">${AppUtils.escapeHtml(item.duty_time)}</span>
+                    <span class="result-name">${AppUtils.escapeHtml(item.name)}</span>
                 </div>
             `).join('');
             html += '</div>';
@@ -565,11 +565,11 @@
                 
                 html += `
                     <div class="group-section">
-                        <div class="group-header">${groupName} (${items.length}人)</div>
+                        <div class="group-header">${AppUtils.escapeHtml(groupName)} (${items.length}人)</div>
                         ${items.map(item => `
                             <div class="result-item">
-                                <span class="result-time">${item.duty_time}</span>
-                                <span class="result-name">${item.name}</span>
+                                <span class="result-time">${AppUtils.escapeHtml(item.duty_time)}</span>
+                                <span class="result-name">${AppUtils.escapeHtml(item.name)}</span>
                             </div>
                         `).join('')}
                     </div>

@@ -1,4 +1,4 @@
-import { jsonSuccess, jsonError } from './_shared.js';
+import { jsonSuccess, jsonError, verifyAdmin } from './_shared.js';
 
 export async function onRequestGet({ env }) {
   try {
@@ -17,6 +17,8 @@ export async function onRequestGet({ env }) {
 }
 
 export async function onRequestPost({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     await ensureTable(env);
 
@@ -36,6 +38,8 @@ export async function onRequestPost({ request, env }) {
 }
 
 export async function onRequestDelete({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     await ensureTable(env);
 

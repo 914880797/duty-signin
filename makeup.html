@@ -306,15 +306,16 @@
         if (filtered.length === 0) {
             tbody.innerHTML = '<tr class="empty-row"><td colspan="5">没有漏打卡记录</td></tr>';
         } else {
+            var esc = AppUtils.escapeHtml;
             tbody.innerHTML = filtered.map((r, i) => {
                 const key = r.name + '|' + r.duty_date + '|' + r.duty_time;
                 const done = makeupDone.has(key);
-                return '<tr data-key="' + key + '">' +
-                    '<td>' + r.duty_date + '</td>' +
-                    '<td>' + r.duty_time + '</td>' +
-                    '<td class="name-cell">' + r.name + '</td>' +
-                    '<td>' + (r.group_name || '-') + '</td>' +
-                    '<td><button class="btn-makeup' + (done ? ' done' : '') + '" data-name="' + r.name + '" data-date="' + r.duty_date + '" data-time="' + r.duty_time + '" data-group="' + (r.group_id || '') + '"' + (done ? ' disabled' : '') + '>' + (done ? '已补' : '补卡') + '</button></td>' +
+                return '<tr data-key="' + esc(key) + '">' +
+                    '<td>' + esc(r.duty_date) + '</td>' +
+                    '<td>' + esc(r.duty_time) + '</td>' +
+                    '<td class="name-cell">' + esc(r.name) + '</td>' +
+                    '<td>' + esc(r.group_name || '-') + '</td>' +
+                    '<td><button class="btn-makeup' + (done ? ' done' : '') + '" data-name="' + esc(r.name) + '" data-date="' + esc(r.duty_date) + '" data-time="' + esc(r.duty_time) + '" data-group="' + esc(r.group_id || '') + '"' + (done ? ' disabled' : '') + '>' + (done ? '已补' : '补卡') + '</button></td>' +
                 '</tr>';
             }).join('');
 
@@ -402,13 +403,14 @@
             tbody.innerHTML = '<tr class="empty-row"><td colspan="5">暂无补卡记录</td></tr>';
             return;
         }
+        var esc = AppUtils.escapeHtml;
         tbody.innerHTML = records.map(r => {
             return '<tr>' +
-                '<td>' + r.duty_date + '</td>' +
-                '<td>' + r.duty_time + '</td>' +
-                '<td class="name-cell">' + r.name + '</td>' +
-                '<td>' + (r.group_name || '-') + '</td>' +
-                '<td style="color:#4CAF50">' + r.created_at + '</td>' +
+                '<td>' + esc(r.duty_date) + '</td>' +
+                '<td>' + esc(r.duty_time) + '</td>' +
+                '<td class="name-cell">' + esc(r.name) + '</td>' +
+                '<td>' + esc(r.group_name || '-') + '</td>' +
+                '<td style="color:#4CAF50">' + esc(r.created_at) + '</td>' +
             '</tr>';
         }).join('');
     }

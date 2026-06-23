@@ -1,6 +1,8 @@
-import { jsonSuccess, jsonError } from './_shared.js';
+import { jsonSuccess, jsonError, verifyAdmin } from './_shared.js';
 
-export async function onRequestPost({ env }) {
+export async function onRequestPost({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     await env.DB.prepare(`
       INSERT OR IGNORE INTO duty_bindings (duty_time, name, group_id)

@@ -1,6 +1,8 @@
-import { jsonSuccess, jsonError } from './_shared.js';
+import { jsonSuccess, jsonError, verifyAdmin } from './_shared.js';
 
 export async function onRequestDelete({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     const { duty_time } = await request.json();
 

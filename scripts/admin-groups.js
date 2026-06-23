@@ -33,7 +33,7 @@
                 <div class="roster-item" id="group-${group.id}">
                     <div class="roster-info">
                         <span class="roster-time" style="min-width: 30px;">#${group.order_index || '-'}</span>
-                        <input type="text" value="${group.name}" 
+                        <input type="text" value="${AppUtils.escapeHtml(group.name)}" 
                             onchange="renameGroup(${group.id}, this.value)"
                             style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid #3a3a50; border-radius: 5px; padding: 8px 12px; color: #e0e0e0;">
                     </div>

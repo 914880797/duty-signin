@@ -1,4 +1,4 @@
-import { jsonSuccess, jsonError } from './_shared.js';
+import { jsonSuccess, jsonError, verifyAdmin } from './_shared.js';
 
 // 获取所有分组
 export async function onRequestGet({ env }) {
@@ -19,6 +19,8 @@ export async function onRequestGet({ env }) {
 
 // 创建新分组
 export async function onRequestPost({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     const { name, order_index = 0 } = await request.json();
     
@@ -48,6 +50,8 @@ export async function onRequestPost({ request, env }) {
 
 // 更新分组（重命名或调整顺序）
 export async function onRequestPut({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     const { id, name, order_index } = await request.json();
     
@@ -85,6 +89,8 @@ export async function onRequestPut({ request, env }) {
 
 // 删除分组
 export async function onRequestDelete({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     const { id } = await request.json();
     

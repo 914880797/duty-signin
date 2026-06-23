@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>详细打卡记录</title>
     <script src="/utils/date-utils.js"></script>
+    <script src="/utils/frontend-utils.js"></script>
     <link rel="stylesheet" href="/styles/shared.css">
     <script>window.SENTRY_DSN=window.SENTRY_DSN||'';window.SENTRY_ENV=window.SENTRY_ENV||'production';</script>
     <script src="/utils/sentry.js"></script>
@@ -432,14 +433,15 @@
                     return;
                 }
 
+                var e = AppUtils.escapeHtml;
                 tbody.innerHTML = records.map(record => `
                     <tr>
-                        <td>${record.duty_date || '-'}</td>
-                        <td>${record.duty_time || '-'}</td>
-                        <td>${record.name || '-'}</td>
-                        <td>${record.group_name || '-'}</td>
+                        <td>${e(record.duty_date || '-')}</td>
+                        <td>${e(record.duty_time || '-')}</td>
+                        <td>${e(record.name || '-')}</td>
+                        <td>${e(record.group_name || '-')}</td>
                         <td>${record.created_at ? formatTime(record.created_at) : '-'}</td>
-                        <td>${record.ip_address || '-'}</td>
+                        <td>${e(record.ip_address || '-')}</td>
                     </tr>
                 `).join('');
             } catch (error) {

@@ -380,7 +380,7 @@
             grid.innerHTML = shiftConfig.map(function(shift) {
                 var isNight = isNightShift(shift.name);
                 return '<div class="shift-item' + (isNight ? ' night' : '') + '">' +
-                    (isNight ? '🌙 ' : '') + shift.name + (isNight ? ' (夜班)' : '') + '</div>';
+                    (isNight ? '🌙 ' : '') + AppUtils.escapeHtml(shift.name) + (isNight ? ' (夜班)' : '') + '</div>';
             }).join('');
         }
 

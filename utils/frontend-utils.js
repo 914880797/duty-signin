@@ -23,6 +23,12 @@
     DEFAULT_SHIFTS: DEFAULT_SHIFTS,
     DEFAULT_SHIFT_OBJECTS: DEFAULT_SHIFT_OBJECTS,
 
+    escapeHtml: function(str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    },
+
     apiFetch: async function(path, options = {}) {
       const res = await fetch(path, options);
       const data = await res.json();
@@ -37,7 +43,7 @@
         const validDutyTimes = settings.validDutyTimes || [];
         if (validDutyTimes.length > 0) {
           var options = validDutyTimes.map(function(t) {
-            return '<option value="' + t + '">' + t + '</option>';
+            return '<option value="' + self.escapeHtml(t) + '">' + self.escapeHtml(t) + '</option>';
           }).join('');
           selectElement.innerHTML = '<option value="">' + selectAllLabel + '</option>' + options;
           return;

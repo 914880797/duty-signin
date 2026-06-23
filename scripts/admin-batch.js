@@ -8,8 +8,8 @@
                 }
                 tbody.innerHTML = list.map(function(a) {
                     return '<tr>' +
-                        '<td style="text-align:left;">' + a.content + '</td>' +
-                        '<td>' + a.created_at + '</td>' +
+                        '<td style="text-align:left;">' + AppUtils.escapeHtml(a.content) + '</td>' +
+                        '<td>' + AppUtils.escapeHtml(a.created_at) + '</td>' +
                         '<td><button onclick="deleteAnnouncement(' + a.id + ')" style="padding:4px 10px;background:#f44336;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px;">删除</button></td>' +
                     '</tr>';
                 }).join('');

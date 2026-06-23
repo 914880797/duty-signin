@@ -1,4 +1,4 @@
-import { jsonSuccess, jsonError } from './_shared.js';
+import { jsonSuccess, jsonError, verifyAdmin } from './_shared.js';
 
 // 获取人员时段绑定列表
 export async function onRequestGet({ env }) {
@@ -18,6 +18,8 @@ export async function onRequestGet({ env }) {
 
 // 添加绑定
 export async function onRequestPost({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     const { duty_time, name, group_id } = await request.json();
     
@@ -34,6 +36,8 @@ export async function onRequestPost({ request, env }) {
 
 // 删除绑定
 export async function onRequestDelete({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     const { duty_time, name } = await request.json();
     

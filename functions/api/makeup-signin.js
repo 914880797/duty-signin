@@ -1,6 +1,8 @@
 import { formatBeijingNow, jsonSuccess, jsonError } from './_shared.js';
 
 export async function onRequestPost({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     const json = await request.json();
     const { name, duty_date, duty_time, group_id } = json;

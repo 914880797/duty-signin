@@ -1,4 +1,4 @@
-import { hashPassword, jsonError } from '../_shared.js';
+import { hashPassword, jsonError, jsonSuccess } from '../_shared.js';
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -6,6 +6,20 @@ export async function onRequestPost({ request, env }) {
 
     if (!admins || !Array.isArray(admins) || admins.length === 0) {
       return jsonError('缺少管理员配置', 400);
+    }
+
+    let existingCount = 0;
+    try {
+      const result = await env.DB.prepare(`SELECT COUNT(*) as cnt FROM admin_users`).first();
+      existingCount = result ? result.cnt : 0;
+    } catch (e) {
+      // 表不存在，允许引导
+    }
+
+    if (existingCount > 0) {
+      const { verifyAdmin } = await import('../_shared.js');
+      const isAdmin = await verifyAdmin(request, env);
+      if (!isAdmin) return jsonError('未授权访问', 401);
     }
 
     await env.DB.prepare(`
@@ -20,7 +34,6 @@ export async function onRequestPost({ request, env }) {
     `).run();
 
     await env.DB.prepare(`DELETE FROM admin_users`).run();
-    console.log('已清空所有旧管理员账号');
 
     const batch = [];
     for (const admin of admins) {
@@ -36,8 +49,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     await env.DB.batch(batch);
-
-    return Response.json({ success: true, message: `成功初始化 ${admins.length} 个管理员账号`, count: batch.length });
+    return jsonSuccess({ message: `成功初始化 ${admins.length} 个管理员账号`, count: batch.length });
   } catch (error) {
     console.error('Init admin config error:', error);
     return jsonError(error.message);

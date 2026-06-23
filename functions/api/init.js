@@ -1,4 +1,9 @@
-export async function onRequestGet({ env }) {
+import { jsonSuccess, jsonError, verifyAdmin } from './_shared.js';
+
+export async function onRequestPost({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
+
   try {
     // 删除旧表（如果存在）然后重建
     await env.DB.batch([
@@ -105,17 +110,13 @@ export async function onRequestGet({ env }) {
     
     await env.DB.batch(insertBatch);
     
-    return Response.json({ 
-      success: true, 
+    return jsonSuccess({
       message: '数据库表重建成功',
       status: 'created',
       tables: ['shift_groups', 'duty_config', 'signin_records', 'duty_roster', 'allowed_persons', 'settings']
     });
   } catch (error) {
     console.error('初始化数据库失败:', error);
-    return Response.json({ 
-      success: false, 
-      error: error.message 
-    }, { status: 500 });
+    return jsonError(error.message);
   }
 }

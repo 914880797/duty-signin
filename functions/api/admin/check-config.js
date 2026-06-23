@@ -1,6 +1,8 @@
-import { jsonSuccess, jsonError } from '../_shared.js';
+import { jsonSuccess, jsonError, verifyAdmin } from '../_shared.js';
 
-export async function onRequestGet({ env }) {
+export async function onRequestGet({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     const tableCheck = await env.DB.prepare(`
       SELECT name FROM sqlite_master WHERE type='table' AND name='admin_users'

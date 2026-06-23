@@ -1,4 +1,4 @@
-import { jsonSuccess, jsonError } from './_shared.js';
+import { jsonSuccess, jsonError, verifyAdmin } from './_shared.js';
 
 export async function onRequestGet({ env }) {
   try {
@@ -24,6 +24,8 @@ export async function onRequestGet({ env }) {
 }
 
 export async function onRequestPut({ request, env }) {
+  const isAdmin = await verifyAdmin(request, env);
+  if (!isAdmin) return jsonError('未授权访问', 401);
   try {
     const data = await request.json();
     const { cycleStartDate, valid_duty_times } = data;

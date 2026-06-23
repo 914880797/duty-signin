@@ -42,9 +42,11 @@
                 });
                 
                 rosterList.innerHTML = data.map(item => {
-                    const safeTime = String(item.duty_time || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    const safeName = String(item.name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    const safeGroupName = String(item.group_name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const safeTime = AppUtils.escapeHtml(item.duty_time || '');
+                    const safeName = AppUtils.escapeHtml(item.name || '');
+                    const safeGroupName = AppUtils.escapeHtml(item.group_name || '');
+                    const attrTime = String(item.duty_time || '').replace(/'/g, "\\'");
+                    const attrName = String(item.name || '').replace(/'/g, "\\'");
                     const groupIdVal = item.group_id || 'null';
                     const groupHtml = item.group_name ? '<span class="roster-group">' + safeGroupName + '</span>' : '';
                     return '<div class="roster-item">' +
@@ -54,8 +56,8 @@
                             groupHtml +
                         '</div>' +
                         '<div class="roster-actions">' +
-                            '<button onclick="showEditForm(\'' + safeTime + '\', \'' + safeName + '\', ' + groupIdVal + ')" class="action-btn edit-time-btn">\u270F\uFE0F 修改时段</button>' +
-                            '<button onclick="deleteShift(\'' + safeTime + '\', \'' + safeName + '\')" class="action-btn delete-btn">\ud83d\uddd1\ufe0f 删除</button>' +
+                            '<button onclick="showEditForm(\'' + attrTime + '\', \'' + attrName + '\', ' + groupIdVal + ')" class="action-btn edit-time-btn">\u270F\uFE0F 修改时段</button>' +
+                            '<button onclick="deleteShift(\'' + attrTime + '\', \'' + attrName + '\')" class="action-btn delete-btn">\ud83d\uddd1\ufe0f 删除</button>' +
                         '</div>' +
                     '</div>';
                 }).join('');
