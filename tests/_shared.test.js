@@ -68,6 +68,39 @@ function getDutyEndMinutes(dutyTime) {
     return parseInt(match[3]) * 60 + parseInt(match[4]);
 }
 
+// 北京时间工具
+function getBeijingNow() {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    return new Date(now.getTime() + (offset + 480) * 60000);
+}
+function getBeijingNowMinutes() {
+    const bj = getBeijingNow();
+    return bj.getUTCHours() * 60 + bj.getUTCMinutes();
+}
+function todayBeijing() {
+    const bj = getBeijingNow();
+    return bj.toISOString().split('T')[0];
+}
+function naturalDateToBeijing(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr + 'T12:00:00Z');
+    if (isNaN(date.getTime())) return dateStr;
+    const bj = new Date(date.getTime() + 8 * 60 * 60000);
+    return bj.toISOString().split('T')[0];
+}
+
+// hashPassword
+function hashPassword(pwd) {
+    let hash = 0;
+    for (let i = 0; i < pwd.length; i++) {
+        const ch = pwd.charCodeAt(i);
+        hash = ((hash << 5) - hash) + ch;
+        hash |= 0;
+    }
+    return Math.abs(hash).toString(16);
+}
+
 // ---------- 测试用例 ----------
 console.log('\n  _shared.js 单元测试\n');
 
@@ -166,6 +199,43 @@ test('跨午夜 validation: 在 23:30 打卡 23:00-04:00 时段', () => {
     }
     const isValid = currentTimeInMinutes >= r.startTime && currentTimeInMinutes <= r.endTime;
     assert.ok(isValid, '应在有效时间内');
+});
+
+// getBeijingNowMinutes
+test('getBeijingNowMinutes 返回 0-1439', () => {
+    const m = getBeijingNowMinutes();
+    assert.ok(m >= 0 && m <= 1439, `应为 0-1439，实际 ${m}`);
+});
+
+// todayBeijing
+test('todayBeijing 格式为 YYYY-MM-DD', () => {
+    const d = todayBeijing();
+    assert.ok(/^\d{4}-\d{2}-\d{2}$/.test(d), `格式应为 YYYY-MM-DD，实际 ${d}`);
+});
+
+// naturalDateToBeijing
+test('naturalDateToBeijing 正常转换', () => {
+    assert.equal(naturalDateToBeijing('2025-01-15'), '2025-01-15');
+});
+
+test('naturalDateToBeijing 空值', () => {
+    assert.equal(naturalDateToBeijing(''), '');
+    assert.equal(naturalDateToBeijing(null), '');
+});
+
+test('naturalDateToBeijing 无效格式返回原值', () => {
+    assert.equal(naturalDateToBeijing('not-a-date'), 'not-a-date');
+});
+
+// hashPassword
+test('hashPassword 基本', () => {
+    const h = hashPassword('test123');
+    assert.ok(typeof h === 'string' && h.length > 0, '应返回非空字符串');
+    assert.equal(h, hashPassword('test123'), '相同输入应返回相同哈希');
+});
+
+test('hashPassword 不同输入', () => {
+    assert.ok(hashPassword('abc') !== hashPassword('xyz'), '不同输入应返回不同哈希');
 });
 
 console.log(`\n  结果: ${passed} 通过, ${failed} 失败\n`);
