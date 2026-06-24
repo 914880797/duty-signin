@@ -25,12 +25,11 @@
 
     function loadMissed() {
         const url = '/api/makeup-missed?start_date=' + encodeURIComponent(cycleStartDate) + '&end_date=' + encodeURIComponent(DateUtils.todayBeijing());
-        fetch(url).then(r => r.json()).then(data => {
+        AppUtils.apiFetch(url).then(data => {
             missedData = (data.success ? data.data : []) || [];
             if (!Array.isArray(missedData)) missedData = [];
             renderTable();
         }).catch(e => {
-            console.error('Load missed error:', e);
             renderTable([]);
         });
     }
@@ -89,7 +88,7 @@
         btn.disabled = true;
         btn.textContent = '...';
 
-        fetch('/api/makeup-signin', {
+        AppUtils.apiFetch('/api/makeup-signin', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -98,7 +97,7 @@
                 duty_time: dutyTime,
                 group_id: groupId || null
             })
-        }).then(r => r.json()).then(data => {
+        }).then(data => {
             if (data.success) {
                 const key = name + '|' + dutyDate + '|' + dutyTime;
                 makeupDone.add(key);
@@ -125,7 +124,7 @@
     }
 
     function loadMakeupRecords() {
-        fetch('/api/records').then(r => r.json()).then(data => {
+        AppUtils.apiFetch('/api/records').then(data => {
             const records = (data.success ? data.data : []) || [];
             allMakeupRecords = Array.isArray(records)
                 ? records.filter(r => r.record_type === 'makeup' || r.ip_address === 'makeup')
@@ -134,7 +133,6 @@
             renderMakeupDoneTable(allMakeupRecords);
             updateStats();
         }).catch(e => {
-            console.error('Load makeup records error:', e);
         });
     }
 

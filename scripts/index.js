@@ -21,10 +21,8 @@
             loadShiftConfigFromSettings();
         }
 
-        async function loadShiftConfigFromSettings() {
-            try {
-                var res = await fetch('/api/settings');
-                var data = await res.json();
+        function loadShiftConfigFromSettings() {
+            AppUtils.loadSettings(function(data) {
                 var validTimes = data.validDutyTimes || [];
                 if (validTimes.length > 0) {
                     var shifts = validTimes.map(function(t, i) { return { id: i + 1, name: t }; });
@@ -32,7 +30,13 @@
                     renderShiftGrid(shifts);
                     return;
                 }
-            } catch (e) { console.error('加载时段失败:', e); }
+                fallbackToDefaultShifts();
+            }, function() {
+                fallbackToDefaultShifts();
+            });
+        }
+
+        function fallbackToDefaultShifts() {
             var shifts = AppUtils.DEFAULT_SHIFTS.map(function(t, i) { return { id: i + 1, name: t }; });
             renderShiftGrid(shifts);
         }
@@ -60,7 +64,7 @@
         loadAnnouncements();
 
         function loadAnnouncements() {
-            fetch('/api/announcements').then(r => r.json()).then(data => {
+            AppUtils.apiFetch('/api/announcements').then(function(data) {
                 var list = (data.success ? data.data : []) || [];
                 var bar = document.getElementById('announcementBar');
                 var text = document.getElementById('announcementText');
@@ -71,7 +75,7 @@
                 }
 
                 bar.style.display = 'flex';
-                var joined = list.map(function(a) { return a.content.slice(0, 15); }).join('　　');
+                var joined = list.map(function(a) { return a.content.slice(0, 15); }).join('    ');
                 text.textContent = joined;
                 text.classList.remove('empty');
             }).catch(function() {

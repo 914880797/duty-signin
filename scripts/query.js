@@ -36,10 +36,9 @@
             resultEl.innerHTML = '<div class="empty">查询中...</div>';
 
             try {
-                const response = await fetch(`/api/config?date=${today}`);
-                const data = await response.json();
+                const data = await AppUtils.apiFetch(`/api/config?date=${today}`);
 
-                if (!response.ok || !data.success) {
+                if (!data.success) {
                     resultEl.innerHTML = '<div class="empty">查询失败：' + AppUtils.escapeHtml(data.error || '未知错误') + '</div>';
                     return;
                 }

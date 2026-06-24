@@ -5,22 +5,17 @@
         window.addEventListener('DOMContentLoaded', async () => {
             const today = DateUtils.todayBeijing();
 
-            let startDate = today;
+            let startDate = DateUtils.daysAgoBeijing(30);
             let validTimes = null;
             try {
-                const settingsResp = await fetch('/api/settings');
-                const settings = await settingsResp.json();
+                const settings = await AppUtils.apiFetch('/api/settings');
                 if (settings.cycleStartDate) {
                     startDate = settings.cycleStartDate;
-                } else {
-                    startDate = DateUtils.daysAgoBeijing(30);
                 }
                 if (settings.validDutyTimes && settings.validDutyTimes.length > 0) {
                     validTimes = settings.validDutyTimes;
                 }
-            } catch (error) {
-                console.error('加载设置失败:', error);
-            }
+            } catch (error) {}
 
             document.getElementById('endDate').value = today;
             document.getElementById('startDate').value = startDate;
@@ -37,8 +32,7 @@
                 if (cachedTimes && cachedTimes.length > 0) {
                     slots = cachedTimes.map(t => ({ time_slot: t }));
                 } else {
-                    const response = await fetch('/api/time-slots');
-                    const responseData = await response.json();
+                    const responseData = await AppUtils.apiFetch('/api/time-slots');
                     slots = responseData.success ? (responseData.data || []) : [];
                 }
 
@@ -57,8 +51,7 @@
         // 加载分组列表
         async function loadGroups() {
             try {
-                const response = await fetch('/api/groups');
-                const result = await response.json();
+                const result = await AppUtils.apiFetch('/api/groups');
                 const groups = result.success ? (result.data || []) : [];
 
                 const select = document.getElementById('groupSelect');
@@ -95,8 +88,7 @@
             if (name) params.append('name', name);
 
             try {
-                const response = await fetch(`/api/records?${params.toString()}`);
-                const responseData = await response.json();
+                const responseData = await AppUtils.apiFetch(`/api/records?${params.toString()}`);
 
                 const records = responseData.success ? (responseData.data || []) : [];
 

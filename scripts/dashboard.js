@@ -13,21 +13,15 @@
         // Initialize dates
         async function initDates() {
             const endDate = DateUtils.todayBeijing();
-            
-            let startDateValue;
+
+            let startDateValue = DateUtils.daysAgoBeijing(7);
             try {
-                const res = await fetch('/api/settings');
-                const settings = await res.json();
+                const settings = await AppUtils.apiFetch('/api/settings');
                 if (settings && settings.cycleStartDate) {
                     startDateValue = settings.cycleStartDate;
-                } else {
-                    startDateValue = DateUtils.daysAgoBeijing(7);
                 }
-            } catch (e) {
-                console.error('Failed to get settings:', e);
-                startDateValue = DateUtils.daysAgoBeijing(7);
-            }
-            
+            } catch (e) {}
+
             document.getElementById('endDate').value = endDate;
             document.getElementById('startDate').value = startDateValue;
         }
@@ -56,11 +50,7 @@
             url += '?' + params.toString();
 
             try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
-                }
-                const responseData = await response.json();
+                const responseData = await AppUtils.apiFetch(url);
 
                 allRecords = responseData.success ? (responseData.data || []) : [];
 

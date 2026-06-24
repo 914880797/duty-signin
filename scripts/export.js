@@ -32,16 +32,16 @@
     }
 
     function loadData() {
-        Promise.all([fetch('/api/records'), fetch('/api/groups')]).then(([recRes, grpRes]) => {
-            return Promise.all([recRes.json(), grpRes.json()]);
-        }).then(([recData, grpData]) => {
+        Promise.all([
+            AppUtils.apiFetch('/api/records'),
+            AppUtils.apiFetch('/api/groups')
+        ]).then(([recData, grpData]) => {
             const records = recData.success ? (recData.data || []) : (Array.isArray(recData) ? recData : []);
             groups = grpData.data || grpData || [];
             allData = processDataByGroup(records);
             renderSheetTabs();
             if (groups.length > 0) { currentSheet = groups[0].name; renderTable(currentSheet); }
         }).catch(e => {
-            console.error('Load failed:', e);
             document.getElementById('dutyTable').innerHTML = '<tr><td colspan="40" class="empty">加载失败：' + e.message + '</td></tr>';
         });
     }
