@@ -42,7 +42,7 @@
             renderSheetTabs();
             if (groups.length > 0) { currentSheet = groups[0].name; renderTable(currentSheet); }
         }).catch(e => {
-            document.getElementById('dutyTable').innerHTML = '<tr><td colspan="40" class="empty">加载失败：' + e.message + '</td></tr>';
+            document.getElementById('dutyTable').innerHTML = '<tr><td colspan="40" class="empty">加载失败：' + AppUtils.escapeHtml(e.message) + '</td></tr>';
         });
     }
 
@@ -79,8 +79,9 @@
     }
 
     function renderSheetTabs() {
+        var esc = AppUtils.escapeHtml;
         const html = groups.length > 0 ? groups.map((g,i) =>
-            '<div class="sheet-tab'+(i===0?' active':'')+'" data-group="'+g.name+'" role="tab" aria-selected="'+(i===0?'true':'false')+'">'+g.name+'</div>'
+            '<div class="sheet-tab'+(i===0?' active':'')+'" data-group="'+esc(g.name)+'" role="tab" aria-selected="'+(i===0?'true':'false')+'">'+esc(g.name)+'</div>'
         ).join('') : '<div class="sheet-tab active" role="tab" aria-selected="true">未分组</div>';
         document.getElementById('sheetTabs').innerHTML = html;
         document.querySelectorAll('.sheet-tab').forEach((tab, i) => {
@@ -103,15 +104,17 @@
             updateGlobalStats();
             return;
         }
+        var esc = AppUtils.escapeHtml;
+        var escAttr = function(s) { return String(s).replace(/"/g, '&quot;'); };
         const days = cycleDates.length;
-        let html = '<thead><tr><!--姓名--><th class="name-col" scope="col">姓名</th><th class="group-col" scope="col">分组</th>';
+        let html = '<thead><tr><th class="name-col" scope="col">姓名</th><th class="group-col" scope="col">分组</th>';
         cycleDates.forEach(d => { html += '<th class="date-cell" scope="col">'+d.displayDate+'</th>'; });
         html += '<th class="stats-col-fixed" scope="col">共计</th><th class="stats-col-fixed" scope="col">累计</th><th class="stats-col-fixed" scope="col">缺席</th></tr></thead><tbody>';
         let ts = 0, ta = 0;
         data.persons.forEach(name => {
             const rec = data.records[name] || {};
             let s = 0;
-            html += '<tr data-name="'+name+'" data-group="'+sheetName+'"><td class="name-col">'+name+'</td><td class="group-col">'+sheetName+'</td>';
+            html += '<tr data-name="'+escAttr(name)+'" data-group="'+escAttr(sheetName)+'"><td class="name-col">'+esc(name)+'</td><td class="group-col">'+esc(sheetName)+'</td>';
             cycleDates.forEach(d => {
                 const cell = rec[d.fullDate];
                 const total = cell ? (cell.signin + cell.makeup) : 0;
@@ -131,7 +134,7 @@
             td.addEventListener('click', function() {
                 const name = this.parentNode.dataset.name;
                 document.querySelectorAll('.highlight-row').forEach(r => r.classList.remove('highlight-row'));
-                table.querySelectorAll('tr[data-name="'+name+'"]').forEach(r => r.classList.add('highlight-row'));
+                table.querySelectorAll('tr[data-name="'+escAttr(name)+'"]').forEach(r => r.classList.add('highlight-row'));
             });
         });
         updateGlobalStats();

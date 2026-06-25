@@ -56,12 +56,12 @@
 
             batchShift.innerHTML = '<option value="">-- 请选择值班时段 --</option>';
             shiftConfig.forEach(function(s) {
-                batchShift.innerHTML += '<option value="' + s.name + '">' + s.name + '</option>';
+                batchShift.innerHTML += '<option value="' + AppUtils.escapeHtml(s.name) + '">' + AppUtils.escapeHtml(s.name) + '</option>';
             });
 
             batchGroup.innerHTML = '<option value="">-- 不指定分组 --</option>';
             allGroups.forEach(function(g) {
-                batchGroup.innerHTML += '<option value="' + g.id + '">' + g.name + '</option>';
+                batchGroup.innerHTML += '<option value="' + g.id + '">' + AppUtils.escapeHtml(g.name) + '</option>';
             });
 
             var today = new Date();
@@ -167,7 +167,7 @@
 
             var html = '<table class="shift-table" style="font-size:12px;"><thead><tr><th>分组</th><th>时段</th><th>人员</th></tr></thead><tbody>';
             smartImportParsed.forEach(function(item) {
-                html += '<tr><td>' + (item.group || '-') + '</td><td>' + item.duty_time + '</td><td style="text-align:left;">' + item.names.join('、') + '</td></tr>';
+                html += '<tr><td>' + AppUtils.escapeHtml(item.group || '-') + '</td><td>' + AppUtils.escapeHtml(item.duty_time) + '</td><td style="text-align:left;">' + AppUtils.escapeHtml(item.names.join('、')) + '</td></tr>';
             });
             html += '</tbody></table>';
             preview.innerHTML = html;

@@ -31,10 +31,10 @@
             tbody.innerHTML = shiftConfig.map((shift, index) => `
                 <tr>
                     <td>${index + 1}</td>
-                    <td><input type="text" class="form-input" value="${shift.name}" onchange="updateShiftName(${shift.id}, this.value)" style="padding: 8px;"></td>
-                    <td><input type="time" class="time-input" value="${shift.startTime === '24:00' ? '00:00' : shift.startTime}" onchange="updateShiftTime(${shift.id}, 'start', this.value)"></td>
-                    <td><input type="time" class="time-input" value="${shift.endTime === '24:00' ? '00:00' : shift.endTime}" onchange="updateShiftTime(${shift.id}, 'end', this.value)"></td>
-                    <td><button onclick="deleteShiftConfig(${shift.id})" class="delete-shift-btn">🗑️ 删除</button></td>
+                    <td><input type="text" class="form-input" value="${AppUtils.escapeHtml(shift.name)}" onchange="updateShiftName(${shift.id}, this.value)" style="padding: 8px;"></td>
+                    <td><input type="time" class="time-input" value="${AppUtils.escapeHtml(shift.startTime === '24:00' ? '00:00' : shift.startTime)}" onchange="updateShiftTime(${shift.id}, 'start', this.value)"></td>
+                    <td><input type="time" class="time-input" value="${AppUtils.escapeHtml(shift.endTime === '24:00' ? '00:00' : shift.endTime)}" onchange="updateShiftTime(${shift.id}, 'end', this.value)"></td>
+                    <td><button onclick="deleteShiftConfig(${shift.id})" class="delete-shift-btn">\uD83D\uDDD1\uFE0F 删除</button></td>
                 </tr>
             `).join('');
         }
@@ -188,7 +188,7 @@
         function updateShiftSelects() {
             const shiftSelect = document.getElementById('shiftSelect');
             const editNewShift = document.getElementById('editNewShift');
-            const options = shiftConfig.map(shift => `<option value="${shift.name}">${shift.name}</option>`).join('');
+            const options = shiftConfig.map(shift => '<option value="' + AppUtils.escapeHtml(shift.name) + '">' + AppUtils.escapeHtml(shift.name) + '</option>').join('');
             shiftSelect.innerHTML = '<option value="">-- 请选择值班时段 --</option>' + options;
             editNewShift.innerHTML = '<option value="">-- 请选择新时段 --</option>' + options;
         }

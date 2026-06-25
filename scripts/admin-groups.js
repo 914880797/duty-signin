@@ -50,7 +50,7 @@
         function updateGroupSelects() {
             const groupSelect = document.getElementById('groupSelect');
             const editGroupSelect = document.getElementById('editGroupSelect');
-            const options = allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            const options = allGroups.map(g => '<option value="' + g.id + '">' + AppUtils.escapeHtml(g.name) + '</option>').join('');
             groupSelect.innerHTML = '<option value="">-- 请选择分组（可选） --</option>' + options;
             editGroupSelect.innerHTML = '<option value="">-- 请选择分组（可选） --</option>' + options;
         }

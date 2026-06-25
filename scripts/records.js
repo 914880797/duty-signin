@@ -120,7 +120,7 @@
                 `).join('');
             } catch (error) {
                 console.error('加载数据失败:', error);
-                tbody.innerHTML = `<tr><td colspan="6" class="empty">加载失败：${error.message}</td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="6" class="empty">加载失败：' + AppUtils.escapeHtml(error.message) + '</td></tr>';
             }
         }
 
