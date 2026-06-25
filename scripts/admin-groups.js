@@ -12,7 +12,7 @@
                     renderGroups(allGroups);
                     updateGroupSelects();
                 } else {
-                    groupsList.innerHTML = '<div class="roster-empty">加载失败：' + (result.error || '未知错误') + '</div>';
+                    groupsList.innerHTML = '<div class="roster-empty">加载失败：' + AppUtils.escapeHtml(result.error || '未知错误') + '</div>';
                 }
             } catch (error) {
                 console.error('加载分组失败:', error);

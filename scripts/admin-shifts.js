@@ -130,7 +130,7 @@
             const statusEl = document.getElementById('configStatus');
             
             if (errors.length > 0) {
-                statusEl.innerHTML = `<div class="message error" style="display:block;">❌ 验证失败：<br>${errors.join('<br>')}</div>`;
+                statusEl.innerHTML = '<div class="message error" style="display:block;">\u274C 验证失败：<br>' + errors.map(function(e) { return AppUtils.escapeHtml(e); }).join('<br>') + '</div>';
                 return false;
             }
             
