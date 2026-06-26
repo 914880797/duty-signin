@@ -201,6 +201,56 @@ test('跨午夜 validation: 在 23:30 打卡 23:00-04:00 时段', () => {
     assert.ok(isValid, '应在有效时间内');
 });
 
+// 非跨午夜时段验证
+test('非跨午夜 validation: 在 09:00 打卡 08:00-09:30 时段', () => {
+    const r = getDutyTimeRange('08:00-09:30');
+    let currentTimeInMinutes = 540;  // 09:00
+    if (r.isOvernight && currentTimeInMinutes <= r.endTime) {
+        currentTimeInMinutes += 24 * 60;
+    } else if (r.isOvernight) {
+        r.endTime += 24 * 60;
+    }
+    const isValid = currentTimeInMinutes >= r.startTime && currentTimeInMinutes <= r.endTime;
+    assert.ok(isValid, '应在有效时间内');
+});
+
+test('非跨午夜 validation: 在 10:00 打卡 08:00-09:30 时段（应失败）', () => {
+    const r = getDutyTimeRange('08:00-09:30');
+    let currentTimeInMinutes = 600;  // 10:00
+    if (r.isOvernight && currentTimeInMinutes <= r.endTime) {
+        currentTimeInMinutes += 24 * 60;
+    } else if (r.isOvernight) {
+        r.endTime += 24 * 60;
+    }
+    const isValid = currentTimeInMinutes >= r.startTime && currentTimeInMinutes <= r.endTime;
+    assert.ok(!isValid, '不应在有效时间内');
+});
+
+// 凌晨时段次日边界
+test('凌晨时段 02:00-05:00', () => {
+    const r = getDutyTimeRange('02:00-05:00');
+    assert.equal(r.startTime, 120);
+    assert.equal(r.endTime, 300);
+    assert.equal(r.isOvernight, false);
+});
+
+// endMinutes 边界
+test('endMinutes 00:00-01:00', () => {
+    assert.equal(getDutyEndMinutes('00:00-01:00'), 60);
+});
+
+// startMinutes 带空格
+test('startMinutes 带空格', () => {
+    assert.equal(getDutyStartMinutes(' 08:00 - 09:30 '), 480);
+});
+
+// 24:00 规范化
+test('24:00 规范化: startHour 24 → 0', () => {
+    const r = getDutyTimeRange('24:00-06:00');
+    assert.equal(r.startTime, 0);
+    assert.equal(r.endTime, 360);
+});
+
 // getBeijingNowMinutes
 test('getBeijingNowMinutes 返回 0-1439', () => {
     const m = getBeijingNowMinutes();
