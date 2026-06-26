@@ -1,4 +1,4 @@
-import { formatBeijingNow, jsonSuccess, jsonError } from './_shared.js';
+import { formatBeijingNow, jsonSuccess, jsonError, verifyAdmin } from './_shared.js';
 
 export async function onRequestPost({ request, env }) {
   const isAdmin = await verifyAdmin(request, env);
