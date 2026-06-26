@@ -13,9 +13,8 @@
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ valid_duty_times: validTimes })
-            }).then(r => r.json()).then(data => {
+            }).then(data => {
                 if (data.success && data.deleted) {
-                    // 后台静默清理完成
                 }
             }).catch(e => console.error('syncValidTimes error:', e));
 
@@ -87,7 +86,7 @@
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ duty_time: dutyTime })
-                }).then(r => r.json()).then(data => {
+                }).then(data => {
                     if (data.success) {
                         showMessage('时段 ' + dutyTime + ' 已删除，共清理 ' +
                             data.deleted_duty_config + ' 条排班记录和 ' +
@@ -150,7 +149,7 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ old_name: oldName, new_name: shift.name })
-                    }).then(r => r.json()).then(data => {
+                    }).then(data => {
                         if (data.success && (data.updated_duty_config > 0 || data.updated_duty_bindings > 0)) {
                             showMessage('时段 ' + oldName + ' → ' + shift.name + ' 已更新 ' + data.updated_duty_config + ' 条排班和 ' + data.updated_duty_bindings + ' 条绑定', 'success');
                         }
@@ -170,7 +169,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ valid_duty_times: validTimes })
-            }).then(r => r.json()).then(data => {
+            }).then(data => {
                 if (data.success && (data.deleted_duty_config > 0 || data.deleted_duty_bindings > 0)) {
                     showMessage('已清理 ' + data.deleted_duty_config + ' 条遗留学段记录和 ' + data.deleted_duty_bindings + ' 条绑定', 'success');
                 }

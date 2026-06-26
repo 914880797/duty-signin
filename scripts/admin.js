@@ -17,7 +17,6 @@ window.addEventListener('DOMContentLoaded', function() {
 
 function runMigrations() {
     adminFetch('/api/migrate-record-type', { method: 'POST' })
-        .then(r => r.json())
         .then(data => {
             if (data.migrated) console.log('DB迁移: record_type列已添加');
             else console.log('DB迁移: record_type列已存在, 跳过');
@@ -66,9 +65,13 @@ function showMessage(text, type) {
     }
 }
 
-function adminFetch(url, options) {
+async function adminFetch(url, options) {
     options = options || {};
     options.headers = options.headers || {};
     options.headers['Authorization'] = 'Bearer ' + (localStorage.getItem('adminToken') || '');
-    return adminFetch(url, options);
+    const res = await fetch(url, options);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '请求失败');
+    return data;
+}
 }

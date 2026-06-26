@@ -1,5 +1,5 @@
         function loadAnnouncements() {
-            adminFetch('/api/announcements').then(r => r.json()).then(data => {
+            adminFetch('/api/announcements').then(data => {
                 var list = (data.success ? data.data : []) || [];
                 var tbody = document.getElementById('announcementBody');
                 if (list.length === 0) {
@@ -27,7 +27,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: content })
-            }).then(r => r.json()).then(data => {
+            }).then(data => {
                 if (data.success) {
                     input.value = '';
                     loadAnnouncements();
@@ -42,7 +42,7 @@
         function deleteAnnouncement(id) {
             if (!confirm('确定要删除这条公告吗？')) return;
             adminFetch('/api/announcements?id=' + encodeURIComponent(id), { method: 'DELETE' })
-                .then(r => r.json()).then(data => {
+                .then(data => {
                     if (data.success) loadAnnouncements();
                     else alert(data.error || '删除失败');
                 }).catch(function(e) {
@@ -100,7 +100,7 @@
                     duty_time: shift,
                     group_id: groupId || null
                 })
-            }).then(r => r.json()).then(data => {
+            }).then(data => {
                 if (data.success) {
                     result.textContent = '成功添加 ' + data.inserted + ' 人' + (data.skipped > 0 ? '，跳过 ' + data.skipped + ' 人（已存在）' : '');
                     result.style.color = '#4CAF50';
@@ -269,7 +269,7 @@
                         duty_time: item.duty_time,
                         group_id: item.group ? findGroupId(item.group) : null
                     })
-                }).then(function(r) { return r.json(); }).then(function(data) {
+                }).then(function(data) {
                     if (data.success && data.inserted > 0) completed += data.inserted;
                     names.forEach(function(n) {
                         adminFetch('/api/bindings', {

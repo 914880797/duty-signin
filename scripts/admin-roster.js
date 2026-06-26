@@ -4,15 +4,13 @@
             const today = DateUtils.todayBeijing();
             
             try {
-                const personsRes = await adminFetch('/api/persons');
-                const personsData = await personsRes.json();
+                const personsData = await adminFetch('/api/persons');
                 if (personsData.success) {
                     allowedPersonsList = personsData.data || [];
                 }
-                
-                const response = await adminFetch('/api/bindings');
-                const result = await response.json();
-                if (response.ok && result.success) {
+
+                const result = await adminFetch('/api/bindings');
+                if (result.success) {
                     allRoster = result.data || [];
                     allRoster.sort((a, b) => {
                         const aIdx = shiftConfig.findIndex(s => s.name === a.duty_time);
@@ -115,13 +113,12 @@
 
             var today = DateUtils.todayBeijing();
             try {
-                var resp = await adminFetch('/api/config', {
+                var result = await adminFetch('/api/config', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ date: today, names: names })
                 });
-                var result = await resp.json();
-                if (resp.ok) {
+                if (result.success) {
                     targets.forEach(function(t) {
                         if (t.duty_time) {
                             adminFetch('/api/bindings', {
@@ -159,23 +156,22 @@
                 const config = [{ duty_date: today, duty_time: shift, name: name }];
                 if (groupId) config[0].group_id = parseInt(groupId);
                 
-                const configRes = await adminFetch('/api/config', {
+                const result = await adminFetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ date: today, config: config })
                 });
-                
+
                 // 2. 同时添加到绑定表（永久有效）
-                await adminFetch('/api/bindings', {
+                adminFetch('/api/bindings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ duty_time: shift, name: name, group_id: groupId })
                 }).catch(e => console.warn('添加到绑定表失败:', e));
-                
-                const result = await configRes.json();
-                if (configRes.ok) {
+
+                if (result.success) {
                     // 添加到人员白名单
-                    await adminFetch('/api/persons', {
+                    adminFetch('/api/persons', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ name: name })
@@ -244,7 +240,7 @@
                 const config = [{ duty_date: today, duty_time: newShift, name: name }];
                 if (groupId) config[0].group_id = parseInt(groupId);
                 
-                const addResponse = await adminFetch('/api/config', {
+                const addResult = await adminFetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -252,9 +248,8 @@
                         config: config 
                     })
                 });
-                
-                const addResult = await addResponse.json();
-                if (addResponse.ok) {
+
+                if (addResult.success) {
                     adminFetch('/api/bindings', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },

@@ -5,9 +5,9 @@
             // 优先尝试从后端获取最新设置（只调用一次）
             try {
                 const res = await adminFetch('/api/settings');
-                settingsData = await res.json();
-                if (settingsData.success && settingsData.cycleStartDate) {
-                    cycleStart = settingsData.cycleStartDate;
+                settingsData = res;
+                if (res.success && res.cycleStartDate) {
+                    cycleStart = res.cycleStartDate;
                 }
             } catch (e) {
                 console.error('Failed to load settings', e);
@@ -37,16 +37,15 @@
         async function loadCycleStats(cycleStart, cachedSettingsData = null) {
             try {
                 // 使用缓存的设置数据，避免重复请求
-                const data = cachedSettingsData || (await adminFetch('/api/settings').then(res => res.json()));
-                
+                const data = cachedSettingsData || (await adminFetch('/api/settings'));
+
                 if (data.success) {
                     document.getElementById('totalRecords').innerText = data.totalRecords || 0;
                     
                     if (cycleStart) {
                         const recordsUrl = `/api/records?start_date=${cycleStart}`;
-                        const recordsResponse = await adminFetch(recordsUrl);
-                        const recordsData = await recordsResponse.json();
-                        
+                        const recordsData = await adminFetch(recordsUrl);
+
                         const records = recordsData.success ? (recordsData.data || []) : [];
                         
                         if (records.length > 0) {
@@ -91,29 +90,24 @@
             if (!confirmed) return;
             
             try {
-                // 1. 清空所有打卡记录
-                const clearResponse = await adminFetch('/api/admin/clear-records', {
+                const clearResult = await adminFetch('/api/admin/clear-records', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
-                
-                const clearResult = await clearResponse.json();
-                
-                if (!clearResponse.ok) {
+
+                if (!clearResult.success) {
                     throw new Error(clearResult.error || '清空记录失败');
                 }
-                
-                // 2. 保存新的周期起始日期到数据库和 localStorage
-                const saveRes = await adminFetch('/api/settings', {
+
+                const saveResult = await adminFetch('/api/settings', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ cycleStartDate: newStartDate })
                 });
-                const saveResult = await saveRes.json();
 
-                if (!saveRes.ok) {
+                if (!saveResult.success) {
                     throw new Error(saveResult.error || '保存 settings 失败');
                 }
                 
@@ -136,7 +130,7 @@
             const today = DateUtils.todayBeijing();
             
             try {
-                const response = await adminFetch('/api/config', {
+                const result = await adminFetch('/api/config', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -145,8 +139,8 @@
                         name: name 
                     })
                 });
-                
-                const result = await response.json();
+
+                if (result.success) {
                 if (response.ok) {
                     adminFetch('/api/bindings', {
                         method: 'DELETE',

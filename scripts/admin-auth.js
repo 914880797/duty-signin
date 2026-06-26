@@ -160,8 +160,7 @@
             }
 
             try {
-                const res = await adminFetch('/api/admin/check-config');
-                const data = await res.json();
+                const data = await adminFetch('/api/admin/check-config');
                 if (!data.success) {
                     alert('登录已过期，请重新登录');
                     localStorage.removeItem('isAdminLoggedIn');

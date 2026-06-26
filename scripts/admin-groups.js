@@ -4,10 +4,9 @@
             groupsList.innerHTML = '<div class="loading">加载中...</div>';
             
             try {
-                const response = await adminFetch('/api/groups');
-                const result = await response.json();
-                
-                if (response.ok && result.success) {
+                const result = await adminFetch('/api/groups');
+
+                if (result.success) {
                     allGroups = result.data || [];
                     renderGroups(allGroups);
                     updateGroupSelects();
@@ -65,15 +64,13 @@
             }
             
             try {
-                const response = await adminFetch('/api/groups', {
+                const result = await adminFetch('/api/groups', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: name, order_index: allGroups.length + 1 })
                 });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
+
+                if (result.success) {
                     showMessage('✅ 分组创建成功！', 'success');
                     document.getElementById('groupNameInput').value = '';
                     loadGroups();
@@ -95,16 +92,13 @@
             }
             
             try {
-                const response = await adminFetch('/api/groups', {
+                const result = await adminFetch('/api/groups', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: id, name: newName.trim() })
                 });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    // 更新本地数据
+
+                if (result.success) {
                     const group = allGroups.find(g => g.id === id);
                     if (group) group.name = newName.trim();
                 } else {
@@ -188,15 +182,13 @@
             if (!confirm('确定要删除该分组吗？')) return;
             
             try {
-                const response = await adminFetch('/api/groups', {
+                const result = await adminFetch('/api/groups', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: id })
                 });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
+
+                if (result.success) {
                     showMessage('✅ 分组删除成功！', 'success');
                     loadGroups();
                 } else {
