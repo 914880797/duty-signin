@@ -152,7 +152,7 @@
         // 检查登录状态的辅助函数
         async function checkAdminAuth() {
             const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('adminToken');
             if (isLoggedIn !== 'true' || !token) {
                 alert('请先登录管理员账号');
                 showLoginModal();
@@ -164,7 +164,7 @@
                 if (!data.success) {
                     alert('登录已过期，请重新登录');
                     localStorage.removeItem('isAdminLoggedIn');
-                    localStorage.removeItem('token');
+                    localStorage.removeItem('adminToken');
                     showLoginModal();
                     return false;
                 }

@@ -75,11 +75,13 @@ async function verifyAdmin(request, env) {
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
   const token = authHeader.slice(7);
-  const admin = await env.DB.prepare(
+  const { results } = await env.DB.prepare(
     `SELECT username FROM admin_users WHERE is_active = 1`
-  ).first();
-  if (!admin) return false;
-  return token === await hashPassword(admin.username);
+  ).all();
+  for (const admin of (results || [])) {
+    if (token === await hashPassword(admin.username)) return true;
+  }
+  return false;
 }
 
 function jsonSuccess(data, status = 200) {
